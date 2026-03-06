@@ -38,11 +38,11 @@ public class TwitchServiceImpl implements TwitchService {
         List<TwitchUser> results = new ArrayList<>();
 
         // Split usernames into batches
-        List<List<String>> batches = new ArrayList<>(new ArrayList<>(usernames).stream()
+        List<String> uniqueNames = new ArrayList<>(usernames).stream()
                 .filter(Objects::nonNull)
                 .distinct()
-                .collect(Collectors.groupingBy(username -> 0 / BATCH_SIZE))
-                .values());
+                .toList();
+        List<List<String>> batches = new ArrayList<>(groupLogins(uniqueNames, BATCH_SIZE).values());
 
         // Process each batch
         for (List<String> batch : batches) {
@@ -110,32 +110,6 @@ public class TwitchServiceImpl implements TwitchService {
         } while (cursor != null);
 
         return results;
-    }
-
-    @Override
-    public List<String> findAllOnlineUsers(List<TwitchUser> users) {
-        if (users.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        List<String> allLogins = users.stream()
-                .map(TwitchUser::login)
-                .collect(Collectors.toList());
-
-        Map<Integer, List<String>> groupedLogins = groupLogins(allLogins, BATCH_SIZE);
-
-        List<Future<Set<StreamData>>> futures = groupedLogins.values().stream()
-                .map(loginGroup -> executor.submit(() -> batchCheckUserOnlineStatus(loginGroup)))
-                .toList();
-
-        Set<StreamData> allOnlineStreams = futures.stream()
-                .map(this::getFutureResultSafe)
-                .flatMap(Set::stream)
-                .collect(Collectors.toSet());
-
-        return allOnlineStreams.stream()
-                .map(StreamData::getUserLogin)
-                .toList();
     }
 
     @Override

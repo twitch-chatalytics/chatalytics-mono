@@ -5,10 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.pircbotx.hooks.ListenerAdapter;
 import org.pircbotx.hooks.events.MessageEvent;
 import org.springframework.stereotype.Component;
-import space.forloop.irc.producer.domain.IrcPayload;
+import space.forloop.chatalytics.data.domain.IrcPayload;
 import space.forloop.irc.producer.services.KafkaProducerService;
 import space.forloop.irc.producer.services.SessionMapService;
 
+import java.time.Instant;
 import java.util.Objects;
 
 @Slf4j
@@ -28,9 +29,14 @@ public class OnIrcMessageEvent extends ListenerAdapter {
         String channel = Objects.requireNonNull(event.getChannel().getName()).replace("#", "");
 
         if (sessionMapService.sessionMap().containsKey(channel)) {
-            IrcPayload ircPayload = IrcPayload.fromMessageEvent(event);
-
-            ircPayload.setSession(sessionMapService.sessionMap().get(channel));
+            IrcPayload ircPayload = IrcPayload.builder()
+                    .channel(channel)
+                    .nick(Objects.requireNonNull(event.getUser()).getNick())
+                    .userId(event.getUser().getUserId().toString())
+                    .message(event.getMessage())
+                    .timestamp(Instant.now())
+                    .session(sessionMapService.sessionMap().get(channel))
+                    .build();
 
             kafkaProducerService.sendMessage(ircPayload);
         } else {

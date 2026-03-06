@@ -15,8 +15,6 @@ public interface TwitchService {
 
     Set<StreamData> batchCheckUserOnlineStatus(List<String> logins);
 
-    List<String> findAllOnlineUsers(List<TwitchUser> users);
-
     Set<StreamData> findAllOnlineStreams(List<TwitchUser> users);
 
     List<StreamData> findTopOnlineUsers();

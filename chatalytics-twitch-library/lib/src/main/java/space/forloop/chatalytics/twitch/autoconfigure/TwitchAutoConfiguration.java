@@ -26,12 +26,6 @@ public class TwitchAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    RestTemplate twitchRestTemplate() {
-        return new RestTemplate();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
     TwitchAuthService twitchAuthService(RestTemplate twitchRestTemplate) {
         return new TwitchAuthService(twitchRestTemplate);
     }

@@ -1,9 +1,16 @@
 package space.forloop.irc.producer.services;
 
+import lombok.RequiredArgsConstructor;
 import org.pircbotx.PircBotX;
+import org.springframework.stereotype.Service;
 
-public interface BotService {
+@Service
+@RequiredArgsConstructor
+public class BotService {
 
-    PircBotX getBot();
+    private final PircBotX pircBotX;
 
+    public PircBotX getBot() {
+        return this.pircBotX;
+    }
 }

@@ -1,10 +1,9 @@
-package space.forloop.chatalytics.consumer.domain;
+package space.forloop.chatalytics.data.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import space.forloop.chatalytics.data.domain.SessionWithUser;
 
 import java.time.Instant;
 

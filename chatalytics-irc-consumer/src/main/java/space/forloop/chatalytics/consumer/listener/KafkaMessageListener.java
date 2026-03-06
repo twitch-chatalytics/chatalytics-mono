@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
-import space.forloop.chatalytics.consumer.domain.IrcPayload;
+import space.forloop.chatalytics.data.domain.IrcPayload;
 import space.forloop.chatalytics.consumer.service.MessageService;
 
 import java.util.List;
