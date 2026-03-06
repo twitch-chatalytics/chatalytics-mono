@@ -1,24 +1,24 @@
 rootProject.name = 'chatalytics'
 
 // Libraries (nested under lib/ subdirectory)
-include ':data-library'
-project(':data-library').projectDir = file('chatalytics-data-library/lib')
+include ':chatalytics-data-library'
+project(':chatalytics-data-library').projectDir = file('chatalytics-data-library/lib')
 
-include ':twitch-library'
-project(':twitch-library').projectDir = file('chatalytics-twitch-library/lib')
+include ':chatalytics-twitch-library'
+project(':chatalytics-twitch-library').projectDir = file('chatalytics-twitch-library/lib')
 
 // Services
-include ':irc-producer'
-project(':irc-producer').projectDir = file('chatalytics-irc-producer')
+include ':chatalytics-irc-producer'
+project(':chatalytics-irc-producer').projectDir = file('chatalytics-irc-producer')
 
-include ':irc-consumer'
-project(':irc-consumer').projectDir = file('chatalytics-irc-consumer')
+include ':chatalytics-irc-consumer'
+project(':chatalytics-irc-consumer').projectDir = file('chatalytics-irc-consumer')
 
-include ':data-roller'
-project(':data-roller').projectDir = file('chatalytics-data-roller')
+include ':chatalytics-data-roller'
+project(':chatalytics-data-roller').projectDir = file('chatalytics-data-roller')
 
-include ':session-manager'
-project(':session-manager').projectDir = file('chatalytics-session-manager')
+include ':chatalytics-session-manager'
+project(':chatalytics-session-manager').projectDir = file('chatalytics-session-manager')
 
-include ':api'
-project(':api').projectDir = file('chatalytics-api')
+include ':chatalytics-api'
+project(':chatalytics-api').projectDir = file('chatalytics-api')

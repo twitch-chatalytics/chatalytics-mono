@@ -9,7 +9,7 @@ group = 'space.forloop.chatalytics'
 version = '0.0.1-SNAPSHOT'
 
 dependencies {
-    implementation project(':data-library')
+    implementation project(':chatalytics-data-library')
 
     implementation 'org.springframework.boot:spring-boot-starter-jooq'
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'

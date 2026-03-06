@@ -10,8 +10,8 @@ group = 'space.forloop.chatalytics.api'
 version = '0.0.1-SNAPSHOT'
 
 dependencies {
-    implementation project(':twitch-library')
-    implementation project(':data-library')
+    implementation project(':chatalytics-twitch-library')
+    implementation project(':chatalytics-data-library')
 
     // Spring starters
     implementation 'org.springframework.boot:spring-boot-starter-jooq'
