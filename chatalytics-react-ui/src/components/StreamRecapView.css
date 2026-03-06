@@ -1,0 +1,228 @@
+.recap-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 60px 0;
+  color: #888;
+  font-size: 14px;
+}
+
+.recap-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #e0e0e0;
+  border-top-color: #666;
+  border-radius: 50%;
+  animation: recap-spin 0.6s linear infinite;
+}
+
+@keyframes recap-spin {
+  to { transform: rotate(360deg); }
+}
+
+.recap-error {
+  text-align: center;
+  color: #999;
+  padding: 40px 0;
+}
+
+.recap-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 4px 0;
+  margin-bottom: 16px;
+  transition: color 0.15s;
+}
+
+.recap-back-btn:hover {
+  color: #333;
+}
+
+.recap-view {
+  margin-top: 8px;
+}
+
+.recap-header {
+  margin-bottom: 24px;
+}
+
+.recap-date {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 6px;
+}
+
+.recap-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  color: #888;
+}
+
+.recap-summary {
+  background: #f9fafb;
+  border-radius: 10px;
+  border-left: 3px solid #3b82f6;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #444;
+}
+
+.recap-summary p {
+  margin: 0 0 12px;
+}
+
+.recap-summary p:last-child {
+  margin-bottom: 0;
+}
+
+.recap-section {
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+
+.recap-section-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #999;
+  margin: 0 0 12px;
+}
+
+.recap-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.timeline-segment {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 0;
+  position: relative;
+}
+
+.timeline-time {
+  font-size: 12px;
+  color: #999;
+  min-width: 60px;
+  text-align: right;
+  padding-top: 2px;
+}
+
+.timeline-bar {
+  width: 2px;
+  min-height: 32px;
+  background: #e0e0e0;
+  border-radius: 1px;
+  position: relative;
+}
+
+.timeline-bar::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: -3px;
+  width: 8px;
+  height: 8px;
+  background: #3b82f6;
+  border-radius: 50%;
+}
+
+.timeline-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.timeline-game {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.timeline-viewers {
+  font-size: 12px;
+  color: #999;
+}
+
+.recap-activity-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  height: 80px;
+  padding: 0 2px;
+}
+
+.activity-bar-wrapper {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  cursor: default;
+}
+
+.activity-bar {
+  width: 100%;
+  background: #3b82f6;
+  border-radius: 1px 1px 0 0;
+  min-height: 2px;
+  transition: opacity 0.15s;
+}
+
+.activity-bar-wrapper:hover .activity-bar {
+  opacity: 1 !important;
+}
+
+.recap-activity-peak {
+  font-size: 12px;
+  color: #888;
+  margin-top: 8px;
+  text-align: center;
+}
+
+.recap-chatters {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.recap-chatter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.recap-chatter-rank {
+  color: #ccc;
+  font-weight: 600;
+  min-width: 24px;
+}
+
+.recap-chatter-name {
+  color: #333;
+  font-weight: 500;
+  flex: 1;
+}
+
+.recap-chatter-count {
+  color: #999;
+  font-size: 12px;
+}

@@ -1,0 +1,12 @@
+# Local development profile
+# Run with: -Dspring.profiles.active=local
+# Infrastructure must be running via: docker compose up -d
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: postgrespassword
+
+  kafka:
+    bootstrap-servers: localhost:9094

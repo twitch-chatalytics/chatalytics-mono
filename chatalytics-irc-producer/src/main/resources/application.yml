@@ -1,0 +1,40 @@
+server:
+  port: 0
+
+spring:
+  threads:
+    virtual:
+      enabled: true
+  kafka:
+    bootstrap-servers: chatalytics-stack:9092
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      group-id: chatalytics-group
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      retries: 3
+      acks: all
+    listener:
+      missing-topics-fatal: false
+
+  datasource:
+    url: jdbc:postgresql://chatalytics-stack:5432/postgres
+    username: postgres
+    password: postgrespassword
+
+logging:
+  level:
+    org:
+      apache.kafka: WARN
+      pircbotx: OFF
+      springframework.kafka.listener: WARN
+
+app:
+  properties:
+    ircManagerHost: "http://localhost:8083"
+    twitchUsername: "peavers"
+    twitchPassword: "rk6tprthqqmwqz5bno83l7dyiuaoe4"

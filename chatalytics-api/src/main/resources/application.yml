@@ -1,0 +1,41 @@
+spring:
+  data:
+    redis:
+      host: chatalytics-stack
+      port: 6379
+      database: 0
+      timeout: 60000
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+
+  datasource:
+    url: jdbc:postgresql://chatalytics-stack:5432/postgres
+    username: postgres
+    password: postgrespassword
+  liquibase:
+    change-log: classpath:db/changelog.yml
+
+app:
+  mock-enabled: true
+  mock-user: 552120296
+  mock-username: zackrawrr
+
+anthropic:
+  api-key: ${ANTHROPIC_API_KEY:}
+
+twitch:
+  client-id: j9i0u85lh015x1b77yofg57lxx2mph
+  client-secret: 4eodxhvvcqldlopw0ld02gmwc9w9ix
+
+logging:
+  level:
+    org.jooq.tools.LoggerListener: DEBUG
+    org.springframework.security: INFO
+    org.springframework.security.oauth2.server.resource: INFO
+    org.springframework.security.oauth2.jwt: INFO
+    org.springframework.web: INFO
+    org.springframework.web.filter.CommonsRequestLoggingFilter: INFO

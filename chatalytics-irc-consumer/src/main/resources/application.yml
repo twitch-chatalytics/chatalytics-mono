@@ -1,0 +1,30 @@
+server:
+  port: 0
+
+spring:
+  datasource:
+    url: jdbc:postgresql://chatalytics-stack:5432/postgres
+    username: postgres
+    password: postgrespassword
+
+  kafka:
+    bootstrap-servers: chatalytics-stack:9092
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      enable-auto-commit: true
+      auto-commit-interval: 1000
+      group-id: 2
+      auto-offset-reset: latest
+      properties:
+        connections.max.idle.ms: 10000
+        request.timeout.ms: 30000
+        retry.backoff.ms: 1000
+        max.poll.records: 500  # Maximum number of records to fetch in one poll
+        fetch.min.bytes: 1024  # Minimum amount of data to fetch in one request
+        fetch.max.wait.ms: 500 # Maximum time to wait for fetch.min.bytes
+        batch-listener: true     # Enable batch listening
+
+  threads:
+    virtual:
+      enabled: true

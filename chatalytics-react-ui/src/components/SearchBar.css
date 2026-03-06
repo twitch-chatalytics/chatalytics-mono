@@ -1,0 +1,232 @@
+.search-bar {
+  display: flex;
+}
+
+.search-input-wrapper {
+  flex: 1;
+  position: relative;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 84px 12px 16px;
+  font-size: 15px;
+  font-family: 'Inter', sans-serif;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fff;
+  color: #1a1a1a;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-input:focus {
+  border-color: #a0a0a0;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.04);
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
+.search-input:disabled {
+  opacity: 0.6;
+}
+
+/* Action icons inside input */
+.search-actions {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* Clock icon toggle */
+.search-date-toggle {
+  position: relative;
+}
+
+.date-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #bbb;
+  cursor: pointer;
+  transition: all 0.15s;
+  position: relative;
+}
+
+.date-toggle-btn:hover {
+  background: #f5f5f5;
+  color: #555;
+}
+
+.date-toggle-btn.date-toggle-active {
+  color: #3b82f6;
+}
+
+.date-toggle-btn.date-toggle-active:hover {
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.date-toggle-dot {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #3b82f6;
+}
+
+/* Submit arrow icon */
+.search-submit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #ccc;
+  cursor: default;
+  transition: all 0.15s;
+}
+
+.search-submit-btn.search-submit-ready {
+  color: #1a1a1a;
+  cursor: pointer;
+}
+
+.search-submit-btn.search-submit-ready:hover {
+  background: #f5f5f5;
+}
+
+.search-submit-btn:disabled {
+  color: #ccc;
+  cursor: default;
+}
+
+/* Date dropdown */
+.date-dropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  z-index: 20;
+  padding: 12px;
+  min-width: 280px;
+}
+
+.date-dropdown-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.preset-btn {
+  padding: 6px 14px;
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background: #fff;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.preset-btn:hover {
+  border-color: #bbb;
+  color: #333;
+}
+
+.preset-btn.active {
+  background: #1a1a1a;
+  border-color: #1a1a1a;
+  color: #fff;
+}
+
+.date-dropdown-custom {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.custom-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: #999;
+  font-weight: 500;
+  flex: 1;
+}
+
+.custom-input {
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background: #fff;
+  color: #1a1a1a;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+}
+
+.custom-input:focus {
+  border-color: #a0a0a0;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.04);
+}
+
+/* Suggestions */
+.suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin: 4px 0 0;
+  padding: 4px 0;
+  list-style: none;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  z-index: 10;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.suggestion-item {
+  padding: 10px 16px;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.suggestion-item:hover,
+.suggestion-item.highlighted {
+  background: #f5f5f5;
+}
+
+.suggestion-item:active {
+  background: #eee;
+}

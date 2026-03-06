@@ -1,0 +1,113 @@
+name: Build, Test, and Publish
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build with Gradle
+        run: ./gradlew build --scan
+
+      - name: Upload build output
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: build
+
+  publish:
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build with Gradle
+        run: ./gradlew build --scan
+
+      - name: Calculate version
+        id: calculate_version
+        run: |
+          # Get the current version from lib/build.gradle
+          current_version=$(grep "version = '" lib/build.gradle | sed "s/version = '//" | sed "s/'//")
+          echo "Current version: $current_version"
+          
+          # Split the version into major, minor, and patch
+          IFS='.' read -r major minor patch <<< "$current_version"
+          
+          # Increment patch version
+          new_patch=$((patch + 1))
+          new_version="$major.$minor.$new_patch"
+          
+          echo "New version will be: $new_version"
+          echo "new_version=$new_version" >> $GITHUB_OUTPUT
+
+      - name: Update version in build files
+        run: |
+          new_version=${{ steps.calculate_version.outputs.new_version }}
+          
+          # Update version in lib/build.gradle
+          sed -i "s/version = '[0-9]*\.[0-9]*\.[0-9]*'/version = '$new_version'/" lib/build.gradle
+          
+          # Commit and push the version update
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add lib/build.gradle
+          git commit -m "Bump version to $new_version [skip ci]"
+          git push
+
+      - name: Publish to GitHub Packages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+        run: ./gradlew publish --scan
+
+      - name: Create Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ steps.calculate_version.outputs.new_version }}
+          release_name: Release ${{ steps.calculate_version.outputs.new_version }}
+          draft: false
+          prerelease: false
+          body: |
+            Automated release for version ${{ steps.calculate_version.outputs.new_version }}
+            
+            ### What's Changed
+            * Automated release from master branch
+            * For detailed changes, please check the [commit history](https://github.com/${{ github.repository }}/commits/master)

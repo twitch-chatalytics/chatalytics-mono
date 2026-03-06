@@ -1,0 +1,28 @@
+version: 2
+updates:
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    versioning-strategy: increase-if-necessary
+    groups:
+      dependencies:
+        patterns:
+          - "*"
+
+  # Gradle Wrapper updates
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    target-branch: "main"
+    # Only allow updates to the Gradle wrapper
+    allow:
+      - dependency-name: "gradle"
+        dependency-type: "direct"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

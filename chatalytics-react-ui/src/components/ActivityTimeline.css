@@ -1,0 +1,40 @@
+.activity-timeline {
+  position: relative;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.activity-timeline-svg {
+  width: 100%;
+  height: 68px;
+  display: block;
+}
+
+.activity-timeline-svg rect {
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.activity-timeline-svg rect:hover {
+  opacity: 1 !important;
+}
+
+.activity-timeline-label {
+  font-size: 8px;
+  fill: #999;
+  font-family: inherit;
+}
+
+.activity-timeline-tooltip {
+  position: absolute;
+  top: -4px;
+  transform: translateX(-50%);
+  background: #333;
+  color: #fff;
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+}

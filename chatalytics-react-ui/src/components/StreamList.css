@@ -1,0 +1,67 @@
+.stream-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.stream-list-loading,
+.stream-list-empty {
+  text-align: center;
+  color: #999;
+  padding: 40px 0;
+  font-size: 14px;
+}
+
+.stream-card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 10px;
+  padding: 16px 20px;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+
+.stream-card:hover {
+  border-color: #ccc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.stream-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.stream-card-date {
+  font-size: 13px;
+  color: #888;
+}
+
+.stream-card-live {
+  font-size: 11px;
+  font-weight: 700;
+  color: #ef4444;
+  background: #fef2f2;
+  padding: 2px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+}
+
+.stream-card-game {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+}
+
+.stream-card-stats {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: #999;
+}

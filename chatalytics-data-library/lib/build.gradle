@@ -1,0 +1,84 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'io.spring.dependency-management'
+    id 'org.jooq.jooq-codegen-gradle'
+}
+
+group = 'space.forloop'
+version = '1.0.14'
+
+dependencies {
+    api 'org.springframework.boot:spring-boot-starter-jooq'
+    implementation "org.jooq:jooq:3.19.16"
+
+    // Config
+    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+    annotationProcessor 'org.springframework.boot:spring-boot-autoconfigure-processor'
+
+    // Database
+    runtimeOnly 'org.postgresql:postgresql:42.7.4'
+    jooqCodegen 'org.postgresql:postgresql:42.7.4'
+}
+
+jooq {
+    configuration {
+        jdbc {
+            driver = "org.postgresql.Driver"
+            url = "jdbc:postgresql://chatalytics-stack:5432/postgres"
+            user = "postgres"
+            password = "postgrespassword"
+        }
+        generator {
+            database {
+                name = 'org.jooq.meta.postgres.PostgresDatabase'
+                inputSchema = "twitch"
+                excludes = "databasechangelog|databasechangeloglock|twitch_.*"
+                forcedTypes {
+                    forcedType {
+                        userType = "java.time.Instant"
+                        converter = "space.forloop.chatalytics.data.InstantConverter"
+                        includeTypes = "(?i:TIMESTAMPTZ|TIMESTAMP WITH TIME ZONE)"
+                    }
+                }
+            }
+            generate {
+                pojos = true
+                fluentSetters = true
+            }
+            target {
+                packageName = "space.forloop.chatalytics.data.generated"
+                directory = "src/main/java"
+            }
+        }
+    }
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/twitch-chatalytics/chatalytics-data-library")
+            credentials {
+                username = project.findProperty('gpr.user') ?: System.getenv('GITHUB_ACTOR')
+                password = project.findProperty('gpr.key') ?: System.getenv('GITHUB_TOKEN')
+            }
+        }
+    }
+
+    publications {
+        gpr(MavenPublication) {
+            from(components.java)
+
+            versionMapping {
+                allVariants {
+                    fromResolutionResult()
+                }
+            }
+
+            groupId = 'com.github.twitch-chatalytics'
+            artifactId = 'data-library'
+            version = project.version
+        }
+    }
+}

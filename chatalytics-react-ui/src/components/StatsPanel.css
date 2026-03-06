@@ -1,0 +1,155 @@
+.stats-footer {
+  background: #141414;
+  border-top: 1px solid #252525;
+  width: 100%;
+  margin-top: auto;
+}
+
+.stats-footer-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 32px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 48px;
+}
+
+.stats-loading {
+  justify-content: center;
+}
+
+.stats-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #2a2a2a;
+  border-top-color: #555;
+  border-radius: 50%;
+  animation: stats-spin 0.7s linear infinite;
+}
+
+@keyframes stats-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Left side — stat numbers */
+.footer-left {
+  flex-shrink: 0;
+}
+
+.footer-stats-row {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.footer-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.footer-stat-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: #e8e8e8;
+  font-variant-numeric: tabular-nums;
+}
+
+.footer-stat-label {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #555;
+}
+
+.footer-stat-divider {
+  width: 1px;
+  height: 32px;
+  background: #2a2a2a;
+}
+
+/* Right side — compact leaderboard */
+.footer-right {
+  flex: 1;
+  max-width: 360px;
+}
+
+.footer-leaderboard-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #555;
+  margin-bottom: 8px;
+}
+
+.footer-leaderboard {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.footer-chatter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+  background: none;
+  border: none;
+  font-family: inherit;
+  width: 100%;
+  text-align: left;
+}
+
+.footer-chatter:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.footer-chatter:hover .footer-chatter-name {
+  color: #63a0ff;
+}
+
+.footer-chatter-rank {
+  font-size: 11px;
+  font-weight: 600;
+  color: #444;
+  width: 16px;
+  text-align: right;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.footer-chatter-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #aaa;
+  flex: 1;
+  transition: color 0.15s;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.footer-chatter-count {
+  font-size: 12px;
+  color: #555;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .stats-footer-inner {
+    flex-direction: column;
+    gap: 24px;
+    padding: 24px 20px;
+  }
+
+  .footer-right {
+    max-width: 100%;
+  }
+}

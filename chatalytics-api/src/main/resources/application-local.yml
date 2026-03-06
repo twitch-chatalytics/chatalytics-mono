@@ -1,0 +1,14 @@
+# Local development profile
+# Run with: -Dspring.profiles.active=local
+# Infrastructure must be running via: docker compose up -d
+
+spring:
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: postgrespassword
