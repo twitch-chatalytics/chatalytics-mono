@@ -14,8 +14,6 @@ project(':chatalytics-irc-producer').projectDir = file('chatalytics-irc-producer
 include ':chatalytics-irc-consumer'
 project(':chatalytics-irc-consumer').projectDir = file('chatalytics-irc-consumer')
 
-include ':chatalytics-data-roller'
-project(':chatalytics-data-roller').projectDir = file('chatalytics-data-roller')
 
 include ':chatalytics-session-manager'
 project(':chatalytics-session-manager').projectDir = file('chatalytics-session-manager')

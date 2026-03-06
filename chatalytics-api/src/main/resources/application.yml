@@ -19,11 +19,6 @@ spring:
   liquibase:
     change-log: classpath:db/changelog.yml
 
-app:
-  mock-enabled: true
-  mock-user: 552120296
-  mock-username: zackrawrr
-
 anthropic:
   api-key: ${ANTHROPIC_API_KEY:}
 
@@ -34,8 +29,4 @@ twitch:
 logging:
   level:
     org.jooq.tools.LoggerListener: DEBUG
-    org.springframework.security: INFO
-    org.springframework.security.oauth2.server.resource: INFO
-    org.springframework.security.oauth2.jwt: INFO
     org.springframework.web: INFO
-    org.springframework.web.filter.CommonsRequestLoggingFilter: INFO

@@ -19,10 +19,6 @@ public class RedisConfig {
 
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(config)
-                .withCacheConfiguration(SESSION_SERVICE_FETCH_SESSION, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(30)))
-                .withCacheConfiguration(SESSION_SUMMARY_SERVICE_FIND_ALL, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(2)))
-                .withCacheConfiguration(WORD_CLOUD_SERVICE_FIND_WORD_CLOUD, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(2)))
-                .withCacheConfiguration(USER_SERVICE_FIND_BY_LOGIN, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofDays(90)))
                 .withCacheConfiguration(PUBLIC_STATS, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(5)))
                 .withCacheConfiguration(CHATTER_PROFILE, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(10)))
                 .withCacheConfiguration(CHATTER_SUMMARY, RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(30)))

@@ -15,12 +15,6 @@ public class DataLibraryAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    WordCloudRepository metricRepository(DSLContext dslContext) {
-        return new WordCloudRepositoryImpl(dslContext);
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
     UserRepository userRepository(DSLContext dslContext) {
         return new UserRepositoryImpl(dslContext);
     }
@@ -35,18 +29,6 @@ public class DataLibraryAutoConfiguration {
     @ConditionalOnMissingBean
     MessageRepository messageRepository(DSLContext dslContext) {
         return new MessageRepositoryImpl(dslContext);
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    SessionSummaryRepository summaryRepository(DSLContext dslContext) {
-        return new SessionSummaryRepositoryImpl(dslContext);
-    }
-
-    @Bean
-    @ConditionalOnMissingBean
-    RollupRepository rollupRepository(DSLContext dslContext) {
-        return new RollupRepositoryImpl(dslContext);
     }
 
     @Bean
