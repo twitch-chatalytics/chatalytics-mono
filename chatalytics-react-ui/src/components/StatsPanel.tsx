@@ -46,8 +46,33 @@ export default function StatsPanel({ onAuthorClick }: StatsPanelProps) {
   if (loading) {
     return (
       <footer className="stats-footer">
-        <div className="stats-footer-inner stats-loading">
-          <div className="stats-spinner" />
+        <div className="stats-footer-inner">
+          <div className="footer-left">
+            <div className="footer-stats-row">
+              <div className="footer-stat">
+                <div className="skeleton skeleton-value" />
+                <div className="skeleton skeleton-label" />
+              </div>
+              <div className="footer-stat-divider" />
+              <div className="footer-stat">
+                <div className="skeleton skeleton-value" />
+                <div className="skeleton skeleton-label" />
+              </div>
+              <div className="footer-stat-divider" />
+              <div className="footer-stat">
+                <div className="skeleton skeleton-value" />
+                <div className="skeleton skeleton-label" />
+              </div>
+            </div>
+          </div>
+          <div className="footer-right">
+            <div className="skeleton skeleton-leaderboard-label" />
+            <div className="skeleton-leaderboard">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="skeleton skeleton-chatter-row" />
+              ))}
+            </div>
+          </div>
         </div>
       </footer>
     );

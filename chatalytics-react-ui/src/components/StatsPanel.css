@@ -15,21 +15,45 @@
   gap: 48px;
 }
 
-.stats-loading {
-  justify-content: center;
+/* Skeleton loading */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.3; }
 }
 
-.stats-spinner {
-  width: 20px;
-  height: 20px;
-  border: 2px solid #2a2a2a;
-  border-top-color: #555;
-  border-radius: 50%;
-  animation: stats-spin 0.7s linear infinite;
+.skeleton {
+  background: #fff;
+  border-radius: 4px;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
 }
 
-@keyframes stats-spin {
-  to { transform: rotate(360deg); }
+.skeleton-value {
+  width: 64px;
+  height: 22px;
+  margin-bottom: 4px;
+}
+
+.skeleton-label {
+  width: 48px;
+  height: 12px;
+}
+
+.skeleton-leaderboard-label {
+  width: 80px;
+  height: 12px;
+  margin-bottom: 10px;
+}
+
+.skeleton-leaderboard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.skeleton-chatter-row {
+  height: 28px;
+  width: 100%;
+  border-radius: 6px;
 }
 
 /* Left side — stat numbers */

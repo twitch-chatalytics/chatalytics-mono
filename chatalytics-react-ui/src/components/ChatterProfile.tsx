@@ -56,50 +56,7 @@ export default function ChatterProfile({ profile, children }: Props) {
     >
       <div className="chatter-profile-header">
         <h2 className="chatter-profile-author">{profile.author}</h2>
-        {!summary && (
-          <button
-            className="summarize-btn"
-            onClick={handleSummarize}
-            disabled={summaryLoading}
-          >
-            {summaryLoading ? (
-              <>
-                <span className="summarize-spinner" />
-                Summarizing...
-              </>
-            ) : (
-              <>
-                <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                  <path d="M4 5h8M4 8h6M4 11h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
-                Summarize
-              </>
-            )}
-          </button>
-        )}
       </div>
-
-      <AnimatePresence>
-        {summary && (
-          <motion.p
-            className="chatter-summary"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            transition={{ duration: 0.3 }}
-          >
-            {summary}
-          </motion.p>
-        )}
-        {summaryError && !summary && (
-          <motion.p
-            className="chatter-summary chatter-summary-error"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
-            Summary unavailable
-          </motion.p>
-        )}
-      </AnimatePresence>
 
       <div className="chatter-profile-stats">
         <div className="chatter-stat">
@@ -128,6 +85,53 @@ export default function ChatterProfile({ profile, children }: Props) {
             <span className="chatter-stat-label">PEAK HOUR</span>
           </div>
         )}
+      </div>
+
+      <div className="ai-summary-section">
+        <div className="ai-summary-header">
+          <svg className="ai-summary-icon" width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M8 1l1.5 3.5L13 6l-3.5 1.5L8 11 6.5 7.5 3 6l3.5-1.5L8 1z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" />
+            <path d="M12 10l.75 1.75L14.5 12.5l-1.75.75L12 15l-.75-1.75-1.75-.75 1.75-.75L12 10z" stroke="currentColor" strokeWidth="1" strokeLinejoin="round" />
+          </svg>
+          <span className="ai-summary-title">AI Summary</span>
+        </div>
+        <AnimatePresence mode="wait">
+          {summary ? (
+            <motion.p
+              key="summary"
+              className="ai-summary-text"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              transition={{ duration: 0.3 }}
+            >
+              {summary}
+            </motion.p>
+          ) : summaryError ? (
+            <motion.p
+              key="error"
+              className="ai-summary-text ai-summary-error"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+            >
+              Summary unavailable
+            </motion.p>
+          ) : (
+            <button
+              className="ai-summary-btn"
+              onClick={handleSummarize}
+              disabled={summaryLoading}
+            >
+              {summaryLoading ? (
+                <>
+                  <span className="summarize-spinner" />
+                  Generating summary...
+                </>
+              ) : (
+                'Generate summary'
+              )}
+            </button>
+          )}
+        </AnimatePresence>
       </div>
 
       {children}
