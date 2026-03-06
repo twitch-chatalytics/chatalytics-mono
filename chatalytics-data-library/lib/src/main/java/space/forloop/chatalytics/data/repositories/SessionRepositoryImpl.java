@@ -3,9 +3,7 @@ package space.forloop.chatalytics.data.repositories;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.jooq.Field;
-import org.jooq.Table;
 import org.jooq.impl.DSL;
-import org.jooq.impl.SQLDataType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import space.forloop.chatalytics.data.domain.SessionSummaryView;
@@ -13,7 +11,6 @@ import space.forloop.chatalytics.data.domain.SessionWithUser;
 import space.forloop.chatalytics.data.generated.tables.pojos.Session;
 
 import java.time.Instant;
-import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -123,24 +120,43 @@ public class SessionRepositoryImpl implements SessionRepository {
     }
 
     @Override
-    public List<SessionSummaryView> findSessionsWithStats(long twitchId, int limit) {
-        Table<?> snapshot = DSL.table("twitch.stream_snapshot");
-        Field<Long> snapSessionId = DSL.field("twitch.stream_snapshot.session_id", Long.class);
-        Field<String> snapGameName = DSL.field("twitch.stream_snapshot.game_name", String.class);
-        Field<OffsetDateTime> snapTimestamp = DSL.field("twitch.stream_snapshot.timestamp", SQLDataType.TIMESTAMPWITHTIMEZONE);
-
-        // Subquery: latest game_name per session from snapshots
-        var latestSnapshot = DSL.select(
-                        snapSessionId.as("ss_session_id"),
-                        snapGameName.as("last_game_name")
-                )
-                .from(snapshot)
-                .where(snapTimestamp.eq(
-                        DSL.select(DSL.max(snapTimestamp))
-                                .from(snapshot.as("s2"))
-                                .where(DSL.field("s2.session_id", Long.class).eq(snapSessionId))
+    public Double avgStreamDurationMinutes(Long twitchId) {
+        return dsl.select(
+                DSL.avg(DSL.field(
+                        "EXTRACT(EPOCH FROM (end_time - start_time)) / 60",
+                        Double.class
                 ))
-                .asTable("latest_snap");
+        )
+        .from(SESSION)
+        .where(SESSION.TWITCH_ID.eq(twitchId))
+        .and(SESSION.END_TIME.isNotNull())
+        .fetchOneInto(Double.class);
+    }
+
+    @Override
+    public List<SessionSummaryView> findSessionsWithStats(long twitchId, int limit) {
+        // Subquery: latest game_name per session using DISTINCT ON (PostgreSQL)
+        var latestSnapshot = DSL.table(
+                "(SELECT DISTINCT ON (session_id) session_id AS ss_session_id, game_name AS last_game_name " +
+                "FROM twitch.stream_snapshot ORDER BY session_id, \"timestamp\" DESC)"
+        ).asTable("latest_snap");
+
+        // Subquery: peak viewer count per session
+        var peakViewers = DSL.table(
+                "(SELECT session_id AS pv_session_id, MAX(viewer_count) AS peak_viewer_count " +
+                "FROM twitch.stream_snapshot GROUP BY session_id)"
+        ).asTable("peak_viewers");
+
+        Field<Long> snapSessionId = DSL.field(DSL.name("latest_snap", "ss_session_id"), Long.class);
+        Field<String> lastGameName = DSL.field(DSL.name("latest_snap", "last_game_name"), String.class);
+        Field<Long> pvSessionId = DSL.field(DSL.name("peak_viewers", "pv_session_id"), Long.class);
+        Field<Integer> peakViewerCount = DSL.field(DSL.name("peak_viewers", "peak_viewer_count"), Integer.class);
+
+        Field<Long> durationMinutes = DSL.field(
+                "EXTRACT(EPOCH FROM (COALESCE({0}, NOW()) - {1})) / 60",
+                Long.class,
+                SESSION.END_TIME, SESSION.START_TIME
+        );
 
         return dsl.select(
                         SESSION.ID.as("sessionId"),
@@ -149,15 +165,20 @@ public class SessionRepositoryImpl implements SessionRepository {
                         SESSION.END_TIME.as("endTime"),
                         DSL.count(MESSAGE.ID).as("totalMessages"),
                         DSL.countDistinct(MESSAGE.AUTHOR).as("totalChatters"),
-                        latestSnapshot.field("last_game_name", String.class).as("lastGameName")
+                        lastGameName.as("lastGameName"),
+                        peakViewerCount.as("peakViewerCount"),
+                        DSL.when(durationMinutes.gt(0L),
+                                DSL.count(MESSAGE.ID).cast(Double.class).div(durationMinutes.cast(Double.class))
+                        ).as("messagesPerMinute"),
+                        durationMinutes.as("durationMinutes")
                 )
                 .from(SESSION)
                 .leftJoin(MESSAGE).on(SESSION.ID.eq(MESSAGE.SESSION_ID))
-                .leftJoin(latestSnapshot).on(SESSION.ID.eq(latestSnapshot.field("ss_session_id", Long.class)))
+                .leftJoin(latestSnapshot).on(SESSION.ID.eq(snapSessionId))
+                .leftJoin(peakViewers).on(SESSION.ID.eq(pvSessionId))
                 .where(SESSION.TWITCH_ID.eq(twitchId))
                 .groupBy(SESSION.ID, SESSION.TWITCH_ID, SESSION.START_TIME, SESSION.END_TIME,
-                        latestSnapshot.field("last_game_name", String.class))
-                .having(DSL.count(MESSAGE.ID).gt(0))
+                        lastGameName, peakViewerCount, durationMinutes)
                 .orderBy(SESSION.START_TIME.desc())
                 .limit(limit)
                 .fetchInto(SessionSummaryView.class);

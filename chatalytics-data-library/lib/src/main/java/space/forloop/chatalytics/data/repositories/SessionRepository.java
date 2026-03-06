@@ -29,4 +29,6 @@ public interface SessionRepository {
     long countByUserId(long userId);
 
     List<SessionSummaryView> findSessionsWithStats(long twitchId, int limit);
+
+    Double avgStreamDurationMinutes(Long twitchId);
 }

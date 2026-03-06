@@ -2,6 +2,7 @@ package space.forloop.chatalytics.data.repositories;
 
 import space.forloop.chatalytics.data.domain.ChatActivityBucket;
 import space.forloop.chatalytics.data.domain.ChatterProfile;
+import space.forloop.chatalytics.data.domain.MessageAnalysis;
 import space.forloop.chatalytics.data.domain.RepeatedMessage;
 import space.forloop.chatalytics.data.domain.TopChatter;
 import space.forloop.chatalytics.data.generated.tables.pojos.Message;
@@ -48,4 +49,14 @@ public interface MessageRepository {
     List<Message> findSampleBySessionId(Long sessionId, int limit);
 
     void batchWrite(List<Message> messages);
+
+    MessageAnalysis messageAnalysisBySessionId(Long sessionId);
+
+    long newChatterCountBySessionId(Long sessionId);
+
+    long countMessagesBySessionIdAndTimeRange(Long sessionId, Instant from, Instant to);
+
+    double avgMessagesPerSession(Long twitchId);
+
+    double avgChattersPerSession(Long twitchId);
 }

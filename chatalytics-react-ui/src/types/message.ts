@@ -48,6 +48,9 @@ export interface SessionSummaryView {
   totalMessages: number;
   totalChatters: number;
   lastGameName: string | null;
+  peakViewerCount: number | null;
+  messagesPerMinute: number | null;
+  durationMinutes: number | null;
 }
 
 export interface StreamSnapshot {
@@ -66,6 +69,62 @@ export interface ChatActivityBucket {
   uniqueChatters: number;
 }
 
+export interface TopWord {
+  word: string;
+  count: number;
+}
+
+export interface GameSegment {
+  gameName: string;
+  startTime: string;
+  endTime: string;
+  durationMinutes: number;
+  messageCount: number;
+  avgViewers: number;
+  peakViewers: number;
+}
+
+export interface ChatMoment {
+  timestamp: string;
+  messageCount: number;
+  uniqueChatters: number;
+}
+
+export interface MessageAnalysis {
+  avgMessageLength: number;
+  medianMessageLength: number;
+  commandCount: number;
+  shortMessageRatio: number;
+  capsRatio: number;
+  questionRatio: number;
+  exclamationRatio: number;
+  linkCount: number;
+}
+
+export interface ChannelStatsEnriched {
+  totalMessages: number;
+  uniqueChatters: number;
+  topChatters: TopChatter[];
+  peakHour: number | null;
+  totalSessions: number;
+  avgMessagesPerSession: number;
+  avgChattersPerSession: number;
+  avgStreamDurationMinutes: number | null;
+  topGames: { gameName: string; sessionCount: number }[];
+}
+
+export interface StreamClip {
+  id: string;
+  url: string;
+  embedUrl: string;
+  title: string;
+  viewCount: number;
+  createdAt: string;
+  thumbnailUrl: string;
+  duration: number;
+  creatorName: string;
+}
+
 export interface StreamRecap {
   sessionId: number;
   startTime: string;
@@ -76,4 +135,17 @@ export interface StreamRecap {
   chatActivity: ChatActivityBucket[];
   topChatters: TopChatter[];
   aiSummary: string | null;
+  messagesPerMinute: number;
+  chattersPerMinute: number;
+  peakViewerCount: number | null;
+  avgViewerCount: number | null;
+  minViewerCount: number | null;
+  messageAnalysis: MessageAnalysis | null;
+  newChatterCount: number;
+  returningChatterCount: number;
+  topWords: TopWord[];
+  gameSegments: GameSegment[];
+  chatParticipationRate: number | null;
+  peakMoment: ChatMoment | null;
+  topClips: StreamClip[];
 }

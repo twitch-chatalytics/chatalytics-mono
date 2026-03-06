@@ -31,10 +31,20 @@ export default function StreamList({ onSelectSession }: Props) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchSessions().then((data) => {
-      setSessions(data);
-      setLoading(false);
-    });
+    let active = true;
+
+    const load = () => {
+      fetchSessions().then((data) => {
+        if (active) {
+          setSessions(data);
+          setLoading(false);
+        }
+      });
+    };
+
+    load();
+    const interval = setInterval(load, 30_000);
+    return () => { active = false; clearInterval(interval); };
   }, []);
 
   if (loading) {

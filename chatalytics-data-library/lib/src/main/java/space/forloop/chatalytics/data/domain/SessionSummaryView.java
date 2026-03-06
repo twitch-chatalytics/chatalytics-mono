@@ -10,5 +10,8 @@ public record SessionSummaryView(
         Instant endTime,
         long totalMessages,
         long totalChatters,
-        String lastGameName
+        String lastGameName,
+        Integer peakViewerCount,
+        Double messagesPerMinute,
+        Long durationMinutes
 ) implements Serializable {}

@@ -8,6 +8,7 @@ import org.jooq.impl.DSL;
 import org.jooq.impl.SQLDataType;
 import org.springframework.transaction.annotation.Transactional;
 import space.forloop.chatalytics.data.domain.StreamSnapshot;
+import space.forloop.chatalytics.data.domain.TopGame;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -80,5 +81,17 @@ public class StreamSnapshotRepositoryImpl implements StreamSnapshotRepository {
                         r.get(TITLE),
                         r.get(VIEWER_COUNT)
                 ));
+    }
+
+    @Override
+    public List<TopGame> topGamesByTwitchId(long twitchId, int limit) {
+        return dsl.select(GAME_NAME.as("gameName"), DSL.countDistinct(SESSION_ID).as("sessionCount"))
+                .from(TABLE)
+                .where(TWITCH_ID.eq(twitchId))
+                .and(GAME_NAME.isNotNull())
+                .groupBy(GAME_NAME)
+                .orderBy(DSL.countDistinct(SESSION_ID).desc())
+                .limit(limit)
+                .fetchInto(TopGame.class);
     }
 }

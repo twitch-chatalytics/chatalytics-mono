@@ -7,5 +7,10 @@ public record ChannelStats(
         long totalMessages,
         long uniqueChatters,
         List<TopChatter> topChatters,
-        Integer peakHour
+        Integer peakHour,
+        long totalSessions,
+        double avgMessagesPerSession,
+        double avgChattersPerSession,
+        Double avgStreamDurationMinutes,
+        List<TopGame> topGames
 ) implements Serializable {}

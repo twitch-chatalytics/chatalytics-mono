@@ -13,5 +13,18 @@ public record StreamRecap(
         List<StreamSnapshot> snapshots,
         List<ChatActivityBucket> chatActivity,
         List<TopChatter> topChatters,
-        String aiSummary
+        String aiSummary,
+        double messagesPerMinute,
+        double chattersPerMinute,
+        Integer peakViewerCount,
+        Double avgViewerCount,
+        Integer minViewerCount,
+        MessageAnalysis messageAnalysis,
+        long newChatterCount,
+        long returningChatterCount,
+        List<TopWord> topWords,
+        List<GameSegment> gameSegments,
+        Double chatParticipationRate,
+        ChatMoment peakMoment,
+        List<StreamClip> topClips
 ) implements Serializable {}

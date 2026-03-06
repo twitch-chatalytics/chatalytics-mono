@@ -2,11 +2,8 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { StreamRecap } from '../types/message';
 import { fetchSessionRecap } from '../api/client';
+import StreamTimeline from './StreamTimeline';
 import './StreamRecapView.css';
-
-function formatTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-}
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', {
@@ -23,6 +20,20 @@ function formatDuration(start: string, end: string | null): string {
   const hours = Math.floor(ms / 3600000);
   const minutes = Math.floor((ms % 3600000) / 60000);
   return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+}
+
+function formatNumber(n: number): string {
+  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+  return n.toLocaleString();
+}
+
+function formatPercent(n: number): string {
+  return (n * 100).toFixed(1) + '%';
+}
+
+function formatClipDuration(seconds: number): string {
+  const s = Math.round(seconds);
+  return s >= 60 ? `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}` : `0:${String(s).padStart(2, '0')}`;
 }
 
 interface Props {
@@ -66,27 +77,10 @@ export default function StreamRecapView({ sessionId, onBack }: Props) {
     );
   }
 
-  // Derive game segments from snapshots
-  const segments: { game: string; startTime: string; endTime: string; peakViewers: number }[] = [];
-  if (recap.snapshots.length > 0) {
-    let current = { game: recap.snapshots[0].gameName || 'Unknown', startTime: recap.snapshots[0].timestamp, peakViewers: recap.snapshots[0].viewerCount };
-    for (let i = 1; i < recap.snapshots.length; i++) {
-      const snap = recap.snapshots[i];
-      const game = snap.gameName || 'Unknown';
-      if (game !== current.game) {
-        segments.push({ ...current, endTime: snap.timestamp });
-        current = { game, startTime: snap.timestamp, peakViewers: snap.viewerCount };
-      } else {
-        current.peakViewers = Math.max(current.peakViewers, snap.viewerCount);
-      }
-    }
-    segments.push({ ...current, endTime: recap.snapshots[recap.snapshots.length - 1].timestamp });
-  }
-
-  // Find peak chat activity bucket
-  const peakBucket = recap.chatActivity.length > 0
-    ? recap.chatActivity.reduce((a, b) => b.messageCount > a.messageCount ? b : a)
-    : null;
+  // Use backend game segments, fallback to client-side derivation
+  const segments = recap.gameSegments.length > 0
+    ? recap.gameSegments
+    : deriveSegments(recap);
 
   return (
     <motion.div
@@ -111,6 +105,40 @@ export default function StreamRecapView({ sessionId, onBack }: Props) {
         </div>
       </div>
 
+      {/* Key metrics cards */}
+      <div className="recap-stats-grid">
+        <div className="recap-stat-card">
+          <span className="recap-stat-value">{recap.messagesPerMinute.toFixed(1)}</span>
+          <span className="recap-stat-label">msgs/min</span>
+        </div>
+        {recap.peakViewerCount != null && (
+          <div className="recap-stat-card">
+            <span className="recap-stat-value">{formatNumber(recap.peakViewerCount)}</span>
+            <span className="recap-stat-label">peak viewers</span>
+          </div>
+        )}
+        {recap.avgViewerCount != null && (
+          <div className="recap-stat-card">
+            <span className="recap-stat-value">{formatNumber(Math.round(recap.avgViewerCount))}</span>
+            <span className="recap-stat-label">avg viewers</span>
+          </div>
+        )}
+        {recap.chatParticipationRate != null && (
+          <div className="recap-stat-card">
+            <span className="recap-stat-value">{formatPercent(recap.chatParticipationRate)}</span>
+            <span className="recap-stat-label">chat rate</span>
+          </div>
+        )}
+        <div className="recap-stat-card">
+          <span className="recap-stat-value">{formatNumber(recap.newChatterCount)}</span>
+          <span className="recap-stat-label">new chatters</span>
+        </div>
+        <div className="recap-stat-card">
+          <span className="recap-stat-value">{formatNumber(recap.returningChatterCount)}</span>
+          <span className="recap-stat-label">returning</span>
+        </div>
+      </div>
+
       {recap.aiSummary && (
         <div className="recap-summary">
           {recap.aiSummary.split('\n\n').map((para, i) => (
@@ -119,55 +147,105 @@ export default function StreamRecapView({ sessionId, onBack }: Props) {
         </div>
       )}
 
-      {segments.length > 0 && (
+      {/* Scrubbable timeline */}
+      {(recap.snapshots.length > 0 || recap.chatActivity.length > 0) && (
+        <StreamTimeline
+          snapshots={recap.snapshots}
+          chatActivity={recap.chatActivity}
+          gameSegments={segments}
+          startTime={recap.startTime}
+          endTime={recap.endTime}
+        />
+      )}
+
+      {/* Top Clips */}
+      {recap.topClips && recap.topClips.length > 0 && (
         <div className="recap-section">
-          <h3 className="recap-section-title">Stream Timeline</h3>
-          <div className="recap-timeline">
-            {segments.map((seg, i) => (
-              <div key={i} className="timeline-segment">
-                <span className="timeline-time">{formatTime(seg.startTime)}</span>
-                <div className="timeline-bar" />
-                <div className="timeline-content">
-                  <span className="timeline-game">{seg.game}</span>
-                  <span className="timeline-viewers">{seg.peakViewers.toLocaleString()} peak viewers</span>
+          <h3 className="recap-section-title">Top Clips</h3>
+          <div className="recap-clips-grid">
+            {recap.topClips.map((clip) => (
+              <a
+                key={clip.id}
+                href={clip.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="recap-clip-card"
+              >
+                <div className="clip-thumb-wrapper">
+                  <img src={clip.thumbnailUrl} alt={clip.title} className="clip-thumb" loading="lazy" />
+                  <span className="clip-duration">{formatClipDuration(clip.duration)}</span>
                 </div>
-              </div>
+                <div className="clip-info">
+                  <span className="clip-title">{clip.title}</span>
+                  <div className="clip-meta">
+                    <span>{formatNumber(clip.viewCount)} views</span>
+                    <span>by {clip.creatorName}</span>
+                  </div>
+                </div>
+              </a>
             ))}
           </div>
         </div>
       )}
 
-      {recap.chatActivity.length > 0 && (
+      {/* Message Analysis */}
+      {recap.messageAnalysis && (
         <div className="recap-section">
-          <h3 className="recap-section-title">Chat Activity</h3>
-          <div className="recap-activity-chart">
-            {(() => {
-              const maxCount = Math.max(...recap.chatActivity.map(b => b.messageCount));
-              return recap.chatActivity.map((bucket, i) => (
-                <div
-                  key={i}
-                  className="activity-bar-wrapper"
-                  title={`${formatTime(bucket.bucketStart)}: ${bucket.messageCount} msgs, ${bucket.uniqueChatters} chatters`}
-                >
-                  <div
-                    className="activity-bar"
-                    style={{
-                      height: `${(bucket.messageCount / maxCount) * 100}%`,
-                      opacity: 0.4 + (bucket.messageCount / maxCount) * 0.6,
-                    }}
-                  />
-                </div>
-              ));
-            })()}
-          </div>
-          {peakBucket && (
-            <div className="recap-activity-peak">
-              Peak: {peakBucket.messageCount} msgs/5min at {formatTime(peakBucket.bucketStart)}
+          <h3 className="recap-section-title">Message Analysis</h3>
+          <div className="recap-analysis-grid">
+            <div className="analysis-item">
+              <span className="analysis-value">{recap.messageAnalysis.avgMessageLength.toFixed(0)}</span>
+              <span className="analysis-label">avg length</span>
             </div>
-          )}
+            <div className="analysis-item">
+              <span className="analysis-value">{formatPercent(recap.messageAnalysis.shortMessageRatio)}</span>
+              <span className="analysis-label">short/emotes</span>
+            </div>
+            <div className="analysis-item">
+              <span className="analysis-value">{formatPercent(recap.messageAnalysis.capsRatio)}</span>
+              <span className="analysis-label">CAPS</span>
+            </div>
+            <div className="analysis-item">
+              <span className="analysis-value">{formatPercent(recap.messageAnalysis.questionRatio)}</span>
+              <span className="analysis-label">questions</span>
+            </div>
+            <div className="analysis-item">
+              <span className="analysis-value">{recap.messageAnalysis.commandCount}</span>
+              <span className="analysis-label">commands</span>
+            </div>
+            <div className="analysis-item">
+              <span className="analysis-value">{recap.messageAnalysis.linkCount}</span>
+              <span className="analysis-label">links</span>
+            </div>
+          </div>
         </div>
       )}
 
+      {/* Top Words */}
+      {recap.topWords.length > 0 && (
+        <div className="recap-section">
+          <h3 className="recap-section-title">Top Words</h3>
+          <div className="recap-word-cloud">
+            {recap.topWords.map((tw) => {
+              const maxCount = recap.topWords[0].count;
+              const scale = 0.7 + (tw.count / maxCount) * 0.6;
+              const opacity = 0.5 + (tw.count / maxCount) * 0.5;
+              return (
+                <span
+                  key={tw.word}
+                  className="recap-word"
+                  style={{ fontSize: `${scale}em`, opacity }}
+                  title={`${tw.word}: ${tw.count}`}
+                >
+                  {tw.word}
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Top Chatters */}
       {recap.topChatters.length > 0 && (
         <div className="recap-section">
           <h3 className="recap-section-title">Top Chatters</h3>
@@ -184,4 +262,22 @@ export default function StreamRecapView({ sessionId, onBack }: Props) {
       )}
     </motion.div>
   );
+}
+
+function deriveSegments(recap: StreamRecap) {
+  if (recap.snapshots.length === 0) return [];
+  const segments: { gameName: string; startTime: string; endTime: string; durationMinutes: number; messageCount: number; avgViewers: number; peakViewers: number }[] = [];
+  let current = { gameName: recap.snapshots[0].gameName || 'Unknown', startTime: recap.snapshots[0].timestamp, peakViewers: recap.snapshots[0].viewerCount };
+  for (let i = 1; i < recap.snapshots.length; i++) {
+    const snap = recap.snapshots[i];
+    const game = snap.gameName || 'Unknown';
+    if (game !== current.gameName) {
+      segments.push({ ...current, endTime: snap.timestamp, durationMinutes: 0, messageCount: 0, avgViewers: 0 });
+      current = { gameName: game, startTime: snap.timestamp, peakViewers: snap.viewerCount };
+    } else {
+      current.peakViewers = Math.max(current.peakViewers, snap.viewerCount);
+    }
+  }
+  segments.push({ ...current, endTime: recap.snapshots[recap.snapshots.length - 1].timestamp, durationMinutes: 0, messageCount: 0, avgViewers: 0 });
+  return segments;
 }

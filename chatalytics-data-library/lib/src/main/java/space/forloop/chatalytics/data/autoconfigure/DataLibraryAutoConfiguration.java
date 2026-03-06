@@ -36,4 +36,10 @@ public class DataLibraryAutoConfiguration {
     StreamSnapshotRepository streamSnapshotRepository(DSLContext dslContext) {
         return new StreamSnapshotRepositoryImpl(dslContext);
     }
+
+    @Bean
+    @ConditionalOnMissingBean
+    MessageWordRepository messageWordRepository(DSLContext dslContext) {
+        return new MessageWordRepositoryImpl(dslContext);
+    }
 }

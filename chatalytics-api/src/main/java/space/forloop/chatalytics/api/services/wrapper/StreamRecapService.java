@@ -10,13 +10,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import space.forloop.chatalytics.data.domain.*;
 import space.forloop.chatalytics.data.generated.tables.pojos.Message;
-import space.forloop.chatalytics.data.generated.tables.pojos.Session;
 import space.forloop.chatalytics.data.repositories.MessageRepository;
+import space.forloop.chatalytics.data.repositories.MessageWordRepository;
 import space.forloop.chatalytics.data.repositories.SessionRepository;
 import space.forloop.chatalytics.data.repositories.StreamSnapshotRepository;
+import space.forloop.chatalytics.twitch.model.TwitchClipData;
+import space.forloop.chatalytics.twitch.service.TwitchService;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -29,7 +33,9 @@ public class StreamRecapService {
 
     private final SessionRepository sessionRepository;
     private final MessageRepository messageRepository;
+    private final MessageWordRepository messageWordRepository;
     private final StreamSnapshotRepository snapshotRepository;
+    private final TwitchService twitchService;
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
     private final String apiKey;
@@ -37,11 +43,15 @@ public class StreamRecapService {
     public StreamRecapService(
             SessionRepository sessionRepository,
             MessageRepository messageRepository,
+            MessageWordRepository messageWordRepository,
             StreamSnapshotRepository snapshotRepository,
+            TwitchService twitchService,
             @Value("${anthropic.api-key:}") String apiKey) {
         this.sessionRepository = sessionRepository;
         this.messageRepository = messageRepository;
+        this.messageWordRepository = messageWordRepository;
         this.snapshotRepository = snapshotRepository;
+        this.twitchService = twitchService;
         this.restTemplate = new RestTemplate();
         this.objectMapper = new ObjectMapper();
         this.apiKey = apiKey;
@@ -61,7 +71,50 @@ public class StreamRecapService {
         List<ChatActivityBucket> chatActivity = messageRepository.chatActivityBySessionId(sessionId, 5);
         List<TopChatter> topChatters = messageRepository.topChattersBySessionId(sessionId, 10);
 
-        String aiSummary = generateAiSummary(session, snapshots, chatActivity, topChatters, totalMessages, totalChatters);
+        // Velocity metrics
+        long durationMinutes = session.endTime() != null
+                ? Duration.between(session.startTime(), session.endTime()).toMinutes()
+                : Duration.between(session.startTime(), Instant.now()).toMinutes();
+        double messagesPerMinute = durationMinutes > 0 ? (double) totalMessages / durationMinutes : 0;
+        double chattersPerMinute = durationMinutes > 0 ? (double) totalChatters / durationMinutes : 0;
+
+        // Viewer metrics from snapshots (in-memory)
+        Integer peakViewerCount = snapshots.isEmpty() ? null :
+                snapshots.stream().mapToInt(StreamSnapshot::viewerCount).max().orElse(0);
+        Double avgViewerCount = snapshots.isEmpty() ? null :
+                snapshots.stream().mapToInt(StreamSnapshot::viewerCount).average().orElse(0);
+        Integer minViewerCount = snapshots.isEmpty() ? null :
+                snapshots.stream().mapToInt(StreamSnapshot::viewerCount).min().orElse(0);
+
+        // Message analysis
+        MessageAnalysis messageAnalysis = messageRepository.messageAnalysisBySessionId(sessionId);
+
+        // Chatter segmentation
+        long newChatterCount = messageRepository.newChatterCountBySessionId(sessionId);
+        long returningChatterCount = totalChatters - newChatterCount;
+
+        // Top words
+        List<TopWord> topWords = messageWordRepository.topWordsBySessionId(sessionId, 20);
+
+        // Game segments
+        List<GameSegment> gameSegments = computeGameSegments(sessionId, snapshots);
+
+        // Engagement rate
+        Double chatParticipationRate = (peakViewerCount != null && peakViewerCount > 0)
+                ? (double) totalChatters / peakViewerCount : null;
+
+        // Peak moment from chat activity
+        ChatMoment peakMoment = chatActivity.isEmpty() ? null :
+                chatActivity.stream()
+                        .max(Comparator.comparingLong(ChatActivityBucket::messageCount))
+                        .map(b -> new ChatMoment(b.bucketStart(), b.messageCount(), b.uniqueChatters()))
+                        .orElse(null);
+
+        // Top clips from Twitch
+        List<StreamClip> topClips = fetchTopClips(session, 6);
+
+        String aiSummary = generateAiSummary(session, snapshots, chatActivity, topChatters,
+                totalMessages, totalChatters, topWords, gameSegments, chatParticipationRate);
 
         return new StreamRecap(
                 sessionId,
@@ -72,8 +125,83 @@ public class StreamRecapService {
                 snapshots,
                 chatActivity,
                 topChatters,
-                aiSummary
+                aiSummary,
+                messagesPerMinute,
+                chattersPerMinute,
+                peakViewerCount,
+                avgViewerCount,
+                minViewerCount,
+                messageAnalysis,
+                newChatterCount,
+                returningChatterCount,
+                topWords,
+                gameSegments,
+                chatParticipationRate,
+                peakMoment,
+                topClips
         );
+    }
+
+    private List<StreamClip> fetchTopClips(SessionWithUser session, int limit) {
+        try {
+            String broadcasterId = String.valueOf(session.twitchId());
+            Instant endedAt = session.endTime() != null ? session.endTime() : Instant.now();
+            List<TwitchClipData> clips = twitchService.findClips(broadcasterId, session.startTime(), endedAt, limit);
+            return clips.stream()
+                    .map(c -> new StreamClip(c.id(), c.url(), c.embedUrl(), c.title(),
+                            c.viewCount(), c.createdAt(), c.thumbnailUrl(), c.duration(), c.creatorName()))
+                    .toList();
+        } catch (Exception e) {
+            log.error("Failed to fetch clips for session {}: {}", session.id(), e.getMessage());
+            return List.of();
+        }
+    }
+
+    private List<GameSegment> computeGameSegments(long sessionId, List<StreamSnapshot> snapshots) {
+        if (snapshots.isEmpty()) {
+            return List.of();
+        }
+
+        List<GameSegment> segments = new ArrayList<>();
+        String currentGame = snapshots.getFirst().gameName();
+        Instant segmentStart = snapshots.getFirst().timestamp();
+        int segmentPeak = snapshots.getFirst().viewerCount();
+        long segmentViewerSum = snapshots.getFirst().viewerCount();
+        int segmentSnapshotCount = 1;
+
+        for (int i = 1; i < snapshots.size(); i++) {
+            StreamSnapshot snap = snapshots.get(i);
+            String game = snap.gameName();
+
+            if (game != null && !game.equals(currentGame)) {
+                // Game changed - finalize previous segment
+                Instant segmentEnd = snap.timestamp();
+                long durationMin = Duration.between(segmentStart, segmentEnd).toMinutes();
+                long msgCount = messageRepository.countMessagesBySessionIdAndTimeRange(sessionId, segmentStart, segmentEnd);
+                double avgViewers = segmentSnapshotCount > 0 ? (double) segmentViewerSum / segmentSnapshotCount : 0;
+                segments.add(new GameSegment(currentGame, segmentStart, segmentEnd, durationMin, msgCount, avgViewers, segmentPeak));
+
+                // Start new segment
+                currentGame = game;
+                segmentStart = snap.timestamp();
+                segmentPeak = snap.viewerCount();
+                segmentViewerSum = snap.viewerCount();
+                segmentSnapshotCount = 1;
+            } else {
+                segmentPeak = Math.max(segmentPeak, snap.viewerCount());
+                segmentViewerSum += snap.viewerCount();
+                segmentSnapshotCount++;
+            }
+        }
+
+        // Finalize last segment
+        Instant segmentEnd = snapshots.getLast().timestamp();
+        long durationMin = Duration.between(segmentStart, segmentEnd).toMinutes();
+        long msgCount = messageRepository.countMessagesBySessionIdAndTimeRange(sessionId, segmentStart, segmentEnd.plusSeconds(1));
+        double avgViewers = segmentSnapshotCount > 0 ? (double) segmentViewerSum / segmentSnapshotCount : 0;
+        segments.add(new GameSegment(currentGame, segmentStart, segmentEnd, durationMin, msgCount, avgViewers, segmentPeak));
+
+        return segments;
     }
 
     private String generateAiSummary(
@@ -82,7 +210,10 @@ public class StreamRecapService {
             List<ChatActivityBucket> chatActivity,
             List<TopChatter> topChatters,
             long totalMessages,
-            long totalChatters) {
+            long totalChatters,
+            List<TopWord> topWords,
+            List<GameSegment> gameSegments,
+            Double chatParticipationRate) {
 
         if (apiKey == null || apiKey.isBlank()) {
             return null;
@@ -99,10 +230,25 @@ public class StreamRecapService {
             context.append("ongoing\n");
         }
         context.append("Total messages: ").append(totalMessages).append("\n");
-        context.append("Unique chatters: ").append(totalChatters).append("\n\n");
+        context.append("Unique chatters: ").append(totalChatters).append("\n");
+        if (chatParticipationRate != null) {
+            context.append("Chat participation rate: ").append(String.format("%.1f%%", chatParticipationRate * 100)).append("\n");
+        }
+        context.append("\n");
 
-        // Game/category changes
-        if (!snapshots.isEmpty()) {
+        // Game segments with detailed metrics
+        if (!gameSegments.isEmpty()) {
+            context.append("Game segments:\n");
+            for (GameSegment seg : gameSegments) {
+                context.append("  ").append(seg.gameName())
+                        .append(" (").append(seg.durationMinutes()).append("min")
+                        .append(", ").append(seg.messageCount()).append(" msgs")
+                        .append(", avg ").append(String.format("%.0f", seg.avgViewers())).append(" viewers")
+                        .append(", peak ").append(seg.peakViewers()).append(" viewers)\n");
+            }
+            context.append("\n");
+        } else if (!snapshots.isEmpty()) {
+            // Fallback to raw snapshot transitions
             context.append("Stream segments (game/category over time):\n");
             String currentGame = null;
             for (StreamSnapshot snap : snapshots) {
@@ -113,6 +259,15 @@ public class StreamRecapService {
                 }
             }
             context.append("\n");
+        }
+
+        // Top words
+        if (!topWords.isEmpty()) {
+            context.append("Top words in chat: ");
+            context.append(topWords.stream().limit(15)
+                    .map(w -> w.word() + "(" + w.count() + ")")
+                    .collect(Collectors.joining(", ")));
+            context.append("\n\n");
         }
 
         // Chat activity peaks
@@ -143,19 +298,9 @@ public class StreamRecapService {
         }
 
         String prompt = """
-                You are generating a stream recap for a Twitch streamer. Below is data from one streaming session.
-                Write a concise, engaging recap (3-5 paragraphs) that tells the story of this stream from the chat's perspective.
-
-                Include:
-                - What games/categories were played and how chat reacted to each
-                - When the biggest chat moments happened and what drove them
-                - Notable viewer engagement patterns (peaks, dips)
-                - Who the most active chatters were
-                - The overall mood/vibe of the stream
-
-                Write in a casual, informative tone. Use specific numbers where relevant.
-                Do not use bullet points or headers — write flowing paragraphs.
-                If there are no stream snapshots yet, focus on what you can learn from the chat messages alone.
+                You are generating a short stream recap for a Twitch streamer. Below is data from one streaming session.
+                Write 2-3 sentences that capture the story of this stream. Be punchy and specific — mention the game(s), \
+                the vibe, and one standout moment or stat. Write in a casual tone. No bullet points, no headers.
 
                 Stream data:
                 %s""".formatted(context.toString());
@@ -168,7 +313,7 @@ public class StreamRecapService {
 
             Map<String, Object> body = Map.of(
                     "model", "claude-haiku-4-5-20251001",
-                    "max_tokens", 1024,
+                    "max_tokens", 256,
                     "messages", List.of(Map.of("role", "user", "content", prompt))
             );
 

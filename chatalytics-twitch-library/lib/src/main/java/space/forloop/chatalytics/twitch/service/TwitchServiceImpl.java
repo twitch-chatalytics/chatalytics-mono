@@ -6,11 +6,11 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import space.forloop.chatalytics.twitch.client.TwitchApiClient;
 import space.forloop.chatalytics.twitch.exception.TwitchApiException;
-import space.forloop.chatalytics.twitch.model.StreamData;
-import space.forloop.chatalytics.twitch.model.TwitchApiResponse;
-import space.forloop.chatalytics.twitch.model.TwitchUser;
-import space.forloop.chatalytics.twitch.model.TwitchUserResponse;
+import space.forloop.chatalytics.twitch.model.*;
 
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -140,6 +140,25 @@ public class TwitchServiceImpl implements TwitchService {
         queryParams.add("first", "100");
 
         return apiClient.getForObject("/streams", TwitchApiResponse.class, queryParams).getData();
+    }
+
+    @Override
+    public List<TwitchClipData> findClips(String broadcasterId, Instant startedAt, Instant endedAt, int limit) {
+        MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
+        queryParams.add("broadcaster_id", broadcasterId);
+        queryParams.add("started_at", DateTimeFormatter.ISO_INSTANT.format(startedAt));
+        if (endedAt != null) {
+            queryParams.add("ended_at", DateTimeFormatter.ISO_INSTANT.format(endedAt));
+        }
+        queryParams.add("first", String.valueOf(Math.min(limit, 100)));
+
+        try {
+            TwitchClipResponse response = apiClient.getForObject("/clips", TwitchClipResponse.class, queryParams);
+            return response != null && response.data() != null ? response.data() : Collections.emptyList();
+        } catch (Exception e) {
+            log.error("Error fetching clips for broadcaster {}: {}", broadcasterId, e.getMessage());
+            return Collections.emptyList();
+        }
     }
 
     private Map<Integer, List<String>> groupLogins(List<String> logins, int batchSize) {

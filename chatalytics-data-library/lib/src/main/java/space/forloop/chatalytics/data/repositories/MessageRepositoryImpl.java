@@ -8,6 +8,7 @@ import org.jooq.impl.DSL;
 import org.springframework.stereotype.Service;
 import space.forloop.chatalytics.data.domain.ChatActivityBucket;
 import space.forloop.chatalytics.data.domain.ChatterProfile;
+import space.forloop.chatalytics.data.domain.MessageAnalysis;
 import space.forloop.chatalytics.data.domain.RepeatedMessage;
 import space.forloop.chatalytics.data.domain.TopChatter;
 import space.forloop.chatalytics.data.generated.tables.pojos.Message;
@@ -262,18 +263,12 @@ public class MessageRepositoryImpl implements MessageRepository {
     @Override
     public List<ChatActivityBucket> chatActivityBySessionId(Long sessionId, int bucketMinutes) {
 
-        var epoch = DSL.epoch(MESSAGE.TIMESTAMP);
-        var bucketSeconds = DSL.val(bucketMinutes * 60L);
-        var bucketField = DSL.epoch(
-                DSL.field("to_timestamp(floor({0} / {1}) * {1})", Object.class, epoch, bucketSeconds)
-        );
-
-        // Use raw SQL for time bucketing since jOOQ's timestamp arithmetic is verbose
+        // Use DSL.inline to embed the value directly so GROUP BY expression matches SELECT
         var bucketExpr = DSL.field(
                 "to_timestamp(floor(extract(epoch from {0}) / {1}) * {1})",
                 Instant.class,
                 MESSAGE.TIMESTAMP,
-                DSL.val(bucketMinutes * 60)
+                DSL.inline(bucketMinutes * 60)
         );
 
         return dsl.select(
@@ -309,5 +304,97 @@ public class MessageRepositoryImpl implements MessageRepository {
                         .set(ctx.dsl().newRecord(MESSAGE, dto))
                         .execute()
         ));
+    }
+
+    @Override
+    public MessageAnalysis messageAnalysisBySessionId(Long sessionId) {
+        var result = dsl.select(
+                DSL.avg(DSL.length(MESSAGE.MESSAGE_TEXT)).as("avgLen"),
+                DSL.field("PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY length(message_text))", Double.class).as("medianLen"),
+                DSL.count().filterWhere(MESSAGE.MESSAGE_TEXT.startsWith("!")).as("commandCount"),
+                DSL.count().filterWhere(DSL.length(MESSAGE.MESSAGE_TEXT).le(15)).cast(Double.class)
+                        .div(DSL.nullif(DSL.count().cast(Double.class), 0.0)).as("shortRatio"),
+                DSL.count().filterWhere(DSL.condition("message_text ~ '[A-Z]{3,}'")).cast(Double.class)
+                        .div(DSL.nullif(DSL.count().cast(Double.class), 0.0)).as("capsRatio"),
+                DSL.count().filterWhere(MESSAGE.MESSAGE_TEXT.contains("?")).cast(Double.class)
+                        .div(DSL.nullif(DSL.count().cast(Double.class), 0.0)).as("questionRatio"),
+                DSL.count().filterWhere(MESSAGE.MESSAGE_TEXT.endsWith("!")).cast(Double.class)
+                        .div(DSL.nullif(DSL.count().cast(Double.class), 0.0)).as("exclamationRatio"),
+                DSL.count().filterWhere(DSL.condition("message_text ~ 'https?://'")).as("linkCount")
+        )
+        .from(MESSAGE)
+        .where(MESSAGE.SESSION_ID.eq(sessionId))
+        .fetchOne();
+
+        if (result == null) {
+            return new MessageAnalysis(0, 0, 0, 0, 0, 0, 0, 0);
+        }
+
+        return new MessageAnalysis(
+                result.get("avgLen", Double.class) != null ? result.get("avgLen", Double.class) : 0.0,
+                result.get("medianLen", Double.class) != null ? result.get("medianLen", Double.class) : 0.0,
+                result.get("commandCount", Long.class) != null ? result.get("commandCount", Long.class) : 0L,
+                result.get("shortRatio", Double.class) != null ? result.get("shortRatio", Double.class) : 0.0,
+                result.get("capsRatio", Double.class) != null ? result.get("capsRatio", Double.class) : 0.0,
+                result.get("questionRatio", Double.class) != null ? result.get("questionRatio", Double.class) : 0.0,
+                result.get("exclamationRatio", Double.class) != null ? result.get("exclamationRatio", Double.class) : 0.0,
+                result.get("linkCount", Long.class) != null ? result.get("linkCount", Long.class) : 0L
+        );
+    }
+
+    @Override
+    public long newChatterCountBySessionId(Long sessionId) {
+        return dsl.select(DSL.countDistinct(MESSAGE.AUTHOR))
+                .from(MESSAGE)
+                .where(MESSAGE.SESSION_ID.eq(sessionId))
+                .andNotExists(
+                        dsl.selectOne()
+                                .from(MESSAGE.as("earlier"))
+                                .where(DSL.field(DSL.name("earlier", "author"), String.class).eq(MESSAGE.AUTHOR))
+                                .and(DSL.field(DSL.name("earlier", "session_id"), Long.class).ne(sessionId))
+                                .and(DSL.field(DSL.name("earlier", "timestamp"), Instant.class).lt(
+                                        dsl.select(DSL.min(MESSAGE.TIMESTAMP))
+                                                .from(MESSAGE)
+                                                .where(MESSAGE.SESSION_ID.eq(sessionId))
+                                                .and(MESSAGE.AUTHOR.eq(DSL.field(DSL.name("earlier", "author"), String.class)))
+                                ))
+                )
+                .fetchOneInto(long.class);
+    }
+
+    @Override
+    public long countMessagesBySessionIdAndTimeRange(Long sessionId, Instant from, Instant to) {
+        return dsl.selectCount()
+                .from(MESSAGE)
+                .where(MESSAGE.SESSION_ID.eq(sessionId))
+                .and(MESSAGE.TIMESTAMP.ge(from))
+                .and(MESSAGE.TIMESTAMP.lt(to))
+                .fetchOneInto(long.class);
+    }
+
+    @Override
+    public double avgMessagesPerSession(Long twitchId) {
+        Double result = dsl.select(DSL.avg(DSL.field("cnt", Long.class)))
+                .from(
+                        dsl.select(DSL.count().as("cnt"))
+                                .from(MESSAGE)
+                                .where(MESSAGE.TWITCH_ID.eq(twitchId))
+                                .groupBy(MESSAGE.SESSION_ID)
+                )
+                .fetchOneInto(Double.class);
+        return result != null ? result : 0.0;
+    }
+
+    @Override
+    public double avgChattersPerSession(Long twitchId) {
+        Double result = dsl.select(DSL.avg(DSL.field("cnt", Long.class)))
+                .from(
+                        dsl.select(DSL.countDistinct(MESSAGE.AUTHOR).as("cnt"))
+                                .from(MESSAGE)
+                                .where(MESSAGE.TWITCH_ID.eq(twitchId))
+                                .groupBy(MESSAGE.SESSION_ID)
+                )
+                .fetchOneInto(Double.class);
+        return result != null ? result : 0.0;
     }
 }

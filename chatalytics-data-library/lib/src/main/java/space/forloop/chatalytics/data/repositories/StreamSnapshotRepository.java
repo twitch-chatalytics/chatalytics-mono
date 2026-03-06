@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.List;
 
 import space.forloop.chatalytics.data.domain.StreamSnapshot;
+import space.forloop.chatalytics.data.domain.TopGame;
 
 public interface StreamSnapshotRepository {
 
@@ -12,4 +13,6 @@ public interface StreamSnapshotRepository {
     List<StreamSnapshot> findBySessionId(long sessionId);
 
     List<StreamSnapshot> findByTwitchId(long twitchId, Instant from, Instant to);
+
+    List<TopGame> topGamesByTwitchId(long twitchId, int limit);
 }
