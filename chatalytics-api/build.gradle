@@ -21,7 +21,7 @@ dependencies {
     // Spring Boot Data Redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'org.apache.commons:commons-pool2'
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.18.2'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
     // Database
     implementation 'org.liquibase:liquibase-core'
