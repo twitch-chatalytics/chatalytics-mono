@@ -1,0 +1,191 @@
+/* ─── Channel Compare View ─── */
+.channel-compare-view {
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  padding: 0 clamp(20px, 5vw, 64px);
+  max-width: 100vw;
+}
+
+/* ─── Hero Legend (channel-specific) ─── */
+.channel-compare-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #334155;
+}
+
+.channel-compare-legend-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.channel-compare-legend-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: #9146ff;
+  background: rgba(145, 70, 255, 0.08);
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+/* ─── Top Games ─── */
+.channel-compare-games-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.channel-compare-games-column {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.channel-compare-game-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.channel-compare-game-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.channel-compare-game-name {
+  font-size: 13px;
+  color: #334155;
+  font-weight: 500;
+  min-width: 120px;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.channel-compare-game-track {
+  flex: 1;
+  height: 20px;
+  background: #f1f5f9;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.channel-compare-game-fill {
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.4s ease;
+}
+
+.channel-compare-game-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  font-variant-numeric: tabular-nums;
+  min-width: 30px;
+  text-align: right;
+}
+
+/* ─── Peak Hours ─── */
+.channel-compare-peak-hours {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.channel-compare-clock {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 4px;
+}
+
+.channel-compare-hour-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 2px;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+
+.channel-compare-hour-slot.active {
+  background: #fafaff;
+}
+
+.channel-compare-hour-label {
+  font-size: 10px;
+  color: #cbd5e1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.channel-compare-hour-slot.active .channel-compare-hour-label {
+  color: #334155;
+  font-weight: 600;
+}
+
+.channel-compare-hour-dots {
+  display: flex;
+  gap: 3px;
+  min-height: 10px;
+}
+
+.channel-compare-hour-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.channel-compare-peak-legend {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+.channel-compare-peak-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.channel-compare-peak-name {
+  font-weight: 500;
+  color: #334155;
+}
+
+.channel-compare-peak-time {
+  color: #64748b;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 840px) {
+  .channel-compare-clock {
+    grid-template-columns: repeat(8, 1fr);
+  }
+
+  .channel-compare-games-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .channel-compare-clock {
+    grid-template-columns: repeat(6, 1fr);
+  }
+
+  .channel-compare-game-name {
+    min-width: 80px;
+    max-width: 100px;
+  }
+}

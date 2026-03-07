@@ -1,8 +1,18 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { SessionSummaryView } from '../types/message';
-import { fetchSessions } from '../api/client';
+import { ChannelProfile, CompareItem, SessionSummaryView } from '../types/message';
+import { fetchChannel, fetchSessions, DateRange, SESSIONS_PAGE_SIZE } from '../api/client';
+import DateRangeFilter, { Preset } from './DateRangeFilter';
 import './StreamList.css';
+
+const STREAM_PRESETS: Preset[] = [
+  { key: 'all', label: 'All time' },
+  { key: '24h', label: '24 hours', minutes: 1440 },
+  { key: '7d', label: '7 days', minutes: 10080 },
+  { key: '30d', label: '30 days', minutes: 43200 },
+  { key: '90d', label: '90 days', minutes: 129600 },
+  { key: 'custom', label: 'Custom' },
+];
 
 function formatDuration(start: string, end: string | null): string {
   if (!end) return 'Live';
@@ -22,64 +32,236 @@ function formatDate(iso: string): string {
   });
 }
 
-interface Props {
-  onSelectSession: (sessionId: number) => void;
+function formatNumber(n: number): string {
+  if (n >= 1000) return (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+  return n.toLocaleString();
 }
 
-export default function StreamList({ onSelectSession }: Props) {
+interface Props {
+  twitchId: number;
+  channelLogin: string;
+  onSelectSession: (sessionId: number) => void;
+  compareItems: CompareItem[];
+  onAddCompare: (item: CompareItem) => void;
+  onRemoveCompare: (sessionId: number) => void;
+  channelCompareItems: ChannelProfile[];
+  onAddChannelCompare: (channel: ChannelProfile) => void;
+  onRemoveChannelCompare: (channelId: number) => void;
+}
+
+export default function StreamList({ twitchId, channelLogin, onSelectSession, compareItems, onAddCompare, onRemoveCompare, channelCompareItems, onAddChannelCompare, onRemoveChannelCompare }: Props) {
+  const [channel, setChannel] = useState<ChannelProfile | null>(null);
   const [sessions, setSessions] = useState<SessionSummaryView[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [dateRange, setDateRange] = useState<DateRange>({});
+
+  const loadSessions = useCallback(async (range: DateRange, cursorSession?: SessionSummaryView) => {
+    const cursor = cursorSession
+      ? { startTime: cursorSession.startTime, id: cursorSession.sessionId }
+      : undefined;
+
+    const data = await fetchSessions(range, cursor, undefined, twitchId);
+    return data;
+  }, [twitchId]);
+
+  useEffect(() => {
+    fetchChannel(twitchId).then(setChannel);
+  }, [twitchId]);
 
   useEffect(() => {
     let active = true;
+    setLoading(true);
+    setSessions([]);
+    setHasMore(true);
 
-    const load = () => {
-      fetchSessions().then((data) => {
-        if (active) {
-          setSessions(data);
-          setLoading(false);
+    loadSessions(dateRange).then((data) => {
+      if (active) {
+        setSessions(data);
+        setHasMore(data.length >= SESSIONS_PAGE_SIZE);
+        setLoading(false);
+      }
+    });
+
+    return () => { active = false; };
+  }, [dateRange, loadSessions]);
+
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!sentinelRef.current || !hasMore || loading) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !loadingMore && hasMore) {
+          setLoadingMore(true);
+          const lastSession = sessions[sessions.length - 1];
+          loadSessions(dateRange, lastSession).then((data) => {
+            setSessions(prev => [...prev, ...data]);
+            setHasMore(data.length >= SESSIONS_PAGE_SIZE);
+            setLoadingMore(false);
+          });
         }
+      },
+      { rootMargin: '200px' }
+    );
+
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [sessions, hasMore, loading, loadingMore, dateRange, loadSessions]);
+
+  const toggleSelection = (session: SessionSummaryView) => {
+    const isSelected = compareItems.some(i => i.sessionId === session.sessionId);
+    if (isSelected) {
+      onRemoveCompare(session.sessionId);
+    } else {
+      onAddCompare({
+        sessionId: session.sessionId,
+        channelLogin,
+        channelDisplayName: channel?.displayName || channelLogin,
+        profileImageUrl: channel?.profileImageUrl || undefined,
+        startTime: session.startTime,
+        gameName: session.lastGameName || undefined,
       });
-    };
+    }
+  };
 
-    load();
-    const interval = setInterval(load, 30_000);
-    return () => { active = false; clearInterval(interval); };
-  }, []);
-
-  if (loading) {
-    return <div className="stream-list-loading">Loading streams...</div>;
-  }
-
-  if (sessions.length === 0) {
-    return <div className="stream-list-empty">No streams found yet.</div>;
-  }
+  const handleDateChange = (range: DateRange) => {
+    setDateRange(range);
+  };
 
   return (
-    <div className="stream-list">
-      {sessions.map((session, i) => (
-        <motion.button
-          key={session.sessionId}
-          className="stream-card"
-          onClick={() => onSelectSession(session.sessionId)}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: i * 0.03 }}
-        >
-          <div className="stream-card-top">
-            <span className="stream-card-date">{formatDate(session.startTime)}</span>
-            {!session.endTime && <span className="stream-card-live">LIVE</span>}
+    <div className="stream-list-container">
+      {channel && (
+        <div className="stream-hero">
+          <div className="stream-hero-content no-banner">
+            {channel.profileImageUrl && (
+              <img
+                src={channel.profileImageUrl}
+                alt={channel.displayName}
+                className="stream-hero-avatar no-banner"
+              />
+            )}
+            <div className="stream-hero-info">
+              <div className="stream-hero-name-row">
+                <h1 className="stream-hero-name">{channel.displayName}</h1>
+                {channel.broadcasterType && (
+                  <span className="stream-hero-badge">
+                    {channel.broadcasterType.charAt(0).toUpperCase() + channel.broadcasterType.slice(1)}
+                  </span>
+                )}
+                {(() => {
+                  const isInCompare = channelCompareItems.some(c => c.id === channel.id);
+                  const isFull = !isInCompare && channelCompareItems.length >= 3;
+                  return (
+                    <button
+                      className={`stream-hero-compare-btn${isInCompare ? ' active' : ''}`}
+                      onClick={() => isInCompare ? onRemoveChannelCompare(channel.id) : onAddChannelCompare(channel)}
+                      disabled={isFull}
+                      title={isFull ? 'Compare limit reached (3 max)' : undefined}
+                    >
+                      {isInCompare ? (
+                        <>
+                          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                            <path d="M3 8.5l3.5 3.5L13 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                          Comparing
+                        </>
+                      ) : (
+                        <>
+                          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                            <path d="M8 3v10M3 8h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                          </svg>
+                          Compare
+                        </>
+                      )}
+                    </button>
+                  );
+                })()}
+              </div>
+              {channel.description && (
+                <p className="stream-hero-description">{channel.description}</p>
+              )}
+            </div>
           </div>
-          <div className="stream-card-game">
-            {session.lastGameName || 'Unknown Category'}
+        </div>
+      )}
+
+      <DateRangeFilter onChange={handleDateChange} presets={STREAM_PRESETS} />
+
+      {loading ? (
+        <div className="stream-list-loading">Loading streams...</div>
+      ) : sessions.length === 0 ? (
+        <div className="stream-list-empty">No streams found.</div>
+      ) : (
+        <div className="stream-list">
+          {sessions.map((session, i) => {
+            const isSelected = compareItems.some(item => item.sessionId === session.sessionId);
+            const isDisabled = !isSelected && compareItems.length >= 3;
+            return (
+              <motion.div
+                key={session.sessionId}
+                className={`stream-card${isSelected ? ' selected' : ''}`}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25, delay: Math.min(i, 20) * 0.03 }}
+              >
+                <label
+                  className={`stream-card-checkbox${isDisabled ? ' disabled' : ''}`}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    disabled={isDisabled}
+                    onChange={() => toggleSelection(session)}
+                  />
+                  <span className="checkmark" />
+                </label>
+
+                <div
+                  className="stream-card-body"
+                  onClick={() => onSelectSession(session.sessionId)}
+                >
+                  <div className="stream-card-header">
+                    <span className="stream-card-date">{formatDate(session.startTime)}</span>
+                    {!session.endTime && <span className="stream-card-live">LIVE</span>}
+                  </div>
+                  <div className="stream-card-game">
+                    {session.lastGameName || 'Unknown Category'}
+                  </div>
+                  <div className="stream-card-pills">
+                    <span className="pill">{formatNumber(session.totalMessages)} msgs</span>
+                    <span className="pill">{formatNumber(session.totalChatters)} chatters</span>
+                    <span className="pill">{formatDuration(session.startTime, session.endTime)}</span>
+                    {session.peakViewerCount != null && (
+                      <span className="pill">{formatNumber(session.peakViewerCount)} peak</span>
+                    )}
+                    {session.messagesPerMinute != null && (
+                      <span className="pill">{session.messagesPerMinute.toFixed(1)} msg/min</span>
+                    )}
+                  </div>
+                </div>
+
+                <div
+                  className="stream-card-chevron"
+                  onClick={() => onSelectSession(session.sessionId)}
+                >
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M7.5 4.5L13 10L7.5 15.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+              </motion.div>
+            );
+          })}
+
+          <div ref={sentinelRef} className="stream-list-sentinel">
+            {loadingMore && <div className="stream-list-loading-more">Loading more...</div>}
           </div>
-          <div className="stream-card-stats">
-            <span>{session.totalMessages.toLocaleString()} msgs</span>
-            <span>{session.totalChatters.toLocaleString()} chatters</span>
-            <span>{formatDuration(session.startTime, session.endTime)}</span>
-          </div>
-        </motion.button>
-      ))}
+        </div>
+      )}
+
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { ChannelStats, ChatterProfile, Message, SessionSummaryView, StreamRecap } from '../types/message';
+import { AuthUser, ChannelProfile, ChannelStats, ChatterProfile, GlobalStats, Message, SessionSummaryView, StreamerRequestSummary, StreamRecap, TwitchSearchResult, VoteResponse } from '../types/message';
 
 const DEFAULT_TWITCH_ID = 552120296;
 
@@ -93,6 +93,14 @@ export async function fetchChatterSummary(
   return data.summary;
 }
 
+export async function fetchChannel(
+  twitchId: number = DEFAULT_TWITCH_ID,
+): Promise<ChannelProfile | null> {
+  const response = await fetch(`/public/channel?twitchId=${twitchId}`);
+  if (!response.ok) return null;
+  return response.json();
+}
+
 export const PAGE_SIZE = 50;
 
 export async function fetchMessagesByAuthor(
@@ -128,14 +136,29 @@ export async function fetchMessagesByAuthor(
   return response.json();
 }
 
+export const SESSIONS_PAGE_SIZE = 20;
+
 export async function fetchSessions(
+  dateRange?: DateRange,
+  cursor?: { startTime: string; id: number },
+  limit: number = SESSIONS_PAGE_SIZE,
   twitchId: number = DEFAULT_TWITCH_ID,
-  limit: number = 50,
 ): Promise<SessionSummaryView[]> {
   const params = new URLSearchParams({
     twitchId: String(twitchId),
     limit: String(limit),
   });
+
+  if (dateRange?.from) {
+    params.set('from', dateRange.from);
+  }
+  if (dateRange?.to) {
+    params.set('to', dateRange.to);
+  }
+  if (cursor) {
+    params.set('beforeStartTime', cursor.startTime);
+    params.set('beforeId', String(cursor.id));
+  }
 
   const response = await fetch(`/public/sessions?${params}`);
 
@@ -156,4 +179,68 @@ export async function fetchSessionRecap(
   }
 
   return response.json();
+}
+
+// ─── Auth ───
+
+export async function fetchMe(): Promise<AuthUser | null> {
+  const response = await fetch('/auth/me', { credentials: 'include' });
+  if (!response.ok) return null;
+  return response.json();
+}
+
+export async function logout(): Promise<void> {
+  await fetch('/auth/logout', { method: 'POST', credentials: 'include' });
+}
+
+// ─── Channel Directory ───
+
+export async function fetchChannels(): Promise<ChannelProfile[]> {
+  const response = await fetch('/public/channels');
+  if (!response.ok) return [];
+  return response.json();
+}
+
+export async function searchChannels(query: string): Promise<TwitchSearchResult[]> {
+  const response = await fetch(`/public/channels/search?q=${encodeURIComponent(query)}`);
+  if (!response.ok) return [];
+  return response.json();
+}
+
+export async function fetchPendingRequests(): Promise<StreamerRequestSummary[]> {
+  const response = await fetch('/public/channels/requests');
+  if (!response.ok) return [];
+  return response.json();
+}
+
+export async function requestStreamer(streamerLogin: string): Promise<VoteResponse> {
+  const response = await fetch('/public/channels/request', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ streamerLogin }),
+  });
+  if (!response.ok) throw new Error('Failed to request streamer');
+  return response.json();
+}
+
+export async function fetchPendingRequestsPaged(
+  limit: number = 20,
+  offset: number = 0,
+): Promise<{ items: StreamerRequestSummary[]; total: number }> {
+  const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+  const response = await fetch(`/public/channels/requests/paged?${params}`);
+  if (!response.ok) return { items: [], total: 0 };
+  return response.json();
+}
+
+export async function fetchGlobalStats(): Promise<GlobalStats | null> {
+  const response = await fetch('/public/channels/global-stats');
+  if (!response.ok || response.status === 204) return null;
+  return response.json();
+}
+
+export async function fetchChannelByLogin(login: string): Promise<ChannelProfile | null> {
+  const channels = await fetchChannels();
+  return channels.find(c => c.login.toLowerCase() === login.toLowerCase()) ?? null;
 }

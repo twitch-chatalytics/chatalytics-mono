@@ -1,5 +1,6 @@
 .date-range-filter {
-  margin-top: 8px;
+  max-width: 1120px;
+  margin: 0 auto 8px;
 }
 
 .preset-buttons {
@@ -13,22 +14,22 @@
   font-size: 13px;
   font-family: 'Inter', sans-serif;
   font-weight: 500;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
   background: #fff;
-  color: #666;
+  color: #64748b;
   cursor: pointer;
   transition: all 0.15s;
 }
 
 .preset-btn:hover {
-  border-color: #bbb;
-  color: #333;
+  border-color: #c7d2fe;
+  color: #4f46e5;
 }
 
 .preset-btn.active {
-  background: #1a1a1a;
-  border-color: #1a1a1a;
+  background: #6366f1;
+  border-color: #6366f1;
   color: #fff;
 }
 
@@ -52,15 +53,15 @@
   padding: 10px 12px;
   font-size: 14px;
   font-family: 'Inter', sans-serif;
-  border: 1px solid #e0e0e0;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
   background: #fff;
-  color: #1a1a1a;
+  color: #0f172a;
   outline: none;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .custom-input:focus {
-  border-color: #a0a0a0;
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.04);
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }

@@ -10,4 +10,16 @@ public class CacheConstants {
 
     public static final String STREAM_RECAP = "streamRecap";
 
+    public static final String SESSIONS = "sessions";
+
+    public static final String STREAM_CLIPS = "streamClips";
+
+    public static final String CHANNEL_PROFILE = "channelProfile";
+
+    public static final String CHANNEL_DIRECTORY = "channelDirectory";
+
+    public static final String TWITCH_SEARCH = "twitchSearch";
+
+    public static final String PENDING_REQUESTS = "pendingRequests";
+
 }

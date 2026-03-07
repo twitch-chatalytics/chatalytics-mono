@@ -19,8 +19,8 @@ public class DataLibraryAutoConfiguration {
         return new UserRepositoryImpl(dslContext);
     }
 
-    @Bean
-    @ConditionalOnMissingBean
+    @Bean("chatSessionRepository")
+    @ConditionalOnMissingBean(SessionRepository.class)
     SessionRepository sessionRepository(DSLContext dslContext) {
         return new SessionRepositoryImpl(dslContext);
     }
@@ -41,5 +41,23 @@ public class DataLibraryAutoConfiguration {
     @ConditionalOnMissingBean
     MessageWordRepository messageWordRepository(DSLContext dslContext) {
         return new MessageWordRepositoryImpl(dslContext);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    StreamRecapRepository streamRecapRepository(DSLContext dslContext) {
+        return new StreamRecapRepositoryImpl(dslContext);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    ViewerRepository viewerRepository(DSLContext dslContext) {
+        return new ViewerRepositoryImpl(dslContext);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    StreamerRequestRepository streamerRequestRepository(DSLContext dslContext) {
+        return new StreamerRequestRepositoryImpl(dslContext);
     }
 }

@@ -17,11 +17,16 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-jooq'
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.kafka:spring-kafka'
 
     // Spring Boot Data Redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'org.apache.commons:commons-pool2'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+    // OAuth2 login (Twitch) + Redis session store
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    implementation 'org.springframework.session:spring-session-data-redis'
 
     // Database
     implementation 'org.liquibase:liquibase-core'

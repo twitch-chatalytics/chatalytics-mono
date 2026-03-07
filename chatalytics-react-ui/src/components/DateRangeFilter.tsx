@@ -2,13 +2,15 @@ import { useState } from 'react';
 import { DateRange } from '../api/client';
 import './DateRangeFilter.css';
 
-interface DateRangeFilterProps {
-  onChange: (range: DateRange) => void;
+export type PresetKey = 'all' | '15m' | '1h' | '6h' | '24h' | '7d' | '30d' | '90d' | 'custom';
+
+export interface Preset {
+  key: PresetKey;
+  label: string;
+  minutes?: number;
 }
 
-type PresetKey = 'all' | '15m' | '1h' | '6h' | '24h' | '7d' | 'custom';
-
-const PRESETS: { key: PresetKey; label: string; minutes?: number }[] = [
+const DEFAULT_PRESETS: Preset[] = [
   { key: 'all', label: 'All time' },
   { key: '15m', label: '15 min', minutes: 15 },
   { key: '1h', label: '1 hour', minutes: 60 },
@@ -18,18 +20,25 @@ const PRESETS: { key: PresetKey; label: string; minutes?: number }[] = [
   { key: 'custom', label: 'Custom' },
 ];
 
+interface DateRangeFilterProps {
+  onChange: (range: DateRange) => void;
+  presets?: Preset[];
+}
+
 function toLocalDatetime(date: Date): string {
   const offset = date.getTimezoneOffset();
   const local = new Date(date.getTime() - offset * 60000);
   return local.toISOString().slice(0, 16);
 }
 
-export default function DateRangeFilter({ onChange }: DateRangeFilterProps) {
+export default function DateRangeFilter({ onChange, presets }: DateRangeFilterProps) {
   const [active, setActive] = useState<PresetKey>('all');
   const [customFrom, setCustomFrom] = useState('');
   const [customTo, setCustomTo] = useState('');
 
-  const handlePreset = (preset: (typeof PRESETS)[number]) => {
+  const activePresets = presets ?? DEFAULT_PRESETS;
+
+  const handlePreset = (preset: Preset) => {
     setActive(preset.key);
 
     if (preset.key === 'all') {
@@ -69,7 +78,7 @@ export default function DateRangeFilter({ onChange }: DateRangeFilterProps) {
   return (
     <div className="date-range-filter">
       <div className="preset-buttons">
-        {PRESETS.map((preset) => (
+        {activePresets.map((preset) => (
           <button
             key={preset.key}
             type="button"

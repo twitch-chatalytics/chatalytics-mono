@@ -30,5 +30,11 @@ public interface SessionRepository {
 
     List<SessionSummaryView> findSessionsWithStats(long twitchId, int limit);
 
+    List<SessionSummaryView> findSessionsWithStats(
+            long twitchId, int limit,
+            Instant from, Instant to,
+            Instant beforeStartTime, Long beforeId
+    );
+
     Double avgStreamDurationMinutes(Long twitchId);
 }

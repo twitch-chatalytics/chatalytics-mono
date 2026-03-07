@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { StreamSnapshot, ChatActivityBucket, GameSegment } from '../types/message';
+import { StreamSnapshot, ChatActivityBucket, GameSegment, HypeMoment, StreamClip } from '../types/message';
 import './StreamTimeline.css';
 
 interface Props {
@@ -9,12 +9,14 @@ interface Props {
   gameSegments: GameSegment[];
   startTime: string;
   endTime: string | null;
+  hypeMoments?: HypeMoment[];
+  clips?: StreamClip[];
 }
 
-// Distinct, muted palette for game segments
+// Refined palette for game segments
 const SEGMENT_COLORS = [
-  '#3b82f6', '#8b5cf6', '#06b6d4', '#f59e0b', '#ef4444',
-  '#10b981', '#ec4899', '#6366f1', '#14b8a6', '#f97316',
+  '#6366f1', '#8b5cf6', '#06b6d4', '#f59e0b', '#e11d48',
+  '#10b981', '#ec4899', '#3b82f6', '#14b8a6', '#f97316',
 ];
 
 function formatTime(iso: string): string {
@@ -82,7 +84,7 @@ function interpolate(points: { progress: number; value: number }[], progress: nu
 
 const CHART_HEIGHT = 140;
 const SEGMENT_STRIP_HEIGHT = 20;
-export default function StreamTimeline({ snapshots, chatActivity, gameSegments, startTime, endTime }: Props) {
+export default function StreamTimeline({ snapshots, chatActivity, gameSegments, startTime, endTime, hypeMoments = [], clips = [] }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrubProgress, setScrubProgress] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -157,6 +159,28 @@ export default function StreamTimeline({ snapshots, chatActivity, gameSegments, 
     return map;
   }, [gameSegments]);
 
+  // Hype moment positions
+  const hypePositions = useMemo(() =>
+    hypeMoments.map(hm => ({
+      progress: timeToProgress(hm.timestamp, rangeStart, rangeDuration),
+      multiplier: hm.multiplier,
+      messageCount: hm.messageCount,
+      uniqueChatters: hm.uniqueChatters,
+      time: formatTime(hm.timestamp),
+    })),
+    [hypeMoments, rangeStart, rangeDuration]
+  );
+
+  // Clip positions
+  const clipPositions = useMemo(() =>
+    clips.map(clip => ({
+      progress: timeToProgress(clip.createdAt, rangeStart, rangeDuration),
+      title: clip.title,
+      time: formatTime(clip.createdAt),
+    })),
+    [clips, rangeStart, rangeDuration]
+  );
+
   // Scrub handler
   const updateScrub = useCallback((clientX: number) => {
     const el = containerRef.current;
@@ -223,14 +247,21 @@ export default function StreamTimeline({ snapshots, chatActivity, gameSegments, 
       }
     }
 
+    // Check for nearby hype moment (within 2% of timeline width)
+    const nearbyHype = hypePositions.find(h => Math.abs(h.progress - scrubProgress) < 0.02);
+    // Check for nearby clip
+    const nearbyClip = clipPositions.find(c => Math.abs(c.progress - scrubProgress) < 0.02);
+
     return {
       time: formatTime(timestamp.toISOString()),
       viewers: Math.round(viewers),
       msgs: Math.round(msgs),
       chatters: Math.round(chatters),
       game,
+      hypeMultiplier: nearbyHype ? nearbyHype.multiplier : null,
+      clipTitle: nearbyClip ? nearbyClip.title : null,
     };
-  }, [scrubProgress, rangeStart, rangeDuration, viewerPoints, chatPoints, gameSegments]);
+  }, [scrubProgress, rangeStart, rangeDuration, viewerPoints, chatPoints, gameSegments, hypePositions, clipPositions]);
 
   // Time labels along the x-axis
   const timeLabels = useMemo(() => {
@@ -269,8 +300,8 @@ export default function StreamTimeline({ snapshots, chatActivity, gameSegments, 
         >
           <defs>
             <linearGradient id="viewerGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.3" />
-              <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.03" />
+              <stop offset="0%" stopColor="#6366f1" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="#6366f1" stopOpacity="0.02" />
             </linearGradient>
           </defs>
 
@@ -284,12 +315,33 @@ export default function StreamTimeline({ snapshots, chatActivity, gameSegments, 
             <path
               d={chatLinePath}
               fill="none"
-              stroke="#f59e0b"
+              stroke="#14b8a6"
               strokeWidth="2"
               strokeLinejoin="round"
               opacity="0.7"
             />
           )}
+
+          {/* Hype markers */}
+          {hypePositions.map((hp, i) => (
+            <circle
+              key={`hype-${i}`}
+              cx={hp.progress * containerWidth}
+              cy={CHART_HEIGHT - 12}
+              r={4}
+              fill="#e11d48"
+              stroke="#fff"
+              strokeWidth="1.5"
+              opacity="0.85"
+            />
+          ))}
+
+          {/* Clip markers */}
+          {clipPositions.map((cp, i) => (
+            <g key={`clip-${i}`} transform={`translate(${cp.progress * containerWidth}, ${CHART_HEIGHT - 12})`}>
+              <rect x={-4} y={-4} width={8} height={8} rx={2} fill="#7c3aed" stroke="#fff" strokeWidth="1.5" opacity="0.85" />
+            </g>
+          ))}
 
           {/* Scrubber line */}
           {scrubProgress !== null && (
@@ -298,7 +350,7 @@ export default function StreamTimeline({ snapshots, chatActivity, gameSegments, 
               y1={0}
               x2={scrubProgress * containerWidth}
               y2={CHART_HEIGHT}
-              stroke="#1a1a1a"
+              stroke="#0f172a"
               strokeWidth="1"
               opacity="0.5"
             />
@@ -361,47 +413,71 @@ export default function StreamTimeline({ snapshots, chatActivity, gameSegments, 
         </div>
       </div>
 
-      {/* Detail panel */}
-      <AnimatePresence>
-        {detail && (
-          <motion.div
-            className="timeline-detail"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 6 }}
-            transition={{ duration: 0.15 }}
-          >
-            <span className="detail-time">{detail.time}</span>
-            {detail.game && <span className="detail-game">{detail.game}</span>}
-            <div className="detail-metrics">
-              {detail.viewers > 0 && (
+      {/* Detail panel — wrapper reserves space to prevent layout shift */}
+      <div className="timeline-detail-wrapper">
+        <AnimatePresence>
+          {detail && (
+            <motion.div
+              className="timeline-detail"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            >
+              <span className="detail-time">{detail.time}</span>
+              {detail.game && <span className="detail-game">{detail.game}</span>}
+              <div className="detail-metrics">
+                {detail.viewers > 0 && (
+                  <span className="detail-metric">
+                    <span className="detail-dot" style={{ background: '#6366f1' }} />
+                    {formatNumber(detail.viewers)} viewers
+                  </span>
+                )}
                 <span className="detail-metric">
-                  <span className="detail-dot" style={{ background: '#3b82f6' }} />
-                  {formatNumber(detail.viewers)} viewers
+                  <span className="detail-dot" style={{ background: '#14b8a6' }} />
+                  {formatNumber(detail.msgs)} msgs/5min
                 </span>
+                <span className="detail-metric detail-chatters">
+                  {formatNumber(detail.chatters)} chatters
+                </span>
+                {detail.hypeMultiplier && (
+                  <span className="detail-metric detail-hype">
+                    <span className="detail-dot" style={{ background: '#e11d48' }} />
+                    {detail.hypeMultiplier.toFixed(1)}x avg
+                  </span>
+                )}
+              </div>
+              {detail.clipTitle && (
+                <div className="detail-clip-title">
+                  <span className="detail-dot" style={{ background: '#7c3aed' }} />
+                  {detail.clipTitle}
+                </div>
               )}
-              <span className="detail-metric">
-                <span className="detail-dot" style={{ background: '#f59e0b' }} />
-                {formatNumber(detail.msgs)} msgs/5min
-              </span>
-              <span className="detail-metric detail-chatters">
-                {formatNumber(detail.chatters)} chatters
-              </span>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* Legend */}
       <div className="timeline-legend">
         {viewerPoints.length > 0 && (
           <span className="legend-item">
-            <span className="legend-swatch" style={{ background: '#3b82f6' }} /> Viewers
+            <span className="legend-swatch" style={{ background: '#6366f1' }} /> Viewers
           </span>
         )}
         {chatPoints.length > 0 && (
           <span className="legend-item">
-            <span className="legend-swatch legend-line" style={{ background: '#f59e0b' }} /> Chat
+            <span className="legend-swatch legend-line" style={{ background: '#14b8a6' }} /> Chat
+          </span>
+        )}
+        {hypePositions.length > 0 && (
+          <span className="legend-item">
+            <span className="legend-swatch legend-dot" style={{ background: '#e11d48' }} /> Hype
+          </span>
+        )}
+        {clipPositions.length > 0 && (
+          <span className="legend-item">
+            <span className="legend-swatch legend-square" style={{ background: '#7c3aed' }} /> Clips
           </span>
         )}
       </div>

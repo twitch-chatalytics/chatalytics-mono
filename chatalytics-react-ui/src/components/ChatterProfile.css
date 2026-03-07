@@ -1,73 +1,102 @@
 .chatter-profile {
   background: #fff;
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 24px 28px;
   margin-top: 28px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
 }
 
 .chatter-profile-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .chatter-profile-author {
-  font-size: 1.3rem;
-  font-weight: 700;
+  font-size: 1.4rem;
+  font-weight: 800;
   margin: 0;
-  color: #1a1a1a;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+
+/* Stats grid */
+.chatter-profile-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px 24px;
+}
+
+.chatter-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.chatter-stat-value {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
+}
+
+.chatter-stat-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+  text-transform: uppercase;
 }
 
 /* AI Summary Section */
 .ai-summary-section {
-  margin-top: 20px;
-  padding: 16px;
-  background: #f8f9fc;
-  border: 1px solid #e8ecf4;
-  border-radius: 10px;
+  margin-top: 24px;
+  padding: 18px;
+  background: #f8fafc;
+  border-radius: 12px;
 }
 
 .ai-summary-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .ai-summary-icon {
-  color: #7c5cbf;
+  color: #6366f1;
 }
 
 .ai-summary-title {
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #7c5cbf;
+  letter-spacing: 0.06em;
+  color: #6366f1;
 }
 
 .ai-summary-btn {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
+  justify-content: center;
+  margin: 0 auto;
+  gap: 8px;
+  padding: 9px 18px;
   font-size: 13px;
   font-family: 'Inter', sans-serif;
   font-weight: 500;
-  border: 1px solid #d8d0ee;
-  border-radius: 6px;
-  background: #fff;
-  color: #7c5cbf;
+  border: none;
+  border-radius: 8px;
+  background: #eef2ff;
+  color: #6366f1;
   cursor: pointer;
   transition: all 0.15s;
   white-space: nowrap;
 }
 
 .ai-summary-btn:hover:not(:disabled) {
-  background: #f3f0fa;
-  border-color: #b8a8de;
+  background: #e0e7ff;
 }
 
 .ai-summary-btn:disabled {
@@ -78,8 +107,8 @@
 .summarize-spinner {
   width: 12px;
   height: 12px;
-  border: 2px solid #d8d0ee;
-  border-top-color: #7c5cbf;
+  border: 2px solid #c7d2fe;
+  border-top-color: #6366f1;
   border-radius: 50%;
   animation: summarize-spin 0.6s linear infinite;
 }
@@ -90,40 +119,14 @@
 
 .ai-summary-text {
   font-size: 14px;
-  line-height: 1.6;
-  color: #444;
+  line-height: 1.7;
+  color: #475569;
   margin: 0;
   overflow: hidden;
 }
 
 .ai-summary-error {
-  color: #999;
-}
-
-.chatter-profile-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px 24px;
-}
-
-.chatter-stat {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.chatter-stat-value {
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #1a1a1a;
-}
-
-.chatter-stat-label {
-  font-size: 0.65rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  color: #999;
-  text-transform: uppercase;
+  color: #94a3b8;
 }
 
 @media (max-width: 640px) {

@@ -11,6 +11,8 @@ version = '1.0.14'
 dependencies {
     api 'org.springframework.boot:spring-boot-starter-jooq'
     implementation "org.jooq:jooq:3.19.16"
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
     // Config
     implementation 'org.springframework.boot:spring-boot-autoconfigure'

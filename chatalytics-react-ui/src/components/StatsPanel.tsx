@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChannelStats } from '../types/message';
-import { fetchStats } from '../api/client';
+import { motion } from 'framer-motion';
+import { ChannelStats, GlobalStats } from '../types/message';
+import { fetchStats, fetchChannelByLogin, fetchGlobalStats } from '../api/client';
 import { useAnimatedNumber } from '../hooks/useAnimatedNumber';
 import './StatsPanel.css';
 
@@ -25,53 +25,70 @@ function formatHour(hour: number): string {
   return `${h} ${suffix}`;
 }
 
+function timeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
 interface StatsPanelProps {
+  channelLogin?: string;
   onAuthorClick: (author: string) => void;
 }
 
-export default function StatsPanel({ onAuthorClick }: StatsPanelProps) {
-  const [stats, setStats] = useState<ChannelStats | null>(null);
+export default function StatsPanel({ channelLogin }: StatsPanelProps) {
+  const [channelStats, setChannelStats] = useState<ChannelStats | null>(null);
+  const [globalStats, setGlobalStats] = useState<GlobalStats | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchStats()
-      .then(setStats)
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
+  const isGlobal = !channelLogin;
 
-  const animatedMessages = useAnimatedNumber(stats?.totalMessages ?? 0);
-  const animatedChatters = useAnimatedNumber(stats?.uniqueChatters ?? 0);
+  useEffect(() => {
+    setLoading(true);
+    if (channelLogin) {
+      fetchChannelByLogin(channelLogin).then(ch => {
+        if (ch) return fetchStats(ch.id);
+        return null;
+      })
+        .then(s => { if (s) setChannelStats(s); })
+        .catch(() => {})
+        .finally(() => setLoading(false));
+    } else {
+      fetchGlobalStats()
+        .then(s => { if (s) setGlobalStats(s); })
+        .catch(() => {})
+        .finally(() => setLoading(false));
+    }
+  }, [channelLogin]);
+
+  const stats = isGlobal ? globalStats : channelStats;
+  const totalMessages = isGlobal
+    ? (globalStats?.totalMessages ?? 0)
+    : (channelStats?.totalMessages ?? 0);
+  const uniqueChatters = isGlobal
+    ? (globalStats?.uniqueChatters ?? 0)
+    : (channelStats?.uniqueChatters ?? 0);
+
+  const animatedMessages = useAnimatedNumber(totalMessages);
+  const animatedChatters = useAnimatedNumber(uniqueChatters);
+  const animatedStreams = useAnimatedNumber(isGlobal ? (globalStats?.totalStreams ?? 0) : 0);
+  const animatedChannels = useAnimatedNumber(isGlobal ? (globalStats?.trackedChannels ?? 0) : 0);
 
   if (loading) {
     return (
       <footer className="stats-footer">
         <div className="stats-footer-inner">
-          <div className="footer-left">
-            <div className="footer-stats-row">
-              <div className="footer-stat">
+          <div className="footer-stats-row">
+            {[...Array(isGlobal ? 4 : 3)].map((_, i) => (
+              <div key={i} className="footer-stat">
                 <div className="skeleton skeleton-value" />
                 <div className="skeleton skeleton-label" />
               </div>
-              <div className="footer-stat-divider" />
-              <div className="footer-stat">
-                <div className="skeleton skeleton-value" />
-                <div className="skeleton skeleton-label" />
-              </div>
-              <div className="footer-stat-divider" />
-              <div className="footer-stat">
-                <div className="skeleton skeleton-value" />
-                <div className="skeleton skeleton-label" />
-              </div>
-            </div>
-          </div>
-          <div className="footer-right">
-            <div className="skeleton skeleton-leaderboard-label" />
-            <div className="skeleton-leaderboard">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="skeleton skeleton-chatter-row" />
-              ))}
-            </div>
+            ))}
           </div>
         </div>
       </footer>
@@ -80,51 +97,50 @@ export default function StatsPanel({ onAuthorClick }: StatsPanelProps) {
 
   if (!stats) return null;
 
+  const globalStatItems = (
+    <>
+      <StatItem label="Messages" value={animatedMessages.toLocaleString()} />
+      <span className="footer-stat-divider" />
+      <StatItem label="Chatters" value={animatedChatters.toLocaleString()} />
+      <span className="footer-stat-divider" />
+      <StatItem label="Streams" value={animatedStreams.toLocaleString()} />
+      <span className="footer-stat-divider" />
+      <StatItem label="Channels" value={animatedChannels.toLocaleString()} />
+    </>
+  );
+
+  const channelStatItems = (
+    <>
+      <StatItem label="Messages" value={animatedMessages.toLocaleString()} />
+      <span className="footer-stat-divider" />
+      <StatItem label="Chatters" value={animatedChatters.toLocaleString()} />
+      {channelStats?.peakHour !== null && channelStats?.peakHour !== undefined && (
+        <>
+          <span className="footer-stat-divider" />
+          <StatItem label="Peak Hour" value={formatHour(channelStats.peakHour)} />
+        </>
+      )}
+    </>
+  );
+
   return (
     <footer className="stats-footer">
       <div className="stats-footer-inner">
-        <div className="footer-left">
-          <div className="footer-stats-row">
-            <StatItem label="Messages" value={animatedMessages.toLocaleString()} />
-            <div className="footer-stat-divider" />
-            <StatItem label="Chatters" value={animatedChatters.toLocaleString()} />
-            {stats.peakHour !== null && (
-              <>
-                <div className="footer-stat-divider" />
-                <StatItem label="Peak Hour" value={formatHour(stats.peakHour)} />
-              </>
-            )}
-          </div>
+        <div className="footer-stats-row">
+          {isGlobal ? globalStatItems : channelStatItems}
         </div>
 
-        <AnimatePresence>
-          {stats.topChatters.length > 0 && (
-            <motion.div
-              className="footer-right"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
-            >
-              <div className="footer-leaderboard-label">Top Chatters</div>
-              <div className="footer-leaderboard">
-                {stats.topChatters.slice(0, 5).map((chatter, i) => (
-                  <motion.button
-                    key={chatter.author}
-                    className="footer-chatter"
-                    onClick={() => onAuthorClick(chatter.author)}
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: 0.3 + i * 0.04 }}
-                  >
-                    <span className="footer-chatter-rank">{i + 1}</span>
-                    <span className="footer-chatter-name">{chatter.author}</span>
-                    <span className="footer-chatter-count">{chatter.messageCount.toLocaleString()}</span>
-                  </motion.button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {isGlobal && globalStats?.updatedAt && (
+          <motion.div
+            className="footer-updated"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <span className="footer-updated-dot" />
+            Updated {timeAgo(globalStats.updatedAt)}
+          </motion.div>
+        )}
       </div>
     </footer>
   );

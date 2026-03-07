@@ -6,7 +6,10 @@ import org.springframework.web.bind.annotation.*;
 import space.forloop.chatalytics.api.services.wrapper.ChatterSummaryService;
 import space.forloop.chatalytics.api.services.wrapper.PublicChatterProfileService;
 import space.forloop.chatalytics.api.services.wrapper.PublicStatsService;
+import space.forloop.chatalytics.api.services.wrapper.SessionListService;
 import space.forloop.chatalytics.api.services.wrapper.StreamRecapService;
+import space.forloop.chatalytics.api.services.wrapper.ChannelProfileService;
+import space.forloop.chatalytics.data.domain.ChannelProfile;
 import space.forloop.chatalytics.data.domain.ChannelStats;
 import space.forloop.chatalytics.data.domain.ChatterProfile;
 import space.forloop.chatalytics.data.domain.SessionSummaryView;
@@ -22,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-@CrossOrigin
 @RequiredArgsConstructor
 @RequestMapping("/public")
 @RestController
@@ -33,7 +35,18 @@ public class PublicController {
     private final ChatterSummaryService chatterSummaryService;
     private final PublicChatterProfileService publicChatterProfileService;
     private final PublicStatsService publicStatsService;
+    private final SessionListService sessionListService;
     private final StreamRecapService streamRecapService;
+    private final ChannelProfileService channelProfileService;
+
+    @GetMapping("/channel")
+    public ResponseEntity<ChannelProfile> getChannel(@RequestParam Long twitchId) {
+        ChannelProfile profile = channelProfileService.getProfile(twitchId);
+        if (profile == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(profile);
+    }
 
     @GetMapping("/stats")
     public ChannelStats getStats(@RequestParam Long twitchId) {
@@ -92,8 +105,18 @@ public class PublicController {
     @GetMapping("/sessions")
     public List<SessionSummaryView> getSessions(
             @RequestParam Long twitchId,
-            @RequestParam(defaultValue = "50") int limit) {
-        return sessionRepository.findSessionsWithStats(twitchId, Math.min(limit, 100));
+            @RequestParam(defaultValue = "20") int limit,
+            @RequestParam(required = false) Instant from,
+            @RequestParam(required = false) Instant to,
+            @RequestParam(required = false) Instant beforeStartTime,
+            @RequestParam(required = false) Long beforeId) {
+        int safeLimit = Math.min(limit, 100);
+        // First page with no filters → serve from Redis cache
+        if (from == null && to == null && beforeStartTime == null && beforeId == null) {
+            return sessionListService.findFirstPage(twitchId, safeLimit);
+        }
+        return sessionRepository.findSessionsWithStats(
+                twitchId, safeLimit, from, to, beforeStartTime, beforeId);
     }
 
     @GetMapping("/sessions/{id}/recap")
@@ -102,7 +125,8 @@ public class PublicController {
         if (recap == null) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(recap);
+        var freshClips = streamRecapService.fetchFreshClips(id, 8);
+        return ResponseEntity.ok(recap.withTopClips(freshClips));
     }
 
 }

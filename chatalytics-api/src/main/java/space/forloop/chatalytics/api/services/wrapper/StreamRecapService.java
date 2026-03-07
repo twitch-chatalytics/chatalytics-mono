@@ -13,6 +13,7 @@ import space.forloop.chatalytics.data.generated.tables.pojos.Message;
 import space.forloop.chatalytics.data.repositories.MessageRepository;
 import space.forloop.chatalytics.data.repositories.MessageWordRepository;
 import space.forloop.chatalytics.data.repositories.SessionRepository;
+import space.forloop.chatalytics.data.repositories.StreamRecapRepository;
 import space.forloop.chatalytics.data.repositories.StreamSnapshotRepository;
 import space.forloop.chatalytics.twitch.model.TwitchClipData;
 import space.forloop.chatalytics.twitch.service.TwitchService;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static space.forloop.chatalytics.api.util.CacheConstants.STREAM_CLIPS;
 import static space.forloop.chatalytics.api.util.CacheConstants.STREAM_RECAP;
 
 @Slf4j
@@ -35,6 +37,7 @@ public class StreamRecapService {
     private final MessageRepository messageRepository;
     private final MessageWordRepository messageWordRepository;
     private final StreamSnapshotRepository snapshotRepository;
+    private final StreamRecapRepository streamRecapRepository;
     private final TwitchService twitchService;
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
@@ -45,12 +48,14 @@ public class StreamRecapService {
             MessageRepository messageRepository,
             MessageWordRepository messageWordRepository,
             StreamSnapshotRepository snapshotRepository,
+            StreamRecapRepository streamRecapRepository,
             TwitchService twitchService,
             @Value("${anthropic.api-key:}") String apiKey) {
         this.sessionRepository = sessionRepository;
         this.messageRepository = messageRepository;
         this.messageWordRepository = messageWordRepository;
         this.snapshotRepository = snapshotRepository;
+        this.streamRecapRepository = streamRecapRepository;
         this.twitchService = twitchService;
         this.restTemplate = new RestTemplate();
         this.objectMapper = new ObjectMapper();
@@ -59,6 +64,31 @@ public class StreamRecapService {
 
     @Cacheable(value = STREAM_RECAP, key = "#sessionId")
     public StreamRecap generateRecap(long sessionId) {
+        // Check persisted recap first (for ended streams)
+        var persisted = streamRecapRepository.findBySessionId(sessionId);
+        if (persisted.isPresent()) {
+            return persisted.get();
+        }
+
+        // Fall back to live computation (ongoing streams or not yet persisted)
+        return computeRecap(sessionId);
+    }
+
+    /**
+     * Fetches clips from Twitch for a session, cached for 24h in Redis.
+     */
+    @Cacheable(value = STREAM_CLIPS, key = "#sessionId + ':' + #limit")
+    public List<StreamClip> fetchFreshClips(long sessionId, int limit) {
+        var session = sessionRepository.findByIdWithUser(sessionId);
+        if (session.isEmpty()) return List.of();
+        return fetchTopClips(session.get(), limit);
+    }
+
+    /**
+     * Computes a full recap from source data. Used by the persistence task
+     * and as a fallback for live/ongoing streams.
+     */
+    public StreamRecap computeRecap(long sessionId) {
         var sessionOpt = sessionRepository.findByIdWithUser(sessionId);
         if (sessionOpt.isEmpty()) {
             return null;
@@ -110,8 +140,26 @@ public class StreamRecapService {
                         .map(b -> new ChatMoment(b.bucketStart(), b.messageCount(), b.uniqueChatters()))
                         .orElse(null);
 
+        // Hype moments — chat activity buckets significantly above average
+        List<HypeMoment> hypeMoments = List.of();
+        if (!chatActivity.isEmpty()) {
+            double avgMsgCount = chatActivity.stream()
+                    .mapToLong(ChatActivityBucket::messageCount)
+                    .average()
+                    .orElse(0);
+            if (avgMsgCount > 0) {
+                hypeMoments = chatActivity.stream()
+                        .filter(b -> b.messageCount() >= 2.0 * avgMsgCount)
+                        .map(b -> new HypeMoment(b.bucketStart(), b.messageCount(), b.uniqueChatters(),
+                                b.messageCount() / avgMsgCount))
+                        .sorted(Comparator.comparingDouble(HypeMoment::multiplier).reversed())
+                        .limit(5)
+                        .toList();
+            }
+        }
+
         // Top clips from Twitch
-        List<StreamClip> topClips = fetchTopClips(session, 6);
+        List<StreamClip> topClips = fetchTopClips(session, 8);
 
         String aiSummary = generateAiSummary(session, snapshots, chatActivity, topChatters,
                 totalMessages, totalChatters, topWords, gameSegments, chatParticipationRate);
@@ -138,7 +186,8 @@ public class StreamRecapService {
                 gameSegments,
                 chatParticipationRate,
                 peakMoment,
-                topClips
+                topClips,
+                hypeMoments
         );
     }
 

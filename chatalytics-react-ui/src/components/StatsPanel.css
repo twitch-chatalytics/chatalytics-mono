@@ -1,6 +1,6 @@
 .stats-footer {
-  background: #141414;
-  border-top: 1px solid #252525;
+  background: #fafafa;
+  border-top: 1px solid #e2e8f0;
   width: 100%;
   margin-top: auto;
 }
@@ -8,172 +8,117 @@
 .stats-footer-inner {
   max-width: 960px;
   margin: 0 auto;
-  padding: 32px 32px;
+  padding: 28px 32px;
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
 }
 
-/* Skeleton loading */
-@keyframes skeleton-pulse {
-  0%, 100% { opacity: 0.15; }
-  50% { opacity: 0.3; }
-}
-
-.skeleton {
-  background: #fff;
-  border-radius: 4px;
-  animation: skeleton-pulse 1.5s ease-in-out infinite;
-}
-
-.skeleton-value {
-  width: 64px;
-  height: 22px;
-  margin-bottom: 4px;
-}
-
-.skeleton-label {
-  width: 48px;
-  height: 12px;
-}
-
-.skeleton-leaderboard-label {
-  width: 80px;
-  height: 12px;
-  margin-bottom: 10px;
-}
-
-.skeleton-leaderboard {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.skeleton-chatter-row {
-  height: 28px;
-  width: 100%;
-  border-radius: 6px;
-}
-
-/* Left side — stat numbers */
-.footer-left {
-  flex-shrink: 0;
-}
-
+/* Stats row */
 .footer-stats-row {
   display: flex;
   align-items: center;
-  gap: 24px;
+  justify-content: center;
+  gap: 40px;
 }
 
 .footer-stat {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 2px;
 }
 
 .footer-stat-value {
-  font-size: 20px;
-  font-weight: 600;
-  color: #e8e8e8;
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  font-weight: 800;
+  color: #0f172a;
   font-variant-numeric: tabular-nums;
+  line-height: 1.2;
 }
 
 .footer-stat-label {
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #555;
+  letter-spacing: 0.1em;
+  color: #94a3b8;
+  line-height: 1.2;
 }
 
+/* Vertical dividers between stats */
 .footer-stat-divider {
   width: 1px;
-  height: 32px;
-  background: #2a2a2a;
+  height: 36px;
+  background: #e2e8f0;
+  flex-shrink: 0;
 }
 
-/* Right side — compact leaderboard */
-.footer-right {
-  flex: 1;
-  max-width: 360px;
-}
-
-.footer-leaderboard-label {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #555;
-  margin-bottom: 8px;
-}
-
-.footer-leaderboard {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.footer-chatter {
-  display: flex;
+/* Updated badge */
+.footer-updated {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 5px 8px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.15s;
-  background: none;
-  border: none;
-  font-family: inherit;
-  width: 100%;
-  text-align: left;
-}
-
-.footer-chatter:hover {
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.footer-chatter:hover .footer-chatter-name {
-  color: #63a0ff;
-}
-
-.footer-chatter-rank {
+  gap: 6px;
   font-size: 11px;
   font-weight: 600;
-  color: #444;
-  width: 16px;
-  text-align: right;
-  flex-shrink: 0;
-  font-variant-numeric: tabular-nums;
-}
-
-.footer-chatter-name {
-  font-size: 13px;
-  font-weight: 500;
-  color: #aaa;
-  flex: 1;
-  transition: color 0.15s;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  letter-spacing: 0.03em;
+  color: #6366f1;
+  background: #eef2ff;
+  border-radius: 20px;
+  padding: 5px 14px;
   white-space: nowrap;
+  margin-left: auto;
 }
 
-.footer-chatter-count {
-  font-size: 12px;
-  color: #555;
-  font-variant-numeric: tabular-nums;
+.footer-updated-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
   flex-shrink: 0;
+}
+
+/* Skeleton loading */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+.skeleton {
+  background: #e2e8f0;
+  border-radius: 4px;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-value {
+  width: 56px;
+  height: 20px;
+  margin-bottom: 4px;
+}
+
+.skeleton-label {
+  width: 48px;
+  height: 10px;
 }
 
 @media (max-width: 640px) {
   .stats-footer-inner {
     flex-direction: column;
-    gap: 24px;
     padding: 24px 20px;
+    gap: 16px;
   }
 
-  .footer-right {
-    max-width: 100%;
+  .footer-stats-row {
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .footer-stat-divider {
+    display: none;
+  }
+
+  .footer-updated {
+    margin-left: 0;
   }
 }

@@ -1,6 +1,7 @@
 package space.forloop.chatalytics.data.repositories;
 
 import lombok.RequiredArgsConstructor;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.impl.DSL;
@@ -11,6 +12,7 @@ import space.forloop.chatalytics.data.domain.SessionWithUser;
 import space.forloop.chatalytics.data.generated.tables.pojos.Session;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -135,6 +137,30 @@ public class SessionRepositoryImpl implements SessionRepository {
 
     @Override
     public List<SessionSummaryView> findSessionsWithStats(long twitchId, int limit) {
+        return findSessionsWithStats(twitchId, limit, null, null, null, null);
+    }
+
+    @Override
+    public List<SessionSummaryView> findSessionsWithStats(
+            long twitchId, int limit,
+            Instant from, Instant to,
+            Instant beforeStartTime, Long beforeId) {
+
+        List<Condition> conditions = new ArrayList<>();
+        conditions.add(SESSION.TWITCH_ID.eq(twitchId));
+
+        if (from != null) {
+            conditions.add(SESSION.START_TIME.ge(from));
+        }
+        if (to != null) {
+            conditions.add(SESSION.START_TIME.le(to));
+        }
+        if (beforeStartTime != null && beforeId != null) {
+            conditions.add(
+                    DSL.row(SESSION.START_TIME, SESSION.ID).lessThan(DSL.row(DSL.val(beforeStartTime), DSL.val(beforeId)))
+            );
+        }
+
         // Subquery: latest game_name per session using DISTINCT ON (PostgreSQL)
         var latestSnapshot = DSL.table(
                 "(SELECT DISTINCT ON (session_id) session_id AS ss_session_id, game_name AS last_game_name " +
@@ -176,10 +202,10 @@ public class SessionRepositoryImpl implements SessionRepository {
                 .leftJoin(MESSAGE).on(SESSION.ID.eq(MESSAGE.SESSION_ID))
                 .leftJoin(latestSnapshot).on(SESSION.ID.eq(snapSessionId))
                 .leftJoin(peakViewers).on(SESSION.ID.eq(pvSessionId))
-                .where(SESSION.TWITCH_ID.eq(twitchId))
+                .where(conditions)
                 .groupBy(SESSION.ID, SESSION.TWITCH_ID, SESSION.START_TIME, SESSION.END_TIME,
                         lastGameName, peakViewerCount, durationMinutes)
-                .orderBy(SESSION.START_TIME.desc())
+                .orderBy(SESSION.START_TIME.desc(), SESSION.ID.desc())
                 .limit(limit)
                 .fetchInto(SessionSummaryView.class);
     }

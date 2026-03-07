@@ -17,6 +17,11 @@ export interface ChannelStats {
   uniqueChatters: number;
   topChatters: TopChatter[];
   peakHour: number | null;
+  totalSessions: number;
+  avgMessagesPerSession: number;
+  avgChattersPerSession: number;
+  avgStreamDurationMinutes: number | null;
+  topGames: { gameName: string; sessionCount: number }[];
 }
 
 export interface ChatterProfile {
@@ -101,18 +106,6 @@ export interface MessageAnalysis {
   linkCount: number;
 }
 
-export interface ChannelStatsEnriched {
-  totalMessages: number;
-  uniqueChatters: number;
-  topChatters: TopChatter[];
-  peakHour: number | null;
-  totalSessions: number;
-  avgMessagesPerSession: number;
-  avgChattersPerSession: number;
-  avgStreamDurationMinutes: number | null;
-  topGames: { gameName: string; sessionCount: number }[];
-}
-
 export interface StreamClip {
   id: string;
   url: string;
@@ -123,6 +116,24 @@ export interface StreamClip {
   thumbnailUrl: string;
   duration: number;
   creatorName: string;
+}
+
+export interface HypeMoment {
+  timestamp: string;
+  messageCount: number;
+  uniqueChatters: number;
+  multiplier: number;
+}
+
+export interface ChannelProfile {
+  id: number;
+  login: string;
+  displayName: string;
+  broadcasterType: string | null;
+  description: string | null;
+  profileImageUrl: string | null;
+  offlineImageUrl: string | null;
+  createdAt: string;
 }
 
 export interface StreamRecap {
@@ -148,4 +159,53 @@ export interface StreamRecap {
   chatParticipationRate: number | null;
   peakMoment: ChatMoment | null;
   topClips: StreamClip[];
+  hypeMoments: HypeMoment[];
+}
+
+export interface CompareItem {
+  sessionId: number;
+  channelLogin: string;
+  channelDisplayName: string;
+  profileImageUrl?: string;
+  startTime: string;
+  gameName?: string;
+}
+
+export interface AuthUser {
+  twitchId: number;
+  login: string;
+  displayName: string;
+  profileImageUrl: string;
+}
+
+export interface TwitchSearchResult {
+  id: number;
+  login: string;
+  displayName: string;
+  profileImageUrl: string;
+  broadcasterType: string;
+  alreadyTracked: boolean;
+}
+
+export interface StreamerRequestSummary {
+  streamerLogin: string;
+  streamerId: number;
+  displayName: string;
+  profileImageUrl: string;
+  voteCount: number;
+}
+
+export interface VoteResponse {
+  voted: boolean;
+  voteCount: number;
+  added: boolean;
+}
+
+export interface GlobalStats {
+  totalMessages: number;
+  uniqueChatters: number;
+  totalStreams: number;
+  trackedChannels: number;
+  topChatters: TopChatter[];
+  updatedAt: string;
 }

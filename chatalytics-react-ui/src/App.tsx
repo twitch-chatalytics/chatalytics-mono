@@ -1,218 +1,216 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { Message } from './types/message';
-import { DateRange, fetchMessagesByAuthor, PAGE_SIZE } from './api/client';
-import { useChatterProfile } from './hooks/useChatterProfile';
-import { useActivityBuckets } from './hooks/useActivityBuckets';
-import { useMessageFilter } from './hooks/useMessageFilter';
+import { useEffect, useState } from 'react';
+import { AuthUser, ChannelProfile, CompareItem } from './types/message';
+import { fetchMe, logout, fetchChannel } from './api/client';
 import StatsPanel from './components/StatsPanel';
-import SearchBar from './components/SearchBar';
-import ChatterProfileCard from './components/ChatterProfile';
-import ActivityTimeline from './components/ActivityTimeline';
-import RepeatDetector from './components/RepeatDetector';
-import MessageFilter from './components/MessageFilter';
-import MessageList from './components/MessageList';
-import EmptyState from './components/EmptyState';
-import LoadingSpinner from './components/LoadingSpinner';
 import StreamsPage from './components/StreamsPage';
-
-type Page = 'search' | 'streams';
-
-function getPageFromPath(): Page {
-  if (window.location.pathname.startsWith('/streams')) return 'streams';
-  return 'search';
-}
-
-function getUserFromPath(): string {
-  const match = window.location.pathname.match(/^\/user\/(.+)$/);
-  return match ? decodeURIComponent(match[1]) : '';
-}
+import ChatterDrawer from './components/ChatterDrawer';
+import StreamerDirectory from './components/StreamerDirectory';
+import SuggestedStreamers from './components/SuggestedStreamers';
+import ChannelCompareView from './components/ChannelCompareView';
+import CompareView from './components/CompareView';
+import CompareBar from './components/CompareBar';
+import ChannelCompareBar from './components/ChannelCompareBar';
+import NavbarSearch from './components/NavbarSearch';
 
 export default function App() {
-  const [page, setPage] = useState<Page>(() => getPageFromPath());
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
-  const [searchedAuthor, setSearchedAuthor] = useState('');
-  const [searchBarValue, setSearchBarValue] = useState(() => getUserFromPath());
-  const [error, setError] = useState('');
-  const [filterTerm, setFilterTerm] = useState('');
-  const dateRangeRef = useRef<DateRange>({});
+  const [drawerAuthor, setDrawerAuthor] = useState<string | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [currentPath, setCurrentPath] = useState(window.location.pathname);
+  const [compareItems, setCompareItems] = useState<CompareItem[]>([]);
+  const [streamCompareLabels, setStreamCompareLabels] = useState<string[]>([]);
+  const [streamCompareLoading, setStreamCompareLoading] = useState(false);
+  const [channelCompareItems, setChannelCompareItems] = useState<ChannelProfile[]>([]);
 
-  const profile = useChatterProfile(searchedAuthor, messages);
-  const activityBuckets = useActivityBuckets(messages);
-  const { filtered: displayMessages, total } = useMessageFilter(messages, filterTerm);
+  const addChannelCompare = (channel: ChannelProfile) => {
+    setChannelCompareItems(prev => {
+      if (prev.length >= 3 || prev.some(c => c.id === channel.id)) return prev;
+      return [...prev, channel];
+    });
+  };
 
-  // Load user from URL on mount
+  const removeChannelCompare = (channelId: number) => {
+    setChannelCompareItems(prev => prev.filter(c => c.id !== channelId));
+  };
+
+  const clearChannelCompare = () => setChannelCompareItems([]);
+
+  const addCompareItem = (item: CompareItem) => {
+    setCompareItems(prev => {
+      if (prev.length >= 3 || prev.some(i => i.sessionId === item.sessionId)) return prev;
+      return [...prev, item];
+    });
+  };
+
+  const removeCompareItem = (sessionId: number) => {
+    setCompareItems(prev => prev.filter(i => i.sessionId !== sessionId));
+  };
+
+  const clearCompare = () => setCompareItems([]);
+
   useEffect(() => {
-    const user = getUserFromPath();
-    if (user) {
-      doSearch(user, {}, false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    fetchMe().then(setUser).catch(() => {}).finally(() => setAuthLoading(false));
   }, []);
 
-  // Handle browser back/forward
   useEffect(() => {
-    const handlePopState = () => {
-      setPage(getPageFromPath());
-      const user = getUserFromPath();
-      if (user) {
-        doSearch(user, {}, false);
-      } else if (!window.location.pathname.startsWith('/streams')) {
-        setMessages([]);
-        setSearchedAuthor('');
-        setSearchBarValue('');
-        setHasSearched(false);
-        setHasMore(false);
-        document.title = 'chatalytics';
-      }
-    };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const handleNav = () => setCurrentPath(window.location.pathname);
+    window.addEventListener('popstate', handleNav);
+    return () => window.removeEventListener('popstate', handleNav);
   }, []);
 
-  const doSearch = async (username: string, dateRange: DateRange, pushState = true) => {
-    setIsLoading(true);
-    setError('');
-    setFilterTerm('');
-    try {
-      const results = await fetchMessagesByAuthor(username, dateRange);
-      setMessages(results);
-      setSearchedAuthor(username);
-      setSearchBarValue(username);
-      setHasSearched(true);
-      setHasMore(results.length >= PAGE_SIZE);
+  const handleChatterClick = (author: string) => setDrawerAuthor(author);
 
-      const targetPath = `/user/${encodeURIComponent(username)}`;
-      document.title = `${username} — chatalytics`;
-      if (pushState && window.location.pathname !== targetPath) {
-        window.history.pushState({ author: username }, '', targetPath);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
-      setMessages([]);
-      setHasMore(false);
-    } finally {
-      setIsLoading(false);
+  const channelMatch = currentPath.match(/^\/channel\/([^/]+)/);
+  const channelLogin = channelMatch ? channelMatch[1] : null;
+  const isChannelCompare = currentPath === '/compare/channels';
+  const isStreamCompare = currentPath === '/compare/streams';
+
+  // Parse session IDs from URL for stream compare
+  const streamCompareIds = (() => {
+    if (!isStreamCompare) return [];
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get('sessions') || '';
+    return raw.split(',').map(Number).filter(n => n > 0).slice(0, 3);
+  })();
+
+  // Resolve labels for stream compare (from compareItems or async fetch)
+  useEffect(() => {
+    if (streamCompareIds.length < 2) {
+      setStreamCompareLabels([]);
+      return;
     }
+
+    // Try to derive labels from compareItems
+    const labels = streamCompareIds.map(id => {
+      const item = compareItems.find(i => i.sessionId === id);
+      return item?.channelDisplayName || '';
+    });
+
+    if (labels.every(l => l)) {
+      setStreamCompareLabels(labels);
+      return;
+    }
+
+    // Shareable link — fetch labels from recap data
+    setStreamCompareLoading(true);
+    Promise.all(
+      streamCompareIds.map(async id => {
+        try {
+          const resp = await fetch(`/public/sessions/${id}/recap`);
+          if (!resp.ok) return '';
+          const recap = await resp.json();
+          if (recap.snapshots?.length > 0) {
+            const ch = await fetchChannel(recap.snapshots[0].twitchId);
+            return ch?.displayName || '';
+          }
+        } catch {}
+        return '';
+      })
+    ).then(names => {
+      setStreamCompareLabels(names);
+      setStreamCompareLoading(false);
+    });
+  }, [streamCompareIds.join(',')]);
+
+  const navigateTo = (path: string) => {
+    window.history.pushState(null, '', path);
+    setCurrentPath(path);
   };
 
-  const loadMore = useCallback(async () => {
-    if (isLoadingMore || !hasMore || messages.length === 0) return;
-
-    const lastMessage = messages[messages.length - 1];
-    setIsLoadingMore(true);
-    try {
-      const results = await fetchMessagesByAuthor(
-        searchedAuthor,
-        dateRangeRef.current,
-        { timestamp: lastMessage.timestamp, id: lastMessage.id },
-      );
-      setMessages((prev) => [...prev, ...results]);
-      setHasMore(results.length >= PAGE_SIZE);
-    } catch {
-      setHasMore(false);
-    } finally {
-      setIsLoadingMore(false);
-    }
-  }, [isLoadingMore, hasMore, messages, searchedAuthor]);
-
-  const handleSearch = (username: string) => {
-    setPage('search');
-    doSearch(username, dateRangeRef.current);
+  const handleLogin = () => {
+    window.location.href = '/oauth2/authorization/twitch';
   };
 
-  const handleDateRangeChange = (range: DateRange) => {
-    dateRangeRef.current = range;
-    if (searchedAuthor) {
-      doSearch(searchedAuthor, range);
-    }
-  };
-
-  const navigateTo = (target: Page) => {
-    setPage(target);
-    if (target === 'streams') {
-      window.history.pushState(null, '', '/streams');
-      document.title = 'Streams — chatalytics';
-    } else {
-      window.history.pushState(null, '', '/');
-      setMessages([]);
-      setSearchedAuthor('');
-      setSearchBarValue('');
-      setHasSearched(false);
-      setHasMore(false);
-      setFilterTerm('');
-      document.title = 'chatalytics';
-    }
+  const handleLogout = async () => {
+    await logout();
+    setUser(null);
   };
 
   return (
     <>
-      <div className="app">
-        <header className="app-header">
-          <h1 className="app-title" onClick={() => navigateTo('search')} style={{ cursor: 'pointer' }}>
+      <nav className="app-navbar">
+        <div className="app-navbar-inner">
+          <span className="app-logo" onClick={() => navigateTo('/')}>
             chatalytics
-          </h1>
-          <nav className="app-nav">
-            <button
-              className={`app-nav-btn${page === 'search' ? ' active' : ''}`}
-              onClick={() => navigateTo('search')}
-            >
-              Chatters
-            </button>
-            <button
-              className={`app-nav-btn${page === 'streams' ? ' active' : ''}`}
-              onClick={() => navigateTo('streams')}
-            >
-              Streams
-            </button>
-          </nav>
-        </header>
+          </span>
+          <NavbarSearch user={user} onNavigate={navigateTo} />
+          <div className="app-nav-right">
+            {!authLoading && (
+              user ? (
+                <div className="app-nav-user">
+                  {user.profileImageUrl && (
+                    <img src={user.profileImageUrl} alt="" className="app-nav-avatar" />
+                  )}
+                  <span className="app-nav-username">{user.displayName}</span>
+                  <button onClick={handleLogout} className="app-nav-logout">Logout</button>
+                </div>
+              ) : (
+                <button onClick={handleLogin} className="app-nav-login">
+                  <svg width="16" height="16" viewBox="0 0 256 268" fill="currentColor">
+                    <path d="M17.458 0L0 46.556v185.262h63.983v34.234h34.234l34.234-34.234h51.366L256 159.73V0H17.458zm20.514 23.39H232.61v128.028l-42.885 42.885h-63.497l-34.234 34.234v-34.234H37.972V23.39zM102.94 66.418v68.954h23.39V66.418h-23.39zm63.497 0v68.954h23.39V66.418h-23.39z"/>
+                  </svg>
+                  Login with Twitch
+                </button>
+              )
+            )}
+          </div>
+        </div>
+      </nav>
 
-        {page === 'streams' ? (
-          <StreamsPage />
+      <div className="app">
+        {channelLogin ? (
+          <StreamsPage
+            channelLogin={channelLogin}
+            onChatterClick={handleChatterClick}
+            compareItems={compareItems}
+            onAddCompare={addCompareItem}
+            onRemoveCompare={removeCompareItem}
+            channelCompareItems={channelCompareItems}
+            onAddChannelCompare={addChannelCompare}
+            onRemoveChannelCompare={removeChannelCompare}
+          />
+        ) : isChannelCompare ? (
+          <ChannelCompareView
+            onBack={() => navigateTo('/')}
+            onChatterClick={handleChatterClick}
+          />
+        ) : isStreamCompare && streamCompareIds.length >= 2 ? (
+          streamCompareLoading ? (
+            <div className="recap-loading">
+              <div className="recap-spinner" />
+              Loading comparison...
+            </div>
+          ) : (
+            <CompareView
+              sessionIds={streamCompareIds}
+              channelLogin=""
+              onBack={() => navigateTo('/')}
+              onChatterClick={handleChatterClick}
+              labels={streamCompareLabels}
+            />
+          )
+        ) : currentPath === '/suggested' ? (
+          <SuggestedStreamers user={user} />
         ) : (
-          <>
-            <SearchBar onSearch={handleSearch} onDateRangeChange={handleDateRangeChange} isLoading={isLoading} initialValue={searchBarValue} />
-
-            {error && <div className="error-message">{error}</div>}
-
-            {profile && (
-              <ChatterProfileCard profile={profile}>
-                <ActivityTimeline buckets={activityBuckets} />
-                <RepeatDetector groups={profile.repeatedMessages} />
-              </ChatterProfileCard>
-            )}
-
-            {isLoading ? (
-              <LoadingSpinner />
-            ) : messages.length > 0 ? (
-              <>
-                <MessageFilter
-                  matchCount={displayMessages.length}
-                  totalCount={total}
-                  onFilterChange={setFilterTerm}
-                />
-                <MessageList
-                  messages={displayMessages}
-                  author={searchedAuthor}
-                  highlightTerm={filterTerm}
-                  hasMore={hasMore && !filterTerm.trim()}
-                  isLoadingMore={isLoadingMore}
-                  onLoadMore={loadMore}
-                />
-              </>
-            ) : (
-              <EmptyState hasSearched={hasSearched} />
-            )}
-          </>
+          <StreamerDirectory user={user} />
         )}
       </div>
 
-      <StatsPanel onAuthorClick={handleSearch} />
+      {currentPath !== '/suggested' && !isChannelCompare && !isStreamCompare && (
+        <StatsPanel channelLogin={channelLogin ?? undefined} onAuthorClick={handleChatterClick} />
+      )}
+      <ChannelCompareBar
+        items={channelCompareItems}
+        onRemove={removeChannelCompare}
+        onClear={clearChannelCompare}
+        bottomOffset={compareItems.length > 0 ? 64 : 0}
+      />
+      <CompareBar
+        items={compareItems}
+        onRemove={removeCompareItem}
+        onClear={clearCompare}
+      />
+      <ChatterDrawer author={drawerAuthor} onClose={() => setDrawerAuthor(null)} />
     </>
   );
 }

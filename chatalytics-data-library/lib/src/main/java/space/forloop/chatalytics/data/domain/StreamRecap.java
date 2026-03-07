@@ -26,5 +26,15 @@ public record StreamRecap(
         List<GameSegment> gameSegments,
         Double chatParticipationRate,
         ChatMoment peakMoment,
-        List<StreamClip> topClips
-) implements Serializable {}
+        List<StreamClip> topClips,
+        List<HypeMoment> hypeMoments
+) implements Serializable {
+
+    public StreamRecap withTopClips(List<StreamClip> clips) {
+        return new StreamRecap(sessionId, startTime, endTime, totalMessages, totalChatters,
+                snapshots, chatActivity, topChatters, aiSummary, messagesPerMinute,
+                chattersPerMinute, peakViewerCount, avgViewerCount, minViewerCount,
+                messageAnalysis, newChatterCount, returningChatterCount, topWords,
+                gameSegments, chatParticipationRate, peakMoment, clips, hypeMoments);
+    }
+}
