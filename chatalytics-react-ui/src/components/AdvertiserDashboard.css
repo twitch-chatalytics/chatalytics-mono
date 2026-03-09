@@ -320,6 +320,221 @@ body:has(.adv-dashboard) .app {
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
+/* ─── Audience Value ─── */
+.av-viewers-row {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+
+.av-viewer-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 20px 24px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  min-width: 120px;
+}
+
+.av-viewer-block-real {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.av-viewer-value {
+  font-size: 28px;
+  font-weight: 800;
+  color: #f3f3f3;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.av-viewer-label {
+  font-size: 10px;
+  color: #555;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.av-arrow {
+  color: #333;
+  flex-shrink: 0;
+}
+
+.av-discount-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.av-discount-badge {
+  font-size: 14px;
+  font-weight: 700;
+  padding: 6px 16px;
+  border-radius: 20px;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.av-discount-low {
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+}
+
+.av-discount-med {
+  background: rgba(234, 179, 8, 0.1);
+  color: #eab308;
+}
+
+.av-discount-high {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.av-cpm-section {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 22px;
+}
+
+.av-cpm-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #bbb;
+  margin: 0 0 4px;
+  letter-spacing: -0.005em;
+}
+
+.av-cpm-desc {
+  font-size: 12px;
+  color: #555;
+  margin: 0 0 16px;
+  line-height: 1.6;
+}
+
+.av-cpm-inputs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.av-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  max-width: 200px;
+}
+
+.av-input-label {
+  font-size: 10px;
+  color: #555;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.av-input {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #f3f3f3;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: inherit;
+  font-variant-numeric: tabular-nums;
+  outline: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.av-input::placeholder {
+  color: #333;
+}
+
+.av-input:focus {
+  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.av-input::-webkit-inner-spin-button,
+.av-input::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.av-input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+.av-cpm-results {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.av-cpm-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 24px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  min-width: 100px;
+}
+
+.av-cpm-result-real {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.av-cpm-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #f3f3f3;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.av-cpm-label {
+  font-size: 10px;
+  color: #555;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.av-overpay-badge {
+  font-size: 16px;
+  font-weight: 700;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-variant-numeric: tabular-nums;
+}
+
+.av-overpay-low {
+  background: rgba(234, 179, 8, 0.1);
+  color: #eab308;
+}
+
+.av-overpay-med {
+  background: rgba(249, 115, 22, 0.1);
+  color: #f97316;
+}
+
+.av-overpay-high {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
 /* ─── Sessions: Layout ─── */
 .sessions-layout {
   display: grid;
@@ -1148,6 +1363,38 @@ body:has(.adv-dashboard) .app {
 
   .adv-card {
     padding: 22px 20px;
+  }
+
+  .av-viewers-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .av-arrow {
+    transform: rotate(90deg);
+  }
+
+  .av-discount-block {
+    margin-left: 0;
+  }
+
+  .av-cpm-inputs {
+    flex-direction: column;
+  }
+
+  .av-input-group {
+    max-width: 100%;
+  }
+
+  .av-cpm-results {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .av-cpm-result {
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 14px 20px;
   }
 }
 
