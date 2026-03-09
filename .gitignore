@@ -36,3 +36,6 @@ chatalytics-sveltekit-ui/
 
 # Kubernetes secrets (contain real credentials)
 chatalytics-infra/secrets/
+
+
+.playwright-mcp
