@@ -1,4 +1,4 @@
-import { AuthUser, ChannelProfile, ChannelStats, ChatterProfile, GlobalStats, Message, SessionSummaryView, StreamerRequestSummary, StreamRecap, TwitchSearchResult, VoteResponse } from '../types/message';
+import { AdvertiserAccount, AuthenticityTrendPoint, AuthUser, ChannelAuthenticityReport, ChannelProfile, ChannelStats, ChatterProfile, GlobalStats, Message, SessionAuthenticityReport, SessionSummaryView, SocialBladeChannel, SocialBladeDailyPoint, StreamerRequestSummary, StreamRecap, TwitchSearchResult, VoteResponse } from '../types/message';
 
 const DEFAULT_TWITCH_ID = 552120296;
 
@@ -243,4 +243,65 @@ export async function fetchGlobalStats(): Promise<GlobalStats | null> {
 export async function fetchChannelByLogin(login: string): Promise<ChannelProfile | null> {
   const channels = await fetchChannels();
   return channels.find(c => c.login.toLowerCase() === login.toLowerCase()) ?? null;
+}
+
+// ─── Advertiser ───
+
+export async function fetchChannelAuthenticity(
+  twitchId: number,
+): Promise<ChannelAuthenticityReport | null> {
+  const response = await fetch(`/advertiser/channel/${twitchId}/authenticity`, { credentials: 'include' });
+  if (!response.ok) return null;
+  return response.json();
+}
+
+export async function fetchSessionAuthenticity(
+  sessionId: number,
+): Promise<SessionAuthenticityReport | null> {
+  const response = await fetch(`/advertiser/session/${sessionId}/authenticity`, { credentials: 'include' });
+  if (!response.ok) return null;
+  return response.json();
+}
+
+export async function fetchAuthenticityTrend(
+  twitchId: number,
+  limit: number = 50,
+): Promise<AuthenticityTrendPoint[]> {
+  const response = await fetch(`/advertiser/channel/${twitchId}/trend?limit=${limit}`, { credentials: 'include' });
+  if (!response.ok) return [];
+  return response.json();
+}
+
+export async function fetchAdvertiserMe(): Promise<AdvertiserAccount | null> {
+  const response = await fetch('/advertiser/me', { credentials: 'include' });
+  if (!response.ok) return null;
+  return response.json();
+}
+
+export async function fetchChannelSessions(
+  twitchId: number,
+  limit: number = 100,
+): Promise<SessionAuthenticityReport[]> {
+  const response = await fetch(`/advertiser/channel/${twitchId}/sessions?limit=${limit}`, { credentials: 'include' });
+  if (!response.ok) return [];
+  return response.json();
+}
+
+// ─── SocialBlade ───
+
+export async function fetchSocialBladeChannel(
+  twitchId: number,
+): Promise<SocialBladeChannel | null> {
+  const response = await fetch(`/advertiser/channel/${twitchId}/socialblade`, { credentials: 'include' });
+  if (!response.ok) return null;
+  return response.json();
+}
+
+export async function fetchSocialBladeDaily(
+  twitchId: number,
+  limit: number = 90,
+): Promise<SocialBladeDailyPoint[]> {
+  const response = await fetch(`/advertiser/channel/${twitchId}/socialblade/daily?limit=${limit}`, { credentials: 'include' });
+  if (!response.ok) return [];
+  return response.json();
 }

@@ -15,6 +15,6 @@ public class KafkaProducerService {
     private final KafkaTemplate<String, IrcPayload> kafkaTemplate;
 
     public void sendMessage(IrcPayload ircPayload) {
-        kafkaTemplate.send(KafkaConsumerConfig.getTOPIC(), ircPayload);
+        kafkaTemplate.send(KafkaConsumerConfig.getTOPIC(), ircPayload.getChannel(), ircPayload);
     }
 }

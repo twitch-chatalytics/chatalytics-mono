@@ -6,6 +6,10 @@ export default defineConfig({
   server: {
     port: 5174,
     proxy: {
+      '/public/live': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+      },
       '/public': {
         target: 'http://localhost:8080',
         changeOrigin: true,

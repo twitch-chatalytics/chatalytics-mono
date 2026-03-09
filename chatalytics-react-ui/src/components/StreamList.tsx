@@ -2,6 +2,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { ChannelProfile, CompareItem, SessionSummaryView } from '../types/message';
 import { fetchChannel, fetchSessions, DateRange, SESSIONS_PAGE_SIZE } from '../api/client';
+import { useLiveMetrics } from '../hooks/useLiveMetrics';
 import DateRangeFilter, { Preset } from './DateRangeFilter';
 import './StreamList.css';
 
@@ -14,8 +15,7 @@ const STREAM_PRESETS: Preset[] = [
   { key: 'custom', label: 'Custom' },
 ];
 
-function formatDuration(start: string, end: string | null): string {
-  if (!end) return 'Live';
+function formatDuration(start: string, end: string): string {
   const ms = new Date(end).getTime() - new Date(start).getTime();
   const hours = Math.floor(ms / 3600000);
   const minutes = Math.floor((ms % 3600000) / 60000);
@@ -56,6 +56,16 @@ export default function StreamList({ twitchId, channelLogin, onSelectSession, co
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [dateRange, setDateRange] = useState<DateRange>({});
+
+  const hasLiveSession = sessions.some(s => !s.endTime);
+  const { metrics: liveMetrics } = useLiveMetrics(hasLiveSession ? twitchId : null);
+
+  const [now, setNow] = useState(() => new Date().toISOString());
+  useEffect(() => {
+    if (!hasLiveSession) return;
+    const id = setInterval(() => setNow(new Date().toISOString()), 60_000);
+    return () => clearInterval(id);
+  }, [hasLiveSession]);
 
   const loadSessions = useCallback(async (range: DateRange, cursorSession?: SessionSummaryView) => {
     const cursor = cursorSession
@@ -232,15 +242,33 @@ export default function StreamList({ twitchId, channelLogin, onSelectSession, co
                     {session.lastGameName || 'Unknown Category'}
                   </div>
                   <div className="stream-card-pills">
-                    <span className="pill">{formatNumber(session.totalMessages)} msgs</span>
-                    <span className="pill">{formatNumber(session.totalChatters)} chatters</span>
-                    <span className="pill">{formatDuration(session.startTime, session.endTime)}</span>
-                    {session.peakViewerCount != null && (
-                      <span className="pill">{formatNumber(session.peakViewerCount)} peak</span>
-                    )}
-                    {session.messagesPerMinute != null && (
-                      <span className="pill">{session.messagesPerMinute.toFixed(1)} msg/min</span>
-                    )}
+                    {(() => {
+                      const isLive = !session.endTime;
+                      const live = isLive && liveMetrics?.sessionId === session.sessionId ? liveMetrics : null;
+                      return (
+                        <>
+                          <span className={`pill${live ? ' pill-live' : ''}`}>
+                            {formatNumber(live?.totalMessages ?? session.totalMessages)} msgs
+                          </span>
+                          <span className={`pill${live ? ' pill-live' : ''}`}>
+                            {formatNumber(live?.totalChatters ?? session.totalChatters)} chatters
+                          </span>
+                          <span className={`pill${live ? ' pill-live' : ''}`}>
+                            {isLive ? formatDuration(session.startTime, now) : formatDuration(session.startTime, session.endTime!)}
+                          </span>
+                          {(live?.viewerCount ?? session.peakViewerCount) != null && (
+                            <span className={`pill${live ? ' pill-live' : ''}`}>
+                              {formatNumber(live?.viewerCount ?? session.peakViewerCount!)} {live ? 'viewers' : 'peak'}
+                            </span>
+                          )}
+                          {(live?.messagesPerMinute ?? session.messagesPerMinute) != null && (
+                            <span className={`pill${live?.isHype ? ' pill-hype' : live ? ' pill-live' : ''}`}>
+                              {(live?.messagesPerMinute ?? session.messagesPerMinute!).toFixed(1)} msg/min
+                            </span>
+                          )}
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
 

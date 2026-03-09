@@ -134,6 +134,23 @@ body {
   color: #334155;
 }
 
+.app-nav-advertiser-link {
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6366f1;
+  background: #eef2ff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+  letter-spacing: 0.02em;
+}
+
+.app-nav-advertiser-link:hover {
+  background: #e0e7ff;
+}
+
 /* ─── Responsive ─── */
 @media (max-width: 640px) {
   .app-navbar-inner {

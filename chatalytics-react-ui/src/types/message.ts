@@ -176,6 +176,7 @@ export interface AuthUser {
   login: string;
   displayName: string;
   profileImageUrl: string;
+  roles?: string[];
 }
 
 export interface TwitchSearchResult {
@@ -201,6 +202,20 @@ export interface VoteResponse {
   added: boolean;
 }
 
+export interface LiveMetrics {
+  twitchId: number;
+  sessionId: number;
+  timestamp: string;
+  messagesPerMinute: number;
+  activeChatters: number;
+  viewerCount: number;
+  isHype: boolean;
+  hypeMultiplier: number;
+  topWords: TopWord[];
+  totalMessages: number;
+  totalChatters: number;
+}
+
 export interface GlobalStats {
   totalMessages: number;
   uniqueChatters: number;
@@ -208,4 +223,92 @@ export interface GlobalStats {
   trackedChannels: number;
   topChatters: TopChatter[];
   updatedAt: string;
+}
+
+// --- Advertiser Bot Detection ---
+
+export interface SuspiciousFlag {
+  flag: string;
+  detail: string;
+}
+
+export interface SessionAuthenticityReport {
+  sessionId: number;
+  twitchId: number;
+  authenticityScore: number;
+  confidenceLevel: string;
+  chatViewerRatio: number | null;
+  expectedChatRatio: number | null;
+  chatRatioDeviation: number | null;
+  vocabularyDiversity: number | null;
+  emoteOnlyRatio: number | null;
+  repetitiveMessageRatio: number | null;
+  singleMessageChatterRatio: number | null;
+  timingUniformityScore: number | null;
+  organicFlowScore: number | null;
+  conversationDepthScore: number | null;
+  viewerChatCorrelation: number | null;
+  suspiciousPatternFlags: SuspiciousFlag[];
+  algorithmVersion: number;
+  computedAt: string;
+  sessionStartTime: string | null;
+}
+
+export interface ChannelAuthenticityReport {
+  twitchId: number;
+  avgAuthenticityScore: number | null;
+  minAuthenticityScore: number | null;
+  maxAuthenticityScore: number | null;
+  trendDirection: string;
+  sessionsAnalyzed: number;
+  riskLevel: string;
+  riskFactors: string[];
+  updatedAt: string;
+}
+
+export interface AuthenticityTrendPoint {
+  date: string;
+  score: number;
+  viewerCount: number | null;
+}
+
+export interface AdvertiserAccount {
+  tier: string;
+  status: string;
+  expiresAt: string;
+}
+
+// --- SocialBlade ---
+
+export interface SocialBladeChannel {
+  twitchId: number;
+  username: string | null;
+  displayName: string | null;
+  followers: number | null;
+  views: number | null;
+  grade: string | null;
+  rank: number | null;
+  followerRank: number | null;
+  followersGained30d: number | null;
+  followersGained90d: number | null;
+  followersGained180d: number | null;
+  viewsGained30d: number | null;
+  viewsGained90d: number | null;
+  viewsGained180d: number | null;
+  youtubeUrl: string | null;
+  twitterUrl: string | null;
+  instagramUrl: string | null;
+  discordUrl: string | null;
+  tiktokUrl: string | null;
+  fetchedAt: string;
+  updatedAt: string;
+}
+
+export interface SocialBladeDailyPoint {
+  twitchId: number;
+  date: string;
+  followers: number | null;
+  views: number | null;
+  followerChange: number | null;
+  viewChange: number | null;
 }

@@ -11,6 +11,7 @@ import CompareView from './components/CompareView';
 import CompareBar from './components/CompareBar';
 import ChannelCompareBar from './components/ChannelCompareBar';
 import NavbarSearch from './components/NavbarSearch';
+import AdvertiserDashboard from './components/AdvertiserDashboard';
 
 export default function App() {
   const [drawerAuthor, setDrawerAuthor] = useState<string | null>(null);
@@ -64,6 +65,9 @@ export default function App() {
   const channelLogin = channelMatch ? channelMatch[1] : null;
   const isChannelCompare = currentPath === '/compare/channels';
   const isStreamCompare = currentPath === '/compare/streams';
+  const advertiserMatch = currentPath.match(/^\/authenticity\/([^/]+)/);
+  const advertiserChannelLogin = advertiserMatch ? advertiserMatch[1] : null;
+  const isAdvertiser = user?.roles?.includes('ADVERTISER') ?? false;
 
   // Parse session IDs from URL for stream compare
   const streamCompareIds = (() => {
@@ -138,6 +142,14 @@ export default function App() {
             {!authLoading && (
               user ? (
                 <div className="app-nav-user">
+                  {isAdvertiser && channelLogin && (
+                    <button
+                      className="app-nav-advertiser-link"
+                      onClick={() => navigateTo(`/authenticity/${channelLogin}`)}
+                    >
+                      Authenticity
+                    </button>
+                  )}
                   {user.profileImageUrl && (
                     <img src={user.profileImageUrl} alt="" className="app-nav-avatar" />
                   )}
@@ -158,7 +170,9 @@ export default function App() {
       </nav>
 
       <div className="app">
-        {channelLogin ? (
+        {advertiserChannelLogin ? (
+          <AdvertiserDashboard channelLogin={advertiserChannelLogin} />
+        ) : channelLogin ? (
           <StreamsPage
             channelLogin={channelLogin}
             onChatterClick={handleChatterClick}

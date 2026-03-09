@@ -62,7 +62,7 @@ public class StreamRecapService {
         this.apiKey = apiKey;
     }
 
-    @Cacheable(value = STREAM_RECAP, key = "#sessionId")
+    @Cacheable(value = STREAM_RECAP, key = "#sessionId", unless = "#result != null && #result.endTime() == null")
     public StreamRecap generateRecap(long sessionId) {
         // Check persisted recap first (for ended streams)
         var persisted = streamRecapRepository.findBySessionId(sessionId);

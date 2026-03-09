@@ -13,6 +13,7 @@ import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import space.forloop.chatalytics.data.domain.Viewer;
+import space.forloop.chatalytics.data.repositories.AdvertiserAccountRepository;
 import space.forloop.chatalytics.data.repositories.ViewerRepository;
 
 import java.net.URI;
@@ -34,6 +35,7 @@ public class TwitchOAuth2UserService extends DefaultOAuth2UserService {
     private static final String HELIX_USERS = "https://api.twitch.tv/helix/users";
 
     private final ViewerRepository viewerRepository;
+    private final AdvertiserAccountRepository advertiserAccountRepository;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -52,11 +54,13 @@ public class TwitchOAuth2UserService extends DefaultOAuth2UserService {
         Map<String, Object> attributes = new HashMap<>(userData);
         attributes.put("twitchId", twitchId);
 
-        return new DefaultOAuth2User(
-                AuthorityUtils.createAuthorityList("ROLE_USER"),
-                attributes,
-                "id"
-        );
+        // Grant ROLE_ADVERTISER if active advertiser account exists
+        boolean isAdvertiser = advertiserAccountRepository.findActiveByViewerId(twitchId).isPresent();
+        var roles = isAdvertiser
+                ? AuthorityUtils.createAuthorityList("ROLE_USER", "ROLE_ADVERTISER")
+                : AuthorityUtils.createAuthorityList("ROLE_USER");
+
+        return new DefaultOAuth2User(roles, attributes, "id");
     }
 
     @SuppressWarnings("unchecked")

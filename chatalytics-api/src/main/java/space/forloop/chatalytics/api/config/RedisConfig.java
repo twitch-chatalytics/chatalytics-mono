@@ -6,7 +6,11 @@ import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.listener.PatternTopic;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.serializer.RedisSerializer;
+import space.forloop.chatalytics.api.services.realtime.LiveMetricsRedisSubscriber;
 
 import java.time.Duration;
 
@@ -22,6 +26,21 @@ public class RedisConfig {
         template.setKeySerializer(RedisSerializer.string());
         template.setValueSerializer(RedisSerializer.java());
         return template;
+    }
+
+    @Bean
+    public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory connectionFactory) {
+        return new StringRedisTemplate(connectionFactory);
+    }
+
+    @Bean
+    public RedisMessageListenerContainer redisMessageListenerContainer(
+            RedisConnectionFactory connectionFactory,
+            LiveMetricsRedisSubscriber subscriber) {
+        RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+        container.setConnectionFactory(connectionFactory);
+        container.addMessageListener(subscriber, new PatternTopic("live:metrics:*"));
+        return container;
     }
 
     @Bean
@@ -42,6 +61,10 @@ public class RedisConfig {
                 .withCacheConfiguration(CHANNEL_DIRECTORY, config.entryTtl(Duration.ofMinutes(5)))
                 .withCacheConfiguration(TWITCH_SEARCH, config.entryTtl(Duration.ofSeconds(30)))
                 .withCacheConfiguration(PENDING_REQUESTS, config.entryTtl(Duration.ofMinutes(2)))
+                .withCacheConfiguration(SESSION_AUTHENTICITY, config.entryTtl(Duration.ofHours(12)))
+                .withCacheConfiguration(CHANNEL_AUTHENTICITY, config.entryTtl(Duration.ofHours(1)))
+                .withCacheConfiguration(SOCIALBLADE_CHANNEL, config.entryTtl(Duration.ofHours(6)))
+                .withCacheConfiguration(SOCIALBLADE_DAILY, config.entryTtl(Duration.ofHours(12)))
                 .build();
     }
 }

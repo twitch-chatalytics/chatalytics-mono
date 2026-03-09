@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { StreamRecap } from '../types/message';
 import { fetchSessionRecap } from '../api/client';
+import { useLiveMetrics } from '../hooks/useLiveMetrics';
 import StreamTimeline from './StreamTimeline';
 import './StreamRecapView.css';
 
@@ -14,8 +15,7 @@ function formatDate(iso: string): string {
   });
 }
 
-function formatDuration(start: string, end: string | null): string {
-  if (!end) return 'Live now';
+function formatDuration(start: string, end: string): string {
   const ms = new Date(end).getTime() - new Date(start).getTime();
   const hours = Math.floor(ms / 3600000);
   const minutes = Math.floor((ms % 3600000) / 60000);
@@ -47,15 +47,28 @@ const sectionVariants = {
 
 interface Props {
   sessionId: number;
+  twitchId: number;
   onBack: () => void;
   onChatterClick?: (author: string) => void;
 }
 
-export default function StreamRecapView({ sessionId, onBack, onChatterClick }: Props) {
+export default function StreamRecapView({ sessionId, twitchId, onBack, onChatterClick }: Props) {
   const [recap, setRecap] = useState<StreamRecap | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
+  const isLive = recap != null && !recap.endTime;
+  const { metrics: live } = useLiveMetrics(isLive ? twitchId : null);
+
+  // Elapsed time ticker for duration badge
+  const [now, setNow] = useState(() => new Date().toISOString());
+  useEffect(() => {
+    if (!isLive) return;
+    const id = setInterval(() => setNow(new Date().toISOString()), 60_000);
+    return () => clearInterval(id);
+  }, [isLive]);
+
+  // Initial fetch
   useEffect(() => {
     setLoading(true);
     setError(false);
@@ -68,6 +81,17 @@ export default function StreamRecapView({ sessionId, onBack, onChatterClick }: P
       setLoading(false);
     });
   }, [sessionId]);
+
+  // Recap poll every 30s for live sessions
+  useEffect(() => {
+    if (!isLive) return;
+    const id = setInterval(() => {
+      fetchSessionRecap(sessionId).then((data) => {
+        if (data) setRecap(data);
+      });
+    }, 30_000);
+    return () => clearInterval(id);
+  }, [isLive, sessionId]);
 
   if (loading) {
     return (
@@ -94,9 +118,13 @@ export default function StreamRecapView({ sessionId, onBack, onChatterClick }: P
   const hasTimeline = recap.snapshots.length > 0 || recap.chatActivity.length > 0;
   const hasClips = recap.topClips && recap.topClips.length > 0;
   const hasChatters = recap.topChatters.length > 0;
-  const hasWords = recap.topWords.length > 0;
+  const hasWords = isLive ? (live?.topWords ?? recap.topWords).length > 0 : recap.topWords.length > 0;
   const hasAnalysis = recap.messageAnalysis != null;
   const hasHype = recap.hypeMoments && recap.hypeMoments.length > 0;
+
+  const durationText = isLive
+    ? formatDuration(recap.startTime, now)
+    : formatDuration(recap.startTime, recap.endTime!);
 
   return (
     <motion.div
@@ -121,7 +149,10 @@ export default function StreamRecapView({ sessionId, onBack, onChatterClick }: P
         animate="visible"
         transition={{ duration: 0.4, delay: 0.05 }}
       >
-        <span className="recap-duration-badge">{formatDuration(recap.startTime, recap.endTime)}</span>
+        <span className={`recap-duration-badge${isLive ? ' recap-duration-badge-live' : ''}`}>
+          {isLive && <span className="live-dot" />}
+          {durationText}
+        </span>
         <h1 className="recap-date">{formatDate(recap.startTime)}</h1>
         {recap.aiSummary && (
           <p className="recap-blurb">{recap.aiSummary}</p>
@@ -137,13 +168,31 @@ export default function StreamRecapView({ sessionId, onBack, onChatterClick }: P
         transition={{ duration: 0.4, delay: 0.1 }}
       >
         <div className="recap-metrics-grid">
-          <MetricBlock value={recap.totalMessages.toLocaleString()} label="Messages" />
-          <MetricBlock value={recap.totalChatters.toLocaleString()} label="Chatters" />
-          <MetricBlock value={recap.messagesPerMinute.toFixed(1)} label="Msgs / min" />
+          <MetricBlock
+            value={formatNumber(live?.totalMessages ?? recap.totalMessages)}
+            label="Messages"
+            live={isLive && live != null}
+          />
+          <MetricBlock
+            value={formatNumber(live?.totalChatters ?? recap.totalChatters)}
+            label="Chatters"
+            live={isLive && live != null}
+          />
+          <MetricBlock
+            value={(live?.messagesPerMinute ?? recap.messagesPerMinute).toFixed(1)}
+            label="Msgs / min"
+            live={isLive && live != null}
+          />
           <MetricBlock value={recap.chattersPerMinute.toFixed(1)} label="Chatters / min" />
-          {recap.peakViewerCount != null && (
+          {live ? (
+            <MetricBlock
+              value={formatNumber(live.viewerCount)}
+              label="Viewers"
+              live
+            />
+          ) : recap.peakViewerCount != null ? (
             <MetricBlock value={formatNumber(recap.peakViewerCount)} label="Peak viewers" />
-          )}
+          ) : null}
           {recap.avgViewerCount != null && (
             <MetricBlock value={formatNumber(Math.round(recap.avgViewerCount))} label="Avg viewers" />
           )}
@@ -157,6 +206,22 @@ export default function StreamRecapView({ sessionId, onBack, onChatterClick }: P
           <MetricBlock value={formatNumber(recap.returningChatterCount)} label="Returning" />
         </div>
       </motion.section>
+
+      {/* ── Live hype indicator ── */}
+      {isLive && live?.isHype && (
+        <motion.section
+          className="recap-section"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <div className="recap-peak-callout recap-hype-callout">
+            <span className="peak-callout-label">HYPE RIGHT NOW</span>
+            <span className="peak-callout-stat">{live.hypeMultiplier.toFixed(1)}x normal rate</span>
+            <span className="peak-callout-stat">{live.messagesPerMinute.toFixed(0)} msg/min</span>
+          </div>
+        </motion.section>
+      )}
 
       {/* ── Peak moment ── */}
       {recap.peakMoment && (
@@ -287,23 +352,26 @@ export default function StreamRecapView({ sessionId, onBack, onChatterClick }: P
             )}
             {hasWords && (
               <div className="recap-community-panel">
-                <h3 className="recap-panel-label">Top Words</h3>
+                <h3 className="recap-panel-label">Top Words{isLive && live ? ' (live)' : ''}</h3>
                 <div className="recap-word-cloud">
-                  {recap.topWords.map((tw) => {
-                    const maxCount = recap.topWords[0].count;
-                    const scale = 0.8 + (tw.count / maxCount) * 0.6;
-                    const opacity = 0.4 + (tw.count / maxCount) * 0.6;
-                    return (
-                      <span
-                        key={tw.word}
-                        className="recap-word"
-                        style={{ fontSize: `${scale}em`, opacity }}
-                        title={`${tw.word}: ${tw.count}`}
-                      >
-                        {tw.word}
-                      </span>
-                    );
-                  })}
+                  {(() => {
+                    const words = isLive && live ? live.topWords : recap.topWords;
+                    const maxCount = words[0]?.count ?? 1;
+                    return words.map((tw) => {
+                      const scale = 0.8 + (tw.count / maxCount) * 0.6;
+                      const opacity = 0.4 + (tw.count / maxCount) * 0.6;
+                      return (
+                        <span
+                          key={tw.word}
+                          className="recap-word"
+                          style={{ fontSize: `${scale}em`, opacity }}
+                          title={`${tw.word}: ${tw.count}`}
+                        >
+                          {tw.word}
+                        </span>
+                      );
+                    });
+                  })()}
                 </div>
               </div>
             )}
@@ -336,9 +404,9 @@ export default function StreamRecapView({ sessionId, onBack, onChatterClick }: P
   );
 }
 
-function MetricBlock({ value, label }: { value: string; label: string }) {
+function MetricBlock({ value, label, live }: { value: string; label: string; live?: boolean }) {
   return (
-    <div className="metric-block">
+    <div className={`metric-block${live ? ' metric-block-live' : ''}`}>
       <span className="metric-block-value">{value}</span>
       <span className="metric-block-label">{label}</span>
     </div>

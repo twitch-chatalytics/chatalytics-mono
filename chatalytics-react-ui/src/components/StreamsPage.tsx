@@ -95,7 +95,7 @@ export default function StreamsPage({ channelLogin, onChatterClick, compareItems
   }
 
   if (selectedSession) {
-    return <StreamRecapView sessionId={selectedSession} onBack={handleBack} onChatterClick={onChatterClick} />;
+    return <StreamRecapView sessionId={selectedSession} twitchId={twitchId} onBack={handleBack} onChatterClick={onChatterClick} />;
   }
 
   return (

@@ -60,4 +60,28 @@ public class DataLibraryAutoConfiguration {
     StreamerRequestRepository streamerRequestRepository(DSLContext dslContext) {
         return new StreamerRequestRepositoryImpl(dslContext);
     }
+
+    @Bean
+    @ConditionalOnMissingBean
+    AdvertiserAccountRepository advertiserAccountRepository(DSLContext dslContext) {
+        return new AdvertiserAccountRepositoryImpl(dslContext);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    SessionAuthenticityRepository sessionAuthenticityRepository(DSLContext dslContext) {
+        return new SessionAuthenticityRepositoryImpl(dslContext);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    ChannelAuthenticityRepository channelAuthenticityRepository(DSLContext dslContext) {
+        return new ChannelAuthenticityRepositoryImpl(dslContext);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    SocialBladeRepository socialBladeRepository(DSLContext dslContext) {
+        return new SocialBladeRepositoryImpl(dslContext);
+    }
 }

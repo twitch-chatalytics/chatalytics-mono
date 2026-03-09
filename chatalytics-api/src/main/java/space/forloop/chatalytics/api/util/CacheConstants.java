@@ -22,4 +22,12 @@ public class CacheConstants {
 
     public static final String PENDING_REQUESTS = "pendingRequests";
 
+    public static final String SESSION_AUTHENTICITY = "sessionAuthenticity";
+
+    public static final String CHANNEL_AUTHENTICITY = "channelAuthenticity";
+
+    public static final String SOCIALBLADE_CHANNEL = "socialbladeChannel";
+
+    public static final String SOCIALBLADE_DAILY = "socialbladeDailyData";
+
 }
