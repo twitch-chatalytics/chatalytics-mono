@@ -77,7 +77,7 @@ export default function SocialBladeDailyChart({ data, anomalies = [] }: SocialBl
           return (
             <g key={`anomaly-${i}`}>
               <circle cx={points[i].x} cy={points[i].y} r={6} fill={color} opacity={0.25} />
-              <circle cx={points[i].x} cy={points[i].y} r={3.5} fill={color} stroke="#fff" strokeWidth={1}>
+              <circle cx={points[i].x} cy={points[i].y} r={3.5} fill={color} stroke="#141414" strokeWidth={1}>
                 <title>{anomaly.detail}</title>
               </circle>
             </g>
@@ -117,7 +117,7 @@ export default function SocialBladeDailyChart({ data, anomalies = [] }: SocialBl
         })}
 
         {/* Zero line for bar chart */}
-        <line x1={pad.left} x2={pad.left + plotW} y1={barY + barAreaH / 2} y2={barY + barAreaH / 2} stroke="#e2e8f0" strokeWidth={0.5} />
+        <line x1={pad.left} x2={pad.left + plotW} y1={barY + barAreaH / 2} y2={barY + barAreaH / 2} stroke="rgba(255,255,255,0.06)" strokeWidth={0.5} />
 
         {/* X-axis labels */}
         {labelIndices.map(idx => {
@@ -125,7 +125,7 @@ export default function SocialBladeDailyChart({ data, anomalies = [] }: SocialBl
           const d = sorted[idx];
           const x = xPos(idx);
           return (
-            <text key={idx} x={x} y={h - 4} textAnchor="middle" fill="#94a3b8" fontSize="11" fontFamily="inherit">
+            <text key={idx} x={x} y={h - 4} textAnchor="middle" fill="#666" fontSize="11" fontFamily="inherit">
               {formatShortDate(d.date)}
             </text>
           );

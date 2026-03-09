@@ -2,7 +2,7 @@
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   z-index: 200;
@@ -24,9 +24,10 @@
   width: 520px;
   max-width: calc(100vw - 40px);
   max-height: calc(100vh - 80px);
-  background: #ffffff;
+  background: #1a1a1a;
   border-radius: 18px;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.12), 0 8px 24px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -40,7 +41,7 @@
   right: 16px;
   background: none;
   border: none;
-  color: #94a3b8;
+  color: #666;
   cursor: pointer;
   padding: 6px;
   border-radius: 8px;
@@ -49,8 +50,8 @@
 }
 
 .modal-close:hover {
-  color: #334155;
-  background: #f1f5f9;
+  color: #ccc;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 /* ─── Content ─── */
@@ -75,14 +76,14 @@
   justify-content: center;
   gap: 12px;
   padding: 80px 0;
-  color: #94a3b8;
+  color: #666;
   font-size: 14px;
 }
 
 .modal-spinner {
   width: 18px;
   height: 18px;
-  border: 2px solid #e2e8f0;
+  border: 2px solid rgba(255, 255, 255, 0.06);
   border-top-color: #6366f1;
   border-radius: 50%;
   animation: modal-spin 0.6s linear infinite;
@@ -94,7 +95,7 @@
 
 .modal-empty {
   text-align: center;
-  color: #94a3b8;
+  color: #666;
   padding: 80px 0;
   font-size: 14px;
 }

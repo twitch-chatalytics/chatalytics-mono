@@ -57,7 +57,7 @@ export default function SignalBreakdownCard({ label, value, weight, description,
       <div className="signal-bar-container">
         <motion.div
           className="signal-bar"
-          style={{ backgroundColor: displayValue != null ? getBarColor(displayValue) : '#e2e8f0' }}
+          style={{ backgroundColor: displayValue != null ? getBarColor(displayValue) : 'rgba(255,255,255,0.06)' }}
           initial={{ width: 0 }}
           animate={{ width: displayValue != null ? `${displayValue}%` : '0%' }}
           transition={{ duration: 0.8, ease: 'easeOut' }}

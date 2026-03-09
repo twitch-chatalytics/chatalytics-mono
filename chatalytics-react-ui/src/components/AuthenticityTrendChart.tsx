@@ -47,41 +47,41 @@ export default function AuthenticityTrendChart({ data }: AuthenticityTrendChartP
       <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="xMidYMid meet">
         {/* Zone backgrounds */}
         <rect x={padding.left} y={padding.top} width={chartW} height={zoneY40 - padding.top}
-              fill="#fef2f2" opacity={0.5} />
+              fill="rgba(239,68,68,0.04)" />
         <rect x={padding.left} y={zoneY40} width={chartW} height={zoneY70 - zoneY40}
-              fill="#fefce8" opacity={0.5} />
+              fill="rgba(234,179,8,0.03)" />
         <rect x={padding.left} y={zoneY70} width={chartW} height={padding.top + chartH - zoneY70}
-              fill="#f0fdf4" opacity={0.5} />
+              fill="rgba(34,197,94,0.03)" />
 
         {/* Grid lines */}
         {[minScore, 40, 70, maxScore].map(v => (
           <line key={v} x1={padding.left} x2={padding.left + chartW}
-                y1={yScale(v)} y2={yScale(v)} stroke="#e2e8f0" strokeDasharray="4 4" />
+                y1={yScale(v)} y2={yScale(v)} stroke="rgba(255,255,255,0.06)" strokeDasharray="4 4" />
         ))}
 
         {/* Y-axis labels */}
         {[minScore, 40, 70, maxScore].map(v => (
           <text key={v} x={padding.left - 8} y={yScale(v) + 4}
-                textAnchor="end" fontSize={10} fill="#94a3b8">{v}</text>
+                textAnchor="end" fontSize={10} fill="#666">{v}</text>
         ))}
 
         {/* X-axis labels */}
         {data.map((d, i) =>
           i % labelStep === 0 ? (
             <text key={i} x={xScale(i)} y={height - 5}
-                  textAnchor="middle" fontSize={10} fill="#94a3b8">
+                  textAnchor="middle" fontSize={10} fill="#666">
               {formatDate(d.date)}
             </text>
           ) : null
         )}
 
         {/* Score line */}
-        <path d={linePath} fill="none" stroke="#4f46e5" strokeWidth={2.5} strokeLinejoin="round" />
+        <path d={linePath} fill="none" stroke="#f3f3f3" strokeWidth={2.5} strokeLinejoin="round" />
 
         {/* Data points */}
         {data.map((d, i) => (
           <circle key={i} cx={xScale(i)} cy={yScale(d.score)} r={3}
-                  fill="#4f46e5" stroke="#fff" strokeWidth={1.5} />
+                  fill="#f3f3f3" stroke="#141414" strokeWidth={1.5} />
         ))}
       </svg>
     </div>

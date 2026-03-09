@@ -1,8 +1,8 @@
 .timeline-section {
-  background: #ffffff;
+  background: #141414;
   border-radius: 14px;
   padding: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .recap-section-title {
@@ -10,13 +10,13 @@
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #94a3b8;
+  color: #666;
   margin: 0 0 4px;
 }
 
 .timeline-hint {
   font-size: 11px;
-  color: #cbd5e1;
+  color: #555;
   margin-bottom: 16px;
 }
 
@@ -30,7 +30,7 @@
 .timeline-svg {
   display: block;
   border-radius: 10px 10px 0 0;
-  background: #f8fafc;
+  background: rgba(255, 255, 255, 0.02);
 }
 
 /* Y-axis labels */
@@ -47,7 +47,7 @@
 
 .timeline-y-labels span {
   font-size: 10px;
-  color: #cbd5e1;
+  color: #555;
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
@@ -58,7 +58,7 @@
   width: 100%;
   border-radius: 0 0 10px 10px;
   overflow: hidden;
-  background: #f1f5f9;
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .segment-band {
@@ -93,12 +93,12 @@
   top: 132px;
   width: 10px;
   height: 10px;
-  background: #0f172a;
-  border: 2px solid #fff;
+  background: #f3f3f3;
+  border: 2px solid #141414;
   border-radius: 50%;
   transform: translateX(-50%);
   pointer-events: none;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   z-index: 2;
 }
 
@@ -113,7 +113,7 @@
   position: absolute;
   transform: translateX(-50%);
   font-size: 10px;
-  color: #cbd5e1;
+  color: #555;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
@@ -129,7 +129,7 @@
   align-items: center;
   gap: 14px;
   padding: 10px 16px;
-  background: #f8fafc;
+  background: rgba(255, 255, 255, 0.04);
   border-radius: 10px;
   font-size: 13px;
   flex-wrap: wrap;
@@ -137,16 +137,16 @@
 
 .detail-time {
   font-weight: 600;
-  color: #0f172a;
+  color: #f3f3f3;
   min-width: 70px;
   font-variant-numeric: tabular-nums;
 }
 
 .detail-game {
-  color: #64748b;
+  color: #bbb;
   font-weight: 500;
   padding: 2px 10px;
-  background: #e2e8f0;
+  background: rgba(255, 255, 255, 0.06);
   border-radius: 6px;
   font-size: 12px;
 }
@@ -162,7 +162,7 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  color: #64748b;
+  color: #888;
   font-size: 12px;
   font-variant-numeric: tabular-nums;
 }
@@ -175,7 +175,7 @@
 }
 
 .detail-chatters {
-  color: #94a3b8;
+  color: #666;
 }
 
 /* Legend */
@@ -192,7 +192,7 @@
   gap: 5px;
   font-size: 11px;
   font-weight: 500;
-  color: #94a3b8;
+  color: #666;
 }
 
 .legend-swatch {
@@ -231,7 +231,7 @@
   align-items: center;
   gap: 5px;
   font-size: 12px;
-  color: #7c3aed;
+  color: #a78bfa;
   font-weight: 500;
   width: 100%;
   margin-top: 2px;

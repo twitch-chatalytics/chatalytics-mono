@@ -330,7 +330,7 @@ export default function StreamTimeline({ snapshots, chatActivity, gameSegments, 
               cy={CHART_HEIGHT - 12}
               r={4}
               fill="#e11d48"
-              stroke="#fff"
+              stroke="#141414"
               strokeWidth="1.5"
               opacity="0.85"
             />
@@ -339,7 +339,7 @@ export default function StreamTimeline({ snapshots, chatActivity, gameSegments, 
           {/* Clip markers */}
           {clipPositions.map((cp, i) => (
             <g key={`clip-${i}`} transform={`translate(${cp.progress * containerWidth}, ${CHART_HEIGHT - 12})`}>
-              <rect x={-4} y={-4} width={8} height={8} rx={2} fill="#7c3aed" stroke="#fff" strokeWidth="1.5" opacity="0.85" />
+              <rect x={-4} y={-4} width={8} height={8} rx={2} fill="#7c3aed" stroke="#141414" strokeWidth="1.5" opacity="0.85" />
             </g>
           ))}
 
@@ -350,7 +350,7 @@ export default function StreamTimeline({ snapshots, chatActivity, gameSegments, 
               y1={0}
               x2={scrubProgress * containerWidth}
               y2={CHART_HEIGHT}
-              stroke="#0f172a"
+              stroke="#f3f3f3"
               strokeWidth="1"
               opacity="0.5"
             />

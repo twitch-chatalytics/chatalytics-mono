@@ -1,8 +1,8 @@
 .context-slice {
   overflow: hidden;
   border-radius: 10px;
-  background: #f7f7f8;
-  border: 1px solid #ebebeb;
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .context-slice-before {
@@ -27,7 +27,7 @@
 .context-line {
   flex: 1;
   height: 1px;
-  background: #ddd;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .context-label {
@@ -35,7 +35,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #999;
+  color: #666;
   white-space: nowrap;
 }
 
@@ -57,12 +57,12 @@
 }
 
 .context-msg:hover {
-  background: rgba(0, 0, 0, 0.03);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .context-msg-time {
   font-size: 11px;
-  color: #aaa;
+  color: #555;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   flex-shrink: 0;
@@ -70,13 +70,13 @@
 
 .context-msg-author {
   font-weight: 600;
-  color: #555;
+  color: #999;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .context-msg-text {
-  color: #333;
+  color: #bbb;
   word-break: break-word;
 }
 
@@ -90,15 +90,15 @@
   justify-content: center;
   gap: 10px;
   padding: 20px;
-  color: #999;
+  color: #666;
   font-size: 13px;
 }
 
 .context-spinner {
   width: 16px;
   height: 16px;
-  border: 2px solid #ddd;
-  border-top-color: #999;
+  border: 2px solid rgba(255, 255, 255, 0.06);
+  border-top-color: #666;
   border-radius: 50%;
   animation: ctx-spin 0.6s linear infinite;
 }

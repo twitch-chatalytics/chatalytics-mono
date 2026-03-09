@@ -430,7 +430,7 @@ function TimelineOverlay({ recaps, labels }: { recaps: StreamRecap[]; labels?: s
               y1={0}
               x2={scrubProgress * containerWidth}
               y2={CHART_HEIGHT}
-              stroke="#0f172a"
+              stroke="#f3f3f3"
               strokeWidth="1"
               opacity="0.4"
             />
@@ -462,10 +462,10 @@ function TimelineOverlay({ recaps, labels }: { recaps: StreamRecap[]; labels?: s
       {/* Legend */}
       <div className="compare-timeline-legend">
         <span className="legend-item">
-          <span className="legend-swatch" style={{ background: '#94a3b8' }} /> Viewers (solid)
+          <span className="legend-swatch" style={{ background: '#666' }} /> Viewers (solid)
         </span>
         <span className="legend-item">
-          <span className="legend-swatch legend-line" style={{ background: '#94a3b8', borderStyle: 'dashed' }} /> Chat (dashed)
+          <span className="legend-swatch legend-line" style={{ background: '#666', borderStyle: 'dashed' }} /> Chat (dashed)
         </span>
       </div>
     </motion.section>

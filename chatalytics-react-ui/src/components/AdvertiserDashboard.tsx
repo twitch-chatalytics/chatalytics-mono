@@ -22,6 +22,7 @@ import AdvOverviewView from './AdvOverviewView';
 import AdvGrowthView from './AdvGrowthView';
 import AdvSessionsView from './AdvSessionsView';
 import AdvMethodologyView from './AdvMethodologyView';
+import AdvCompareView from './AdvCompareView';
 import './AdvertiserDashboard.css';
 
 interface AdvertiserDashboardProps {
@@ -131,6 +132,9 @@ export default function AdvertiserDashboard({ channelLogin }: AdvertiserDashboar
                 selectedSession={selectedSession}
                 onSessionSelect={setSelectedSession}
               />
+            )}
+            {activeView === 'compare' && (
+              <AdvCompareView />
             )}
             {activeView === 'methodology' && (
               <AdvMethodologyView />

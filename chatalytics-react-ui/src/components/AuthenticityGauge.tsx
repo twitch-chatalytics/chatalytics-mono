@@ -4,10 +4,9 @@ interface AuthenticityGaugeProps {
   score: number;
   confidenceLevel?: string;
   size?: number;
-  dark?: boolean;
 }
 
-export default function AuthenticityGauge({ score, confidenceLevel, size = 200, dark = false }: AuthenticityGaugeProps) {
+export default function AuthenticityGauge({ score, confidenceLevel, size = 200 }: AuthenticityGaugeProps) {
   const radius = (size - 20) / 2;
 
   const getColor = (s: number) => {
@@ -25,8 +24,8 @@ export default function AuthenticityGauge({ score, confidenceLevel, size = 200, 
   };
 
   const color = getColor(score);
-  const textColor = dark ? '#f8fafc' : '#0f172a';
-  const trackColor = dark ? 'rgba(255, 255, 255, 0.08)' : '#e2e8f0';
+  const textColor = '#f3f3f3';
+  const trackColor = 'rgba(255, 255, 255, 0.08)';
   const cx = size / 2;
   const cy = size / 2 + 10;
 

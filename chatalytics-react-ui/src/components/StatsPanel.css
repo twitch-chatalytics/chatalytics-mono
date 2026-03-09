@@ -1,6 +1,6 @@
 .stats-footer {
-  background: #fafafa;
-  border-top: 1px solid #e2e8f0;
+  background: #0a0a0a;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
   width: 100%;
   margin-top: auto;
 }
@@ -33,7 +33,7 @@
 .footer-stat-value {
   font-size: clamp(1.25rem, 2vw, 1.5rem);
   font-weight: 800;
-  color: #0f172a;
+  color: #f3f3f3;
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
 }
@@ -43,7 +43,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #94a3b8;
+  color: #555;
   line-height: 1.2;
 }
 
@@ -51,7 +51,7 @@
 .footer-stat-divider {
   width: 1px;
   height: 36px;
-  background: #e2e8f0;
+  background: rgba(255, 255, 255, 0.06);
   flex-shrink: 0;
 }
 
@@ -63,8 +63,8 @@
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.03em;
-  color: #6366f1;
-  background: #eef2ff;
+  color: #818cf8;
+  background: rgba(99, 102, 241, 0.12);
   border-radius: 20px;
   padding: 5px 14px;
   white-space: nowrap;
@@ -86,7 +86,7 @@
 }
 
 .skeleton {
-  background: #e2e8f0;
+  background: rgba(255, 255, 255, 0.06);
   border-radius: 4px;
   animation: skeleton-pulse 1.5s ease-in-out infinite;
 }

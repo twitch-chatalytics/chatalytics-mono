@@ -14,7 +14,7 @@
   font-size: 13px;
   font-weight: 600;
   font-family: inherit;
-  color: #6366f1;
+  color: #818cf8;
   background: none;
   border: none;
   cursor: pointer;
@@ -25,13 +25,13 @@
 }
 
 .suggested-back:hover {
-  background: #eef2ff;
+  background: rgba(99, 102, 241, 0.1);
 }
 
 .suggested-title {
   font-size: clamp(1.75rem, 4vw, 2.5rem);
   font-weight: 800;
-  color: #0f172a;
+  color: #f3f3f3;
   margin: 0;
   letter-spacing: -0.03em;
   line-height: 1.15;
@@ -39,7 +39,7 @@
 
 .suggested-subtitle {
   font-size: 16px;
-  color: #64748b;
+  color: #888;
   margin: 12px 0 0;
   line-height: 1.6;
 }
@@ -48,8 +48,8 @@
   display: inline-block;
   font-size: 12px;
   font-weight: 600;
-  color: #6366f1;
-  background: #eef2ff;
+  color: #818cf8;
+  background: rgba(99, 102, 241, 0.12);
   padding: 5px 14px;
   border-radius: 20px;
   margin-top: 16px;
@@ -66,10 +66,10 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  background: #ffffff;
+  background: #141414;
   border-radius: 14px;
   padding: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .suggested-avatar {
@@ -88,13 +88,13 @@
   display: block;
   font-size: 15px;
   font-weight: 600;
-  color: #0f172a;
+  color: #f3f3f3;
 }
 
 .suggested-login {
   display: block;
   font-size: 12px;
-  color: #94a3b8;
+  color: #666;
 }
 
 .suggested-votes {
@@ -104,7 +104,7 @@
 
 .suggested-progress-bar {
   height: 6px;
-  background: #eef2ff;
+  background: rgba(99, 102, 241, 0.12);
   border-radius: 3px;
   overflow: hidden;
   margin-bottom: 4px;
@@ -119,7 +119,7 @@
 
 .suggested-progress-label {
   font-size: 11px;
-  color: #94a3b8;
+  color: #666;
 }
 
 .suggested-action {
@@ -149,14 +149,14 @@
 
 .suggested-btn.disabled,
 .suggested-btn:disabled {
-  background: #e2e8f0;
-  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.04);
+  color: #555;
   cursor: not-allowed;
 }
 
 .suggested-vote-msg {
   font-size: 11px;
-  color: #6366f1;
+  color: #818cf8;
   white-space: nowrap;
 }
 
@@ -167,14 +167,14 @@
   justify-content: center;
   gap: 10px;
   padding: 48px 0;
-  color: #94a3b8;
+  color: #666;
   font-size: 14px;
 }
 
 .suggested-spinner {
   width: 18px;
   height: 18px;
-  border: 2px solid #e2e8f0;
+  border: 2px solid rgba(255, 255, 255, 0.06);
   border-top-color: #6366f1;
   border-radius: 50%;
   animation: suggested-spin 0.6s linear infinite;
@@ -186,7 +186,7 @@
 
 .suggested-empty {
   text-align: center;
-  color: #94a3b8;
+  color: #666;
   font-size: 14px;
   padding: 40px 0;
 }
@@ -194,7 +194,7 @@
 .suggested-login-hint {
   text-align: center;
   font-size: 13px;
-  color: #94a3b8;
+  color: #666;
   margin: 16px 0 0;
 }
 

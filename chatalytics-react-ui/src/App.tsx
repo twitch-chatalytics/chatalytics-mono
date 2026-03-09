@@ -12,6 +12,7 @@ import CompareBar from './components/CompareBar';
 import ChannelCompareBar from './components/ChannelCompareBar';
 import NavbarSearch from './components/NavbarSearch';
 import AdvertiserDashboard from './components/AdvertiserDashboard';
+import ChannelReport from './components/ChannelReport';
 
 export default function App() {
   const [drawerAuthor, setDrawerAuthor] = useState<string | null>(null);
@@ -67,6 +68,8 @@ export default function App() {
   const isStreamCompare = currentPath === '/compare/streams';
   const advertiserMatch = currentPath.match(/^\/authenticity\/([^/]+)/);
   const advertiserChannelLogin = advertiserMatch ? advertiserMatch[1] : null;
+  const reportMatch = currentPath.match(/^\/report\/([^/]+)/);
+  const reportChannelLogin = reportMatch ? reportMatch[1] : null;
   const isAdvertiser = user?.roles?.includes('ADVERTISER') ?? false;
 
   // Parse session IDs from URL for stream compare
@@ -170,7 +173,9 @@ export default function App() {
       </nav>
 
       <div className="app">
-        {advertiserChannelLogin ? (
+        {reportChannelLogin ? (
+          <ChannelReport channelLogin={reportChannelLogin} />
+        ) : advertiserChannelLogin ? (
           <AdvertiserDashboard channelLogin={advertiserChannelLogin} />
         ) : channelLogin ? (
           <StreamsPage

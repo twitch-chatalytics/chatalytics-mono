@@ -12,7 +12,7 @@
   align-items: center;
   gap: 8px;
   font-size: 14px;
-  color: #334155;
+  color: #bbb;
 }
 
 .channel-compare-legend-avatar {
@@ -25,8 +25,8 @@
 .channel-compare-legend-badge {
   font-size: 10px;
   font-weight: 600;
-  color: #9146ff;
-  background: rgba(145, 70, 255, 0.08);
+  color: #a78bfa;
+  background: rgba(145, 70, 255, 0.12);
   padding: 2px 8px;
   border-radius: 20px;
 }
@@ -39,10 +39,10 @@
 }
 
 .channel-compare-games-column {
-  background: #ffffff;
+  background: #141414;
   border-radius: 14px;
   padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .channel-compare-game-bars {
@@ -59,7 +59,7 @@
 
 .channel-compare-game-name {
   font-size: 13px;
-  color: #334155;
+  color: #bbb;
   font-weight: 500;
   min-width: 120px;
   max-width: 160px;
@@ -71,7 +71,7 @@
 .channel-compare-game-track {
   flex: 1;
   height: 20px;
-  background: #f1f5f9;
+  background: rgba(255, 255, 255, 0.04);
   border-radius: 6px;
   overflow: hidden;
 }
@@ -85,7 +85,7 @@
 .channel-compare-game-count {
   font-size: 12px;
   font-weight: 600;
-  color: #475569;
+  color: #999;
   font-variant-numeric: tabular-nums;
   min-width: 30px;
   text-align: right;
@@ -93,10 +93,10 @@
 
 /* ─── Peak Hours ─── */
 .channel-compare-peak-hours {
-  background: #ffffff;
+  background: #141414;
   border-radius: 14px;
   padding: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .channel-compare-clock {
@@ -116,18 +116,18 @@
 }
 
 .channel-compare-hour-slot.active {
-  background: #fafaff;
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .channel-compare-hour-label {
   font-size: 10px;
-  color: #cbd5e1;
+  color: #555;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 .channel-compare-hour-slot.active .channel-compare-hour-label {
-  color: #334155;
+  color: #bbb;
   font-weight: 600;
 }
 
@@ -160,11 +160,11 @@
 
 .channel-compare-peak-name {
   font-weight: 500;
-  color: #334155;
+  color: #bbb;
 }
 
 .channel-compare-peak-time {
-  color: #64748b;
+  color: #888;
   font-variant-numeric: tabular-nums;
 }
 

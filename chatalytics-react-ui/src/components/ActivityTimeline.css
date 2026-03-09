@@ -2,7 +2,7 @@
   position: relative;
   margin-top: 20px;
   padding-top: 16px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .activity-timeline-svg {
@@ -22,7 +22,7 @@
 
 .activity-timeline-label {
   font-size: 8px;
-  fill: #999;
+  fill: #666;
   font-family: inherit;
 }
 
@@ -30,11 +30,12 @@
   position: absolute;
   top: -4px;
   transform: translateX(-50%);
-  background: #333;
-  color: #fff;
+  background: #1a1a1a;
+  color: #f3f3f3;
   font-size: 0.7rem;
   padding: 3px 8px;
   border-radius: 4px;
   white-space: nowrap;
   pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }

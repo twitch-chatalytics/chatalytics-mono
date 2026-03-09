@@ -11,6 +11,7 @@ const NAV_ITEMS = [
   { key: 'overview', label: 'Overview', icon: IconGrid },
   { key: 'growth', label: 'Growth Intel', icon: IconTrend },
   { key: 'sessions', label: 'Sessions', icon: IconList },
+  { key: 'compare', label: 'Compare', icon: IconCompare },
   { key: 'methodology', label: 'Methodology', icon: IconInfo },
 ];
 
@@ -47,6 +48,19 @@ export default function AdvSidebar({ activeView, onViewChange, channel, report }
       </nav>
 
       <div className="sidebar-spacer" />
+
+      {/* Export Report */}
+      {channel && (
+        <div className="sidebar-export">
+          <button
+            className="sidebar-export-btn"
+            onClick={() => window.open(`/report/${channel.login}`, '_blank')}
+          >
+            <IconExport />
+            <span>Export Report</span>
+          </button>
+        </div>
+      )}
 
       {/* Footer badges */}
       <div className="sidebar-footer">
@@ -100,6 +114,27 @@ function IconInfo() {
       <circle cx="9" cy="9" r="7" />
       <line x1="9" y1="8" x2="9" y2="12.5" strokeLinecap="round" />
       <circle cx="9" cy="5.8" r="0.7" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+function IconCompare() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="1.5" y="3" width="5" height="12" rx="1" />
+      <rect x="11.5" y="3" width="5" height="12" rx="1" />
+      <line x1="8" y1="7" x2="10" y2="7" />
+      <line x1="8" y1="11" x2="10" y2="11" />
+    </svg>
+  );
+}
+
+function IconExport() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 10v3a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-3" />
+      <polyline points="4.5,6.5 8,3 11.5,6.5" />
+      <line x1="8" y1="3" x2="8" y2="11" />
     </svg>
   );
 }
