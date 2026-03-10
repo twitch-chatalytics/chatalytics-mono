@@ -20,6 +20,17 @@ public class LiveMetricsController {
 
     private final SseEmitterRegistry sseEmitterRegistry;
 
+    @GetMapping(value = "/global/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter globalStream() {
+        SseEmitter emitter = new SseEmitter(SSE_TIMEOUT);
+        sseEmitterRegistry.register(0L, emitter);
+        Runnable cleanup = () -> sseEmitterRegistry.unregister(0L, emitter);
+        emitter.onCompletion(cleanup);
+        emitter.onTimeout(cleanup);
+        emitter.onError(e -> cleanup.run());
+        return emitter;
+    }
+
     @GetMapping(value = "/{twitchId}/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter stream(@PathVariable long twitchId) {
         SseEmitter emitter = new SseEmitter(SSE_TIMEOUT);

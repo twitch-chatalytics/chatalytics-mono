@@ -7,6 +7,7 @@ import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -40,6 +41,7 @@ public class RedisConfig {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
         container.addMessageListener(subscriber, new PatternTopic("live:metrics:*"));
+        container.addMessageListener(subscriber, new ChannelTopic("live:global:messages"));
         return container;
     }
 
@@ -51,14 +53,15 @@ public class RedisConfig {
 
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(config)
-                .withCacheConfiguration(PUBLIC_STATS, config.entryTtl(Duration.ofMinutes(5)))
+                .withCacheConfiguration(PUBLIC_STATS, config.entryTtl(Duration.ofHours(24)))
                 .withCacheConfiguration(CHATTER_PROFILE, config.entryTtl(Duration.ofMinutes(10)))
                 .withCacheConfiguration(CHATTER_SUMMARY, config.entryTtl(Duration.ofMinutes(30)))
                 .withCacheConfiguration(STREAM_RECAP, config.entryTtl(Duration.ofHours(6)))
+                .withCacheConfiguration(STREAM_RECAP_LIVE, config.entryTtl(Duration.ofSeconds(60)))
                 .withCacheConfiguration(SESSIONS, config.entryTtl(Duration.ofHours(24)))
                 .withCacheConfiguration(STREAM_CLIPS, config.entryTtl(Duration.ofHours(24)))
                 .withCacheConfiguration(CHANNEL_PROFILE, config.entryTtl(Duration.ofHours(24)))
-                .withCacheConfiguration(CHANNEL_DIRECTORY, config.entryTtl(Duration.ofMinutes(5)))
+                .withCacheConfiguration(CHANNEL_DIRECTORY, config.entryTtl(Duration.ofHours(24)))
                 .withCacheConfiguration(TWITCH_SEARCH, config.entryTtl(Duration.ofSeconds(30)))
                 .withCacheConfiguration(PENDING_REQUESTS, config.entryTtl(Duration.ofMinutes(2)))
                 .withCacheConfiguration(SESSION_AUTHENTICITY, config.entryTtl(Duration.ofHours(12)))

@@ -23,9 +23,13 @@ interface ChannelCompareData {
   error: string | null;
 }
 
+interface AdvCompareViewProps {
+  currentChannel: ChannelProfile | null;
+}
+
 const MAX_CHANNELS = 5;
 
-export default function AdvCompareView() {
+export default function AdvCompareView({ currentChannel }: AdvCompareViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<ChannelProfile[]>([]);
   const [allChannels, setAllChannels] = useState<ChannelProfile[]>([]);
@@ -41,6 +45,13 @@ export default function AdvCompareView() {
       setChannelsLoaded(true);
     });
   }, []);
+
+  // Auto-add current channel on mount
+  useEffect(() => {
+    if (currentChannel && compareData.length === 0) {
+      addChannel(currentChannel);
+    }
+  }, [currentChannel]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -115,8 +126,9 @@ export default function AdvCompareView() {
   }, [compareData]);
 
   const removeChannel = useCallback((channelId: number) => {
+    if (currentChannel && channelId === currentChannel.id) return;
     setCompareData(prev => prev.filter(d => d.channel.id !== channelId));
-  }, []);
+  }, [currentChannel]);
 
   // Computed helpers
   const readyData = compareData.filter(d => !d.loading && d.report != null);
@@ -262,16 +274,18 @@ export default function AdvCompareView() {
                   )}
                   <span className="cmp-pill-name">{d.channel.displayName}</span>
                   {d.loading && <span className="cmp-pill-loading" />}
-                  <button
-                    className="cmp-pill-remove"
-                    onClick={() => removeChannel(d.channel.id)}
-                    aria-label={`Remove ${d.channel.displayName}`}
-                  >
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-                      <line x1="3" y1="3" x2="9" y2="9" />
-                      <line x1="9" y1="3" x2="3" y2="9" />
-                    </svg>
-                  </button>
+                  {(!currentChannel || d.channel.id !== currentChannel.id) && (
+                    <button
+                      className="cmp-pill-remove"
+                      onClick={() => removeChannel(d.channel.id)}
+                      aria-label={`Remove ${d.channel.displayName}`}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                        <line x1="3" y1="3" x2="9" y2="9" />
+                        <line x1="9" y1="3" x2="3" y2="9" />
+                      </svg>
+                    </button>
+                  )}
                 </motion.div>
               ))}
             </AnimatePresence>

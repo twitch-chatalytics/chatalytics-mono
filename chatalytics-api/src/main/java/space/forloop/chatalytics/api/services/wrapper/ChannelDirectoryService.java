@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static space.forloop.chatalytics.api.util.CacheConstants.CHANNEL_DIRECTORY;
+import static space.forloop.chatalytics.api.util.CacheConstants.CHANNEL_PROFILE;
 import static space.forloop.chatalytics.api.util.CacheConstants.TWITCH_SEARCH;
 
 @Slf4j
@@ -42,6 +43,21 @@ public class ChannelDirectoryService {
                         u.getOfflineImageUrl(),
                         u.getCreatedAt()))
                 .toList();
+    }
+
+    @Cacheable(value = CHANNEL_PROFILE, key = "'login:' + #login.toLowerCase()")
+    public ChannelProfile findByLogin(String login) {
+        return userRepository.findByLogin(login.toLowerCase())
+                .map(u -> new ChannelProfile(
+                        u.getId(),
+                        u.getLogin(),
+                        u.getDisplayName(),
+                        u.getBroadcasterType(),
+                        u.getDescription(),
+                        u.getProfileImageUrl(),
+                        u.getOfflineImageUrl(),
+                        u.getCreatedAt()))
+                .orElse(null);
     }
 
     @Cacheable(value = TWITCH_SEARCH, key = "#query.toLowerCase()")

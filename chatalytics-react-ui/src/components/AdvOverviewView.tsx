@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ChannelAuthenticityReport, AuthenticityTrendPoint } from '../types/message';
+import { ChannelAuthenticityReport, AuthenticityTrendPoint, ChannelBenchmark } from '../types/message';
 import { interpretChannelScore, formatCompact, getScoreColor } from './advertiserUtils';
 import AuthenticityGauge from './AuthenticityGauge';
 import AuthenticityTrendChart from './AuthenticityTrendChart';
@@ -9,9 +9,10 @@ interface AdvOverviewViewProps {
   report: ChannelAuthenticityReport;
   trend: AuthenticityTrendPoint[];
   avg: number;
+  benchmark: ChannelBenchmark | null;
 }
 
-export default function AdvOverviewView({ report, trend, avg }: AdvOverviewViewProps) {
+export default function AdvOverviewView({ report, trend, avg, benchmark }: AdvOverviewViewProps) {
   const [dealPrice, setDealPrice] = useState('');
   const [streamCount, setStreamCount] = useState('1');
 
@@ -92,6 +93,83 @@ export default function AdvOverviewView({ report, trend, avg }: AdvOverviewViewP
           </p>
         )}
       </motion.div>
+
+      {/* Benchmark */}
+      {benchmark && benchmark.channelsInTier > 0 && (
+        <motion.div
+          className="adv-card"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.07 }}
+        >
+          <h3 className="card-label">Peer Benchmark</h3>
+
+          <div className="bench-top-row">
+            <div className="bench-percentile-block">
+              <span
+                className="bench-percentile-value"
+                style={{
+                  color: benchmark.percentileRank >= 75 ? '#22c55e'
+                    : benchmark.percentileRank >= 50 ? '#eab308'
+                    : '#ef4444',
+                }}
+              >
+                Top {100 - benchmark.percentileRank}%
+              </span>
+              <span className="bench-percentile-sub">of all tracked channels</span>
+            </div>
+            <div className="bench-tier-block">
+              <span className="bench-tier-badge">{benchmark.viewerTier}</span>
+              <span className="bench-tier-sub">
+                {benchmark.channelsInTier} channel{benchmark.channelsInTier !== 1 ? 's' : ''} in tier
+              </span>
+            </div>
+          </div>
+
+          <div className="bench-bars">
+            <BenchmarkBar
+              label="This Channel"
+              value={avg}
+              maxValue={100}
+              color={getScoreColor(avg)}
+              highlight
+            />
+            <BenchmarkBar
+              label={`${capitalize(benchmark.viewerTier)} Tier Avg`}
+              value={Math.round(benchmark.tierAvgScore)}
+              maxValue={100}
+              color="#818cf8"
+            />
+            <BenchmarkBar
+              label="Global Avg"
+              value={Math.round(benchmark.globalAvgScore)}
+              maxValue={100}
+              color="#555"
+            />
+          </div>
+
+          {benchmark.primaryCategory && benchmark.categoryAvgScore != null && benchmark.channelsInCategory > 1 && (
+            <div className="bench-category-section">
+              <div className="bench-category-header">
+                <span className="bench-category-name">{benchmark.primaryCategory}</span>
+                <span className="bench-category-count">{benchmark.channelsInCategory} channels</span>
+              </div>
+              <BenchmarkBar
+                label="Category Avg"
+                value={Math.round(benchmark.categoryAvgScore)}
+                maxValue={100}
+                color="#a78bfa"
+              />
+              <p className="bench-category-note">
+                {avg >= benchmark.categoryAvgScore
+                  ? `This channel scores ${Math.round(avg - benchmark.categoryAvgScore)} points above the average for ${benchmark.primaryCategory} streamers.`
+                  : `This channel scores ${Math.round(benchmark.categoryAvgScore - avg)} points below the average for ${benchmark.primaryCategory} streamers.`
+                }
+              </p>
+            </div>
+          )}
+        </motion.div>
+      )}
 
       {/* Audience Value */}
       {avgViewers != null && (
@@ -233,4 +311,43 @@ export default function AdvOverviewView({ report, trend, avg }: AdvOverviewViewP
       )}
     </div>
   );
+}
+
+/* ─── Benchmark Bar helper ─── */
+
+function BenchmarkBar({
+  label,
+  value,
+  maxValue,
+  color,
+  highlight,
+}: {
+  label: string;
+  value: number;
+  maxValue: number;
+  color: string;
+  highlight?: boolean;
+}) {
+  const pct = Math.max(0, Math.min(100, (value / maxValue) * 100));
+  return (
+    <div className={`bench-bar-row ${highlight ? 'bench-bar-highlight' : ''}`}>
+      <span className="bench-bar-label">{label}</span>
+      <div className="bench-bar-track">
+        <motion.div
+          className="bench-bar-fill"
+          style={{ backgroundColor: color }}
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
+        />
+      </div>
+      <span className="bench-bar-value" style={{ color: highlight ? color : '#999' }}>
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }

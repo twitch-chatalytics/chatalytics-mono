@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ChannelStats, GlobalStats } from '../types/message';
 import { fetchStats, fetchChannelByLogin, fetchGlobalStats } from '../api/client';
-import { useAnimatedNumber } from '../hooks/useAnimatedNumber';
+import TickerNumber from './TickerNumber';
 import './StatsPanel.css';
 
 function StatItem({ label, value }: { label: string; value: string }) {
@@ -43,6 +43,7 @@ interface StatsPanelProps {
 export default function StatsPanel({ channelLogin }: StatsPanelProps) {
   const [channelStats, setChannelStats] = useState<ChannelStats | null>(null);
   const [globalStats, setGlobalStats] = useState<GlobalStats | null>(null);
+  const [channelDisplayName, setChannelDisplayName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const isGlobal = !channelLogin;
@@ -51,7 +52,10 @@ export default function StatsPanel({ channelLogin }: StatsPanelProps) {
     setLoading(true);
     if (channelLogin) {
       fetchChannelByLogin(channelLogin).then(ch => {
-        if (ch) return fetchStats(ch.id);
+        if (ch) {
+          setChannelDisplayName(ch.displayName || ch.login);
+          return fetchStats(ch.id);
+        }
         return null;
       })
         .then(s => { if (s) setChannelStats(s); })
@@ -73,10 +77,8 @@ export default function StatsPanel({ channelLogin }: StatsPanelProps) {
     ? (globalStats?.uniqueChatters ?? 0)
     : (channelStats?.uniqueChatters ?? 0);
 
-  const animatedMessages = useAnimatedNumber(totalMessages);
-  const animatedChatters = useAnimatedNumber(uniqueChatters);
-  const animatedStreams = useAnimatedNumber(isGlobal ? (globalStats?.totalStreams ?? 0) : 0);
-  const animatedChannels = useAnimatedNumber(isGlobal ? (globalStats?.trackedChannels ?? 0) : 0);
+  const streams = isGlobal ? (globalStats?.totalStreams ?? 0) : 0;
+  const channels = isGlobal ? (globalStats?.trackedChannels ?? 0) : 0;
 
   if (loading) {
     return (
@@ -99,21 +101,21 @@ export default function StatsPanel({ channelLogin }: StatsPanelProps) {
 
   const globalStatItems = (
     <>
-      <StatItem label="Messages" value={animatedMessages.toLocaleString()} />
+      <TickerNumber value={totalMessages} label="Messages" />
       <span className="footer-stat-divider" />
-      <StatItem label="Chatters" value={animatedChatters.toLocaleString()} />
+      <TickerNumber value={uniqueChatters} label="Chatters" />
       <span className="footer-stat-divider" />
-      <StatItem label="Streams" value={animatedStreams.toLocaleString()} />
+      <TickerNumber value={streams} label="Streams" />
       <span className="footer-stat-divider" />
-      <StatItem label="Channels" value={animatedChannels.toLocaleString()} />
+      <TickerNumber value={channels} label="Channels" />
     </>
   );
 
   const channelStatItems = (
     <>
-      <StatItem label="Messages" value={animatedMessages.toLocaleString()} />
+      <TickerNumber value={totalMessages} label="Messages" />
       <span className="footer-stat-divider" />
-      <StatItem label="Chatters" value={animatedChatters.toLocaleString()} />
+      <TickerNumber value={uniqueChatters} label="Chatters" />
       {channelStats?.peakHour !== null && channelStats?.peakHour !== undefined && (
         <>
           <span className="footer-stat-divider" />
@@ -123,9 +125,14 @@ export default function StatsPanel({ channelLogin }: StatsPanelProps) {
     </>
   );
 
+  const footerTitle = isGlobal
+    ? 'All Channels'
+    : channelDisplayName ?? channelLogin;
+
   return (
     <footer className="stats-footer">
       <div className="stats-footer-inner">
+        <span className="footer-context-title">{footerTitle}</span>
         <div className="footer-stats-row">
           {isGlobal ? globalStatItems : channelStatItems}
         </div>

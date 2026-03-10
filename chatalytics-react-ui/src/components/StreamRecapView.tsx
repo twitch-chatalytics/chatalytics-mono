@@ -95,9 +95,48 @@ export default function StreamRecapView({ sessionId, twitchId, onBack, onChatter
 
   if (loading) {
     return (
-      <div className="recap-loading">
-        <div className="recap-spinner" />
-        Generating recap...
+      <div className="recap-view">
+        <button className="recap-back-btn" onClick={onBack}>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+            <path d="M10 4L6 8l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          Streams
+        </button>
+        <section className="recap-hero">
+          <div className="recap-skel" style={{ width: 90, height: 28, borderRadius: 20, margin: '0 auto 16px' }} />
+          <div className="recap-skel" style={{ width: 320, height: 40, margin: '0 auto 20px' }} />
+          <div className="recap-skel" style={{ width: 480, height: 48, margin: '0 auto', maxWidth: '90%' }} />
+        </section>
+        <section className="recap-section">
+          <div className="recap-metrics-grid">
+            {Array.from({ length: 5 }, (_, i) => (
+              <div key={i} className="metric-block">
+                <div className="recap-skel" style={{ width: 56, height: 28, marginBottom: 4 }} />
+                <div className="recap-skel" style={{ width: 48, height: 12 }} />
+              </div>
+            ))}
+          </div>
+        </section>
+        <section className="recap-section">
+          <div className="recap-skel" style={{ width: '100%', height: 200, borderRadius: 14 }} />
+        </section>
+        <section className="recap-section">
+          <div className="recap-skel" style={{ width: 120, height: 14, marginBottom: 20 }} />
+          <div className="recap-community-grid">
+            <div className="recap-community-panel">
+              {Array.from({ length: 5 }, (_, i) => (
+                <div key={i} className="recap-skel" style={{ width: '100%', height: 18, marginBottom: 10 }} />
+              ))}
+            </div>
+            <div className="recap-community-panel">
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+                {Array.from({ length: 12 }, (_, i) => (
+                  <div key={i} className="recap-skel" style={{ width: 48 + Math.random() * 40, height: 20, borderRadius: 6 }} />
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     );
   }

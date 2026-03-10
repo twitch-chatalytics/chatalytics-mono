@@ -37,4 +37,12 @@ public record StreamRecap(
                 messageAnalysis, newChatterCount, returningChatterCount, topWords,
                 gameSegments, chatParticipationRate, peakMoment, clips, hypeMoments);
     }
+
+    public StreamRecap withAiSummary(String summary) {
+        return new StreamRecap(sessionId, startTime, endTime, totalMessages, totalChatters,
+                snapshots, chatActivity, topChatters, summary, messagesPerMinute,
+                chattersPerMinute, peakViewerCount, avgViewerCount, minViewerCount,
+                messageAnalysis, newChatterCount, returningChatterCount, topWords,
+                gameSegments, chatParticipationRate, peakMoment, topClips, hypeMoments);
+    }
 }

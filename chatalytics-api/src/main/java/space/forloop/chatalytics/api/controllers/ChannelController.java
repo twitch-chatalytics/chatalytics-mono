@@ -13,6 +13,7 @@ import space.forloop.chatalytics.api.services.wrapper.ChannelDirectoryService;
 import space.forloop.chatalytics.api.services.wrapper.GlobalStatsService;
 import space.forloop.chatalytics.api.services.wrapper.StreamerRequestService;
 import space.forloop.chatalytics.data.domain.ChannelProfile;
+import space.forloop.chatalytics.data.domain.FeaturedChannel;
 import space.forloop.chatalytics.data.domain.StreamerRequestSummary;
 
 import java.util.List;
@@ -33,6 +34,15 @@ public class ChannelController {
         return channelDirectoryService.listTrackedChannels();
     }
 
+    @GetMapping("/by-login/{login}")
+    public ResponseEntity<ChannelProfile> getByLogin(@PathVariable String login) {
+        ChannelProfile profile = channelDirectoryService.findByLogin(login);
+        if (profile == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(profile);
+    }
+
     @GetMapping("/search")
     public List<TwitchUserResult> searchChannels(@RequestParam String q) {
         return channelDirectoryService.searchTwitch(q);
@@ -51,6 +61,11 @@ public class ChannelController {
                 "items", streamerRequestService.listPendingPaged(limit, offset),
                 "total", streamerRequestService.countPending()
         );
+    }
+
+    @GetMapping("/featured")
+    public List<FeaturedChannel> featuredChannels() {
+        return globalStatsService.getFeaturedChannels();
     }
 
     @GetMapping("/global-stats")

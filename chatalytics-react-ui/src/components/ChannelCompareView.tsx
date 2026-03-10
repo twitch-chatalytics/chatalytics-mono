@@ -69,9 +69,33 @@ export default function ChannelCompareView({ onBack, onChatterClick }: Props) {
 
   if (loading) {
     return (
-      <div className="recap-loading">
-        <div className="recap-spinner" />
-        Loading channel comparison...
+      <div className="channel-compare-view">
+        <button className="recap-back-btn" onClick={onBack}>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+            <path d="M10 4L6 8l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          Channels
+        </button>
+        <section className="compare-hero" style={{ textAlign: 'center', maxWidth: 1120, margin: '0 auto 56px', padding: '40px 0 0' }}>
+          <div className="cmp-skel" style={{ width: 160, height: 28, borderRadius: 20, margin: '0 auto 16px' }} />
+          <div className="cmp-skel" style={{ width: 280, height: 40, margin: '0 auto 24px' }} />
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 24 }}>
+            {Array.from({ length: 3 }, (_, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div className="cmp-skel" style={{ width: 24, height: 24, borderRadius: '50%' }} />
+                <div className="cmp-skel" style={{ width: 80, height: 14 }} />
+              </div>
+            ))}
+          </div>
+        </section>
+        <section className="recap-section">
+          <div className="cmp-skel" style={{ width: 120, height: 14, marginBottom: 20 }} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+            {Array.from({ length: 6 }, (_, i) => (
+              <div key={i} className="cmp-skel" style={{ height: 80, borderRadius: 14 }} />
+            ))}
+          </div>
+        </section>
       </div>
     );
   }

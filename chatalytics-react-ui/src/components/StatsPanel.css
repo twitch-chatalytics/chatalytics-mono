@@ -1,5 +1,5 @@
 .stats-footer {
-  background: #0a0a0a;
+  background: #000;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   width: 100%;
   margin-top: auto;
@@ -13,6 +13,18 @@
   align-items: center;
   justify-content: center;
   gap: 24px;
+}
+
+/* Context title */
+.footer-context-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #818cf8;
+  white-space: nowrap;
+  padding-right: 16px;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 /* Stats row */
@@ -116,6 +128,11 @@
 
   .footer-stat-divider {
     display: none;
+  }
+
+  .footer-context-title {
+    border-right: none;
+    padding-right: 0;
   }
 
   .footer-updated {

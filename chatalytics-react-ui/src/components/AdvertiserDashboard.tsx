@@ -5,12 +5,16 @@ import {
   AuthenticityTrendPoint,
   SessionAuthenticityReport,
   ChannelProfile,
+  ChannelBenchmark,
+  ChannelBrandSafety,
   SocialBladeChannel,
   SocialBladeDailyPoint,
 } from '../types/message';
 import {
   fetchChannelAuthenticity,
   fetchAuthenticityTrend,
+  fetchChannelBenchmark,
+  fetchChannelBrandSafety,
   fetchChannelByLogin,
   fetchChannelSessions,
   fetchSocialBladeChannel,
@@ -23,6 +27,9 @@ import AdvGrowthView from './AdvGrowthView';
 import AdvSessionsView from './AdvSessionsView';
 import AdvMethodologyView from './AdvMethodologyView';
 import AdvCompareView from './AdvCompareView';
+import AdvBrandSafetyView from './AdvBrandSafetyView';
+import AdvAlertsView from './AdvAlertsView';
+import AdvCampaignsView from './AdvCampaignsView';
 import './AdvertiserDashboard.css';
 
 interface AdvertiserDashboardProps {
@@ -37,6 +44,8 @@ export default function AdvertiserDashboard({ channelLogin }: AdvertiserDashboar
   const [selectedSession, setSelectedSession] = useState<SessionAuthenticityReport | null>(null);
   const [sbChannel, setSbChannel] = useState<SocialBladeChannel | null>(null);
   const [sbDaily, setSbDaily] = useState<SocialBladeDailyPoint[]>([]);
+  const [benchmark, setBenchmark] = useState<ChannelBenchmark | null>(null);
+  const [brandSafety, setBrandSafety] = useState<ChannelBrandSafety | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeView, setActiveView] = useState('overview');
@@ -59,12 +68,16 @@ export default function AdvertiserDashboard({ channelLogin }: AdvertiserDashboar
         fetchChannelSessions(ch.id),
         fetchSocialBladeChannel(ch.id),
         fetchSocialBladeDaily(ch.id),
-      ]).then(([channelReport, trendData, sessionsData, sbData, sbDailyData]) => {
+        fetchChannelBenchmark(ch.id),
+        fetchChannelBrandSafety(ch.id),
+      ]).then(([channelReport, trendData, sessionsData, sbData, sbDailyData, benchmarkData, brandSafetyData]) => {
         setReport(channelReport);
         setTrend(trendData);
         setSessions(sessionsData);
         setSbChannel(sbData);
         setSbDaily(sbDailyData);
+        setBenchmark(benchmarkData);
+        setBrandSafety(brandSafetyData);
         setLoading(false);
       }).catch(() => {
         setError('Failed to load authenticity data');
@@ -77,9 +90,31 @@ export default function AdvertiserDashboard({ channelLogin }: AdvertiserDashboar
 
   if (loading) {
     return (
-      <div className="adv-loading">
-        <div className="recap-spinner" />
-        Loading authenticity report...
+      <div className="adv-dashboard">
+        <div className="adv-sidebar">
+          <div className="sidebar-channel">
+            <div className="adv-skel" style={{ width: 36, height: 36, borderRadius: '50%', flexShrink: 0 }} />
+            <div style={{ flex: 1 }}>
+              <div className="adv-skel" style={{ width: 100, height: 14, marginBottom: 6 }} />
+              <div className="adv-skel" style={{ width: 60, height: 10 }} />
+            </div>
+          </div>
+          <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {Array.from({ length: 6 }, (_, i) => (
+              <div key={i} className="adv-skel" style={{ width: '100%', height: 36, borderRadius: 8 }} />
+            ))}
+          </div>
+        </div>
+        <main className="adv-main" style={{ paddingTop: 40 }}>
+          <div className="adv-skel" style={{ width: 200, height: 32, marginBottom: 12 }} />
+          <div className="adv-skel" style={{ width: 300, height: 16, marginBottom: 40 }} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 40 }}>
+            {Array.from({ length: 3 }, (_, i) => (
+              <div key={i} className="adv-skel" style={{ height: 120, borderRadius: 14 }} />
+            ))}
+          </div>
+          <div className="adv-skel" style={{ width: '100%', height: 240, borderRadius: 14 }} />
+        </main>
       </div>
     );
   }
@@ -116,7 +151,7 @@ export default function AdvertiserDashboard({ channelLogin }: AdvertiserDashboar
             transition={{ duration: 0.2 }}
           >
             {activeView === 'overview' && (
-              <AdvOverviewView report={report} trend={trend} avg={avg} />
+              <AdvOverviewView report={report} trend={trend} avg={avg} benchmark={benchmark} />
             )}
             {activeView === 'growth' && (
               <AdvGrowthView
@@ -134,7 +169,16 @@ export default function AdvertiserDashboard({ channelLogin }: AdvertiserDashboar
               />
             )}
             {activeView === 'compare' && (
-              <AdvCompareView />
+              <AdvCompareView currentChannel={channel} />
+            )}
+            {activeView === 'brand-safety' && (
+              <AdvBrandSafetyView brandSafety={brandSafety} />
+            )}
+            {activeView === 'alerts' && (
+              <AdvAlertsView twitchId={channel?.id ?? 0} />
+            )}
+            {activeView === 'campaigns' && (
+              <AdvCampaignsView twitchId={channel?.id ?? 0} />
             )}
             {activeView === 'methodology' && (
               <AdvMethodologyView />

@@ -128,9 +128,36 @@ export default function CompareView({ sessionIds, onBack, onChatterClick, labels
 
   if (loading) {
     return (
-      <div className="recap-loading">
-        <div className="recap-spinner" />
-        Loading comparison...
+      <div className="compare-view" style={{ padding: '0 clamp(20px, 5vw, 64px)' }}>
+        <button className="recap-back-btn" onClick={onBack}>
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+            <path d="M10 4L6 8l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+          Streams
+        </button>
+        <section className="recap-hero" style={{ textAlign: 'center', maxWidth: 1120, margin: '0 auto 56px', padding: '40px 0 0' }}>
+          <div className="cmp-skel" style={{ width: 160, height: 28, borderRadius: 20, margin: '0 auto 16px' }} />
+          <div className="cmp-skel" style={{ width: 280, height: 40, margin: '0 auto 24px' }} />
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 16 }}>
+            {sessionIds.map((_, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div className="cmp-skel" style={{ width: 10, height: 10, borderRadius: '50%' }} />
+                <div className="cmp-skel" style={{ width: 80, height: 14 }} />
+              </div>
+            ))}
+          </div>
+        </section>
+        <section className="recap-section" style={{ maxWidth: 1120, margin: '0 auto 48px' }}>
+          <div className="cmp-skel" style={{ width: 120, height: 14, marginBottom: 20 }} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+            {Array.from({ length: 6 }, (_, i) => (
+              <div key={i} className="cmp-skel" style={{ height: 80, borderRadius: 14 }} />
+            ))}
+          </div>
+        </section>
+        <section className="recap-section" style={{ maxWidth: 1120, margin: '0 auto 48px' }}>
+          <div className="cmp-skel" style={{ width: '100%', height: 200, borderRadius: 14 }} />
+        </section>
       </div>
     );
   }

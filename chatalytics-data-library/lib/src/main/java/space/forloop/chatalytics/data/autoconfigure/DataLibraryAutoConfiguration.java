@@ -84,4 +84,22 @@ public class DataLibraryAutoConfiguration {
     SocialBladeRepository socialBladeRepository(DSLContext dslContext) {
         return new SocialBladeRepositoryImpl(dslContext);
     }
+
+    @Bean
+    @ConditionalOnMissingBean
+    BrandSafetyRepository brandSafetyRepository(DSLContext dslContext) {
+        return new BrandSafetyRepositoryImpl(dslContext);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    AlertRepository alertRepository(DSLContext dslContext) {
+        return new AlertRepositoryImpl(dslContext);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    CampaignRepository campaignRepository(DSLContext dslContext) {
+        return new CampaignRepositoryImpl(dslContext);
+    }
 }

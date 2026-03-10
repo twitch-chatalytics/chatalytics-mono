@@ -20,7 +20,7 @@ public class PublicStatsService {
     private final SessionRepository sessionRepository;
     private final StreamSnapshotRepository snapshotRepository;
 
-    @Cacheable(value = PUBLIC_STATS, key = "#twitchId")
+    @Cacheable(value = PUBLIC_STATS, key = "#twitchId", sync = true)
     public ChannelStats getStats(Long twitchId) {
 
         return new ChannelStats(

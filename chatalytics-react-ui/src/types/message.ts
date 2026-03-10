@@ -136,6 +136,11 @@ export interface ChannelProfile {
   createdAt: string;
 }
 
+export interface FeaturedChannel {
+  channel: ChannelProfile;
+  stats: ChannelStats;
+}
+
 export interface StreamRecap {
   sessionId: number;
   startTime: string;
@@ -311,4 +316,90 @@ export interface SocialBladeDailyPoint {
   views: number | null;
   followerChange: number | null;
   viewChange: number | null;
+}
+
+// --- Channel Benchmark ---
+
+export interface ChannelBenchmark {
+  twitchId: number;
+  percentileRank: number;
+  viewerTier: string;
+  tierAvgScore: number;
+  globalAvgScore: number;
+  channelsInTier: number;
+  primaryCategory: string | null;
+  categoryAvgScore: number | null;
+  channelsInCategory: number;
+}
+
+// --- Brand Safety ---
+
+export interface TopicCount {
+  topic: string;
+  count: number;
+}
+
+export interface ChannelBrandSafety {
+  twitchId: number;
+  brandSafetyScore: number;
+  toxicityRate: number | null;
+  positiveRate: number | null;
+  negativeRate: number | null;
+  neutralRate: number | null;
+  emoteSpamRate: number | null;
+  conversationRatio: number | null;
+  topTopics: TopicCount[];
+  languageDistribution: Record<string, number>;
+  sessionsAnalyzed: number;
+  updatedAt: string;
+}
+
+// --- Alerts ---
+
+export interface AlertRule {
+  id: number;
+  twitchId: number;
+  alertType: string;
+  thresholdValue: number | null;
+  enabled: boolean;
+  createdAt: string;
+}
+
+export interface AlertEvent {
+  id: number;
+  alertRuleId: number | null;
+  twitchId: number;
+  alertType: string;
+  message: string;
+  severity: string;
+  acknowledged: boolean;
+  createdAt: string;
+}
+
+// --- Campaign Verification ---
+
+export interface Campaign {
+  id: number;
+  twitchId: number;
+  campaignName: string;
+  brandName: string | null;
+  brandKeywords: string[];
+  startDate: string;
+  endDate: string;
+  dealPrice: number | null;
+  createdAt: string;
+}
+
+export interface CampaignReport {
+  campaign: Campaign;
+  sponsoredSessions: number;
+  sponsoredAvgScore: number;
+  baselineAvgScore: number;
+  scoreDelta: number;
+  totalMessages: number;
+  brandMentions: number;
+  brandMentionRate: number;
+  estimatedRealImpressions: number;
+  reportedCpm: number | null;
+  realCpm: number | null;
 }

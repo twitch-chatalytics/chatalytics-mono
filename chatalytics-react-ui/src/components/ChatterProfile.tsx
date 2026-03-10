@@ -124,7 +124,7 @@ export default function ChatterProfile({ profile, children }: Props) {
               {summaryLoading ? (
                 <>
                   <span className="summarize-spinner" />
-                  Generating summary...
+                  Thinking...
                 </>
               ) : (
                 'Generate summary'

@@ -19,4 +19,6 @@ public interface UserRepository {
 
     void saveAll(List<User> users);
 
+    List<Long> findFeaturedIds();
+
 }

@@ -3,6 +3,7 @@ package space.forloop.irc.producer.configuration;
 import lombok.RequiredArgsConstructor;
 import org.pircbotx.PircBotX;
 import org.pircbotx.UtilSSLSocketFactory;
+import org.pircbotx.delay.StaticDelay;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import space.forloop.irc.producer.listeners.OnIrcMessageEvent;
@@ -25,6 +26,8 @@ public class PircBotXConfig {
                 .setCapEnabled(false)
                 .setSnapshotsEnabled(false)
                 .setOnJoinWhoEnabled(false)
+                .setAutoReconnect(true)
+                .setAutoReconnectDelay(new StaticDelay(5000))
                 .setVersion("2")
                 .buildConfiguration();
 

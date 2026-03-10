@@ -44,6 +44,9 @@ spec:
           ports:
             - containerPort: 8080
               name: http
+          env:
+            - name: OTEL_SERVICE_NAME
+              value: "chatalytics-api"
           envFrom:
             - secretRef:
                 name: chatalytics-secrets
@@ -53,7 +56,7 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 10
             timeoutSeconds: 5
-            failureThreshold: 20
+            failureThreshold: 40
           readinessProbe:
             tcpSocket:
               port: 8080
@@ -61,7 +64,8 @@ spec:
             timeoutSeconds: 5
             failureThreshold: 3
           livenessProbe:
-            tcpSocket:
+            httpGet:
+              path: /actuator/health
               port: 8080
             periodSeconds: 15
             timeoutSeconds: 5

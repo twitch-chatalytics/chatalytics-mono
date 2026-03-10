@@ -18,6 +18,12 @@ public class LiveMetricsRedisSubscriber implements MessageListener {
         String channel = new String(message.getChannel());
         String json = new String(message.getBody());
 
+        // Global counter channel uses 0L sentinel key
+        if ("live:global:messages".equals(channel)) {
+            sseEmitterRegistry.broadcast(0L, json);
+            return;
+        }
+
         // channel format: "live:metrics:{twitchId}"
         try {
             String twitchIdStr = channel.substring(channel.lastIndexOf(':') + 1);

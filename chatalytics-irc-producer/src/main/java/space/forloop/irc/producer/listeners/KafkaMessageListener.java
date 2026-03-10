@@ -1,6 +1,5 @@
 package space.forloop.irc.producer.listeners;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,30 +24,38 @@ public class KafkaMessageListener {
     private final ObjectMapper objectMapper;
 
     @KafkaListener(topics = "raw-sessions-online", groupId = "2")
-    public void onlineMessage(String message) throws JsonProcessingException {
-        log.info("onlineMessage: {}", message);
+    public void onlineMessage(String message) {
+        try {
+            log.info("onlineMessage: {}", message);
 
-        Session session = objectMapper.readValue(message, Session.class);
-        Optional<SessionWithUser> optionalSessionWithUser = sessionRepository.findByIdWithUser(session.getId());
+            Session session = objectMapper.readValue(message, Session.class);
+            Optional<SessionWithUser> optionalSessionWithUser = sessionRepository.findByIdWithUser(session.getId());
 
-        if (optionalSessionWithUser.isPresent()) {
-            channelService.joinChannel(optionalSessionWithUser.get());
-        } else {
-            log.warn("Unable to find session with id {}", session.getId());
+            if (optionalSessionWithUser.isPresent()) {
+                channelService.joinChannel(optionalSessionWithUser.get());
+            } else {
+                log.warn("Unable to find session with id {}", session.getId());
+            }
+        } catch (Exception e) {
+            log.error("Failed to process online session event: {}", e.getMessage());
         }
     }
 
     @KafkaListener(topics = "raw-sessions-offline", groupId = "2")
-    public void offlineMessage(String message) throws JsonProcessingException {
-        log.info("offlineMessage: {}", message);
+    public void offlineMessage(String message) {
+        try {
+            log.info("offlineMessage: {}", message);
 
-        Session session = objectMapper.readValue(message, Session.class);
-        Optional<SessionWithUser> optionalSessionWithUser = sessionRepository.findByIdWithUser(session.getId());
+            Session session = objectMapper.readValue(message, Session.class);
+            Optional<SessionWithUser> optionalSessionWithUser = sessionRepository.findByIdWithUser(session.getId());
 
-        if (optionalSessionWithUser.isPresent()) {
-            channelService.leaveChannel(optionalSessionWithUser.get().login());
-        } else {
-            log.warn("Unable to find session with id {}", session.getId());
+            if (optionalSessionWithUser.isPresent()) {
+                channelService.leaveChannel(optionalSessionWithUser.get().login());
+            } else {
+                log.warn("Unable to find session with id {}", session.getId());
+            }
+        } catch (Exception e) {
+            log.error("Failed to process offline session event: {}", e.getMessage());
         }
     }
 }

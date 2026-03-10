@@ -8,7 +8,9 @@ import space.forloop.chatalytics.api.services.SocialBladeService;
 import space.forloop.chatalytics.data.repositories.SocialBladeRepository;
 import space.forloop.chatalytics.data.repositories.UserRepository;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -26,14 +28,25 @@ public class SocialBladeRefreshTask {
             return;
         }
 
+        // Only refresh featured channels (server key has limited quota)
         List<Long> staleIds = socialBladeRepository.findStaleChannelIds(24);
         if (staleIds.isEmpty()) {
             return;
         }
 
-        log.info("Refreshing SocialBlade data for {} channels", staleIds.size());
+        // Filter to featured channels only (avoids N+1 queries)
+        Set<Long> featuredIds = new HashSet<>(userRepository.findFeaturedIds());
+        List<Long> featuredStaleIds = staleIds.stream()
+                .filter(featuredIds::contains)
+                .toList();
 
-        for (long twitchId : staleIds) {
+        if (featuredStaleIds.isEmpty()) {
+            return;
+        }
+
+        log.info("Refreshing SocialBlade data for {} featured channels", featuredStaleIds.size());
+
+        for (long twitchId : featuredStaleIds) {
             try {
                 userRepository.findById(twitchId).ifPresent(user -> {
                     String login = user.getLogin();
@@ -41,6 +54,11 @@ public class SocialBladeRefreshTask {
                         socialBladeService.fetchAndStore(twitchId, login);
                     }
                 });
+                // Stagger requests to avoid rate limiting (~7s between calls)
+                Thread.sleep(7000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
             } catch (Exception e) {
                 log.error("Failed to refresh SocialBlade for twitchId {}: {}", twitchId, e.getMessage());
             }

@@ -50,13 +50,22 @@ public class SocialBladeService {
     }
 
     public Optional<SocialBladeChannel> fetchAndStore(long twitchId, String username) {
-        if (!isConfigured()) {
+        return fetchAndStore(twitchId, username, null, null);
+    }
+
+    public Optional<SocialBladeChannel> fetchAndStore(long twitchId, String username,
+                                                       String overrideClientId, String overrideToken) {
+        boolean useOverride = overrideClientId != null && !overrideClientId.isBlank();
+        if (!useOverride && !isConfigured()) {
             log.warn("SocialBlade API credentials not configured, skipping fetch for {}", username);
             return repository.findByTwitchId(twitchId);
         }
 
+        String cid = useOverride ? overrideClientId : this.clientId;
+        String tok = useOverride ? overrideToken : this.token;
+
         try {
-            JsonNode stats = callApi("/twitch/statistics?query=" + username);
+            JsonNode stats = callApi("/twitch/statistics?query=" + username, cid, tok);
             if (stats == null || stats.has("error")) {
                 log.warn("SocialBlade returned error for {}: {}", username,
                         stats != null ? stats.get("error").asText() : "null response");
@@ -66,7 +75,7 @@ public class SocialBladeService {
             SocialBladeChannel channel = parseTwitchStats(twitchId, stats);
 
             // Try to get social links from YouTube lookup (SB often cross-references)
-            channel = enrichWithSocialLinks(channel, username);
+            channel = enrichWithSocialLinks(channel, username, cid, tok);
 
             repository.save(channel);
 
@@ -113,9 +122,10 @@ public class SocialBladeService {
         );
     }
 
-    private SocialBladeChannel enrichWithSocialLinks(SocialBladeChannel channel, String username) {
+    private SocialBladeChannel enrichWithSocialLinks(SocialBladeChannel channel, String username,
+                                                      String cid, String tok) {
         try {
-            JsonNode yt = callApi("/youtube/statistics?query=" + username + "&platform=twitch");
+            JsonNode yt = callApi("/youtube/statistics?query=" + username + "&platform=twitch", cid, tok);
             if (yt == null || yt.has("error")) return channel;
 
             JsonNode data = yt.has("data") ? yt.get("data") : yt;
@@ -178,25 +188,41 @@ public class SocialBladeService {
         return points;
     }
 
-    private JsonNode callApi(String path) {
-        try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("clientid", clientId);
-            headers.set("token", token);
+    private JsonNode callApi(String path, String cid, String tok) {
+        int maxRetries = 3;
+        long backoffMs = 2000;
 
-            ResponseEntity<String> response = restTemplate.exchange(
-                    BASE_URL + path,
-                    HttpMethod.GET,
-                    new HttpEntity<>(headers),
-                    String.class
-            );
+        for (int attempt = 0; attempt <= maxRetries; attempt++) {
+            try {
+                HttpHeaders headers = new HttpHeaders();
+                headers.set("clientid", cid);
+                headers.set("token", tok);
 
-            if (response.getBody() == null) return null;
-            return mapper.readTree(response.getBody());
-        } catch (Exception e) {
-            log.error("SocialBlade API call failed for {}: {}", path, e.getMessage());
-            return null;
+                ResponseEntity<String> response = restTemplate.exchange(
+                        BASE_URL + path,
+                        HttpMethod.GET,
+                        new HttpEntity<>(headers),
+                        String.class
+                );
+
+                if (response.getBody() == null) return null;
+                return mapper.readTree(response.getBody());
+            } catch (org.springframework.web.client.HttpClientErrorException.TooManyRequests e) {
+                if (attempt < maxRetries) {
+                    long waitMs = backoffMs * (1L << attempt);
+                    log.warn("SocialBlade 429 rate limit on {}, retrying in {}ms (attempt {}/{})",
+                            path, waitMs, attempt + 1, maxRetries);
+                    try { Thread.sleep(waitMs); } catch (InterruptedException ie) { Thread.currentThread().interrupt(); return null; }
+                } else {
+                    log.error("SocialBlade 429 rate limit exhausted for {}", path);
+                    return null;
+                }
+            } catch (Exception e) {
+                log.error("SocialBlade API call failed for {}: {}", path, e.getMessage());
+                return null;
+            }
         }
+        return null;
     }
 
     private static String textOrNull(JsonNode node, String field) {

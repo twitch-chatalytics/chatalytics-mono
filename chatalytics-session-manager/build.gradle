@@ -21,6 +21,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-jooq'
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    // Observability - push metrics to SigNoz via OTLP
+    implementation 'io.micrometer:micrometer-registry-otlp'
 
     // Database
     runtimeOnly 'org.postgresql:postgresql'

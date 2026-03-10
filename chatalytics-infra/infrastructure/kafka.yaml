@@ -63,6 +63,10 @@ spec:
               value: "PLAINTEXT"
             - name: KAFKA_AUTO_CREATE_TOPICS_ENABLE
               value: "true"
+            - name: KAFKA_LOG_RETENTION_HOURS
+              value: "48"
+            - name: KAFKA_NUM_PARTITIONS
+              value: "24"
             - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
               value: "1"
             - name: KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR
@@ -87,11 +91,11 @@ spec:
             failureThreshold: 5
           resources:
             requests:
-              memory: "512Mi"
-              cpu: "250m"
-            limits:
               memory: "1Gi"
               cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
           volumeMounts:
             - name: data
               mountPath: /var/lib/kafka/data
@@ -103,4 +107,4 @@ spec:
         storageClassName: local-path
         resources:
           requests:
-            storage: 10Gi
+            storage: 200Gi

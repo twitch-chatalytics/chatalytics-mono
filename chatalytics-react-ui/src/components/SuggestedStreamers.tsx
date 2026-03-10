@@ -98,9 +98,21 @@ export default function SuggestedStreamers({ user }: Props) {
       </motion.section>
 
       {loading ? (
-        <div className="suggested-loading">
-          <div className="suggested-spinner" />
-          Loading requests...
+        <div className="suggested-list">
+          {Array.from({ length: 6 }, (_, i) => (
+            <div key={i} className="suggested-card">
+              <div className="suggested-skel" style={{ width: 44, height: 44, borderRadius: '50%', flexShrink: 0 }} />
+              <div className="suggested-info">
+                <div className="suggested-skel" style={{ width: 120, height: 16, marginBottom: 6 }} />
+                <div className="suggested-skel" style={{ width: 80, height: 12 }} />
+              </div>
+              <div className="suggested-votes">
+                <div className="suggested-skel" style={{ width: '100%', height: 6, borderRadius: 3, marginBottom: 4 }} />
+                <div className="suggested-skel" style={{ width: 60, height: 10 }} />
+              </div>
+              <div className="suggested-skel" style={{ width: 64, height: 34, borderRadius: 8, flexShrink: 0 }} />
+            </div>
+          ))}
         </div>
       ) : requests.length === 0 ? (
         <div className="suggested-empty">
@@ -154,9 +166,17 @@ export default function SuggestedStreamers({ user }: Props) {
 
           <div ref={sentinelRef} className="suggested-sentinel">
             {loadingMore && (
-              <div className="suggested-loading">
-                <div className="suggested-spinner" />
-                Loading more...
+              <div className="suggested-card" style={{ marginTop: 10 }}>
+                <div className="suggested-skel" style={{ width: 44, height: 44, borderRadius: '50%', flexShrink: 0 }} />
+                <div className="suggested-info">
+                  <div className="suggested-skel" style={{ width: 120, height: 16, marginBottom: 6 }} />
+                  <div className="suggested-skel" style={{ width: 80, height: 12 }} />
+                </div>
+                <div className="suggested-votes">
+                  <div className="suggested-skel" style={{ width: '100%', height: 6, borderRadius: 3, marginBottom: 4 }} />
+                  <div className="suggested-skel" style={{ width: 60, height: 10 }} />
+                </div>
+                <div className="suggested-skel" style={{ width: 64, height: 34, borderRadius: 8, flexShrink: 0 }} />
               </div>
             )}
           </div>

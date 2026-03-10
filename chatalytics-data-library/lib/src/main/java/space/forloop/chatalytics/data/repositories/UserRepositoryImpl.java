@@ -2,6 +2,7 @@ package space.forloop.chatalytics.data.repositories;
 
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
+import org.jooq.impl.DSL;
 import org.springframework.stereotype.Repository;
 import space.forloop.chatalytics.data.generated.tables.pojos.User;
 
@@ -68,5 +69,13 @@ public class UserRepositoryImpl implements UserRepository {
                 .toList();
 
         dsl.batch(queries).execute();
+    }
+
+    @Override
+    public List<Long> findFeaturedIds() {
+        return dsl.select(USER.ID)
+                .from(USER)
+                .where(DSL.field("featured", Boolean.class).isTrue())
+                .fetchInto(Long.class);
     }
 }

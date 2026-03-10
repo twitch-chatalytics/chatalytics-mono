@@ -13,10 +13,14 @@ dependencies {
 
     // Spring
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-cache'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
     implementation 'org.springframework.boot:spring-boot-starter-jooq'
     implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
+
+    // Observability - push metrics to SigNoz via OTLP
+    implementation 'io.micrometer:micrometer-registry-otlp'
 
     // Kafka
     implementation 'org.springframework.kafka:spring-kafka'

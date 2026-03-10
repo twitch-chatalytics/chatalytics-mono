@@ -1,4 +1,4 @@
-import { AdvertiserAccount, AuthenticityTrendPoint, AuthUser, ChannelAuthenticityReport, ChannelProfile, ChannelStats, ChatterProfile, GlobalStats, Message, SessionAuthenticityReport, SessionSummaryView, SocialBladeChannel, SocialBladeDailyPoint, StreamerRequestSummary, StreamRecap, TwitchSearchResult, VoteResponse } from '../types/message';
+import { AdvertiserAccount, AlertEvent, AlertRule, AuthenticityTrendPoint, AuthUser, Campaign, CampaignReport, ChannelAuthenticityReport, ChannelBenchmark, ChannelBrandSafety, ChannelProfile, ChannelStats, ChatterProfile, FeaturedChannel, GlobalStats, Message, SessionAuthenticityReport, SessionSummaryView, SocialBladeChannel, SocialBladeDailyPoint, StreamerRequestSummary, StreamRecap, TwitchSearchResult, VoteResponse } from '../types/message';
 
 const DEFAULT_TWITCH_ID = 552120296;
 
@@ -16,6 +16,16 @@ export async function fetchStats(
     throw new Error(`Failed to fetch stats: ${response.statusText}`);
   }
 
+  return response.json();
+}
+
+export async function fetchStatsBatch(
+  ids: number[],
+): Promise<Record<number, ChannelStats>> {
+  const params = new URLSearchParams();
+  ids.forEach(id => params.append('ids', String(id)));
+  const response = await fetch(`/public/stats/batch?${params}`);
+  if (!response.ok) return {};
   return response.json();
 }
 
@@ -195,6 +205,12 @@ export async function logout(): Promise<void> {
 
 // ─── Channel Directory ───
 
+export async function fetchFeaturedChannels(): Promise<FeaturedChannel[]> {
+  const response = await fetch('/public/channels/featured');
+  if (!response.ok) return [];
+  return response.json();
+}
+
 export async function fetchChannels(): Promise<ChannelProfile[]> {
   const response = await fetch('/public/channels');
   if (!response.ok) return [];
@@ -241,8 +257,9 @@ export async function fetchGlobalStats(): Promise<GlobalStats | null> {
 }
 
 export async function fetchChannelByLogin(login: string): Promise<ChannelProfile | null> {
-  const channels = await fetchChannels();
-  return channels.find(c => c.login.toLowerCase() === login.toLowerCase()) ?? null;
+  const response = await fetch(`/public/channels/by-login/${encodeURIComponent(login)}`);
+  if (!response.ok) return null;
+  return response.json();
 }
 
 // ─── Advertiser ───
@@ -303,5 +320,109 @@ export async function fetchSocialBladeDaily(
 ): Promise<SocialBladeDailyPoint[]> {
   const response = await fetch(`/advertiser/channel/${twitchId}/socialblade/daily?limit=${limit}`, { credentials: 'include' });
   if (!response.ok) return [];
+  return response.json();
+}
+
+// --- Benchmark ---
+
+export async function fetchChannelBenchmark(
+  twitchId: number,
+): Promise<ChannelBenchmark | null> {
+  const response = await fetch(`/advertiser/channel/${twitchId}/benchmark`, { credentials: 'include' });
+  if (!response.ok) return null;
+  return response.json();
+}
+
+// --- Brand Safety ---
+
+export async function fetchChannelBrandSafety(
+  twitchId: number,
+): Promise<ChannelBrandSafety | null> {
+  const response = await fetch(`/advertiser/channel/${twitchId}/brand-safety`, { credentials: 'include' });
+  if (!response.ok) return null;
+  return response.json();
+}
+
+// ─── Alerts ───
+
+export async function fetchAlertRules(twitchId: number): Promise<AlertRule[]> {
+  const response = await fetch(`/advertiser/channel/${twitchId}/alerts/rules`, { credentials: 'include' });
+  if (!response.ok) return [];
+  return response.json();
+}
+
+export async function createAlertRule(
+  twitchId: number,
+  alertType: string,
+  thresholdValue: number | null,
+): Promise<AlertRule> {
+  const response = await fetch(`/advertiser/channel/${twitchId}/alerts/rules`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ alertType, thresholdValue }),
+  });
+  if (!response.ok) throw new Error('Failed to create alert rule');
+  return response.json();
+}
+
+export async function deleteAlertRule(ruleId: number): Promise<void> {
+  const response = await fetch(`/advertiser/alerts/rules/${ruleId}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+  if (!response.ok) throw new Error('Failed to delete alert rule');
+}
+
+export async function fetchAlertEvents(
+  twitchId: number,
+  limit: number = 50,
+): Promise<AlertEvent[]> {
+  const response = await fetch(`/advertiser/channel/${twitchId}/alerts/events?limit=${limit}`, { credentials: 'include' });
+  if (!response.ok) return [];
+  return response.json();
+}
+
+export async function acknowledgeAlertEvent(eventId: number): Promise<void> {
+  const response = await fetch(`/advertiser/alerts/events/${eventId}/acknowledge`, {
+    method: 'POST',
+    credentials: 'include',
+  });
+  if (!response.ok) throw new Error('Failed to acknowledge event');
+}
+
+// ─── Campaigns ───
+
+export async function fetchCampaigns(twitchId: number): Promise<Campaign[]> {
+  const response = await fetch(`/advertiser/channel/${twitchId}/campaigns`, { credentials: 'include' });
+  if (!response.ok) return [];
+  return response.json();
+}
+
+export async function createCampaign(
+  twitchId: number,
+  data: { campaignName: string; brandName?: string; brandKeywords: string[]; startDate: string; endDate: string; dealPrice?: number },
+): Promise<Campaign> {
+  const response = await fetch(`/advertiser/channel/${twitchId}/campaigns`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(data),
+  });
+  if (!response.ok) throw new Error('Failed to create campaign');
+  return response.json();
+}
+
+export async function deleteCampaign(campaignId: number): Promise<void> {
+  const response = await fetch(`/advertiser/campaigns/${campaignId}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  });
+  if (!response.ok) throw new Error('Failed to delete campaign');
+}
+
+export async function fetchCampaignReport(campaignId: number): Promise<CampaignReport | null> {
+  const response = await fetch(`/advertiser/campaigns/${campaignId}/report`, { credentials: 'include' });
+  if (!response.ok) return null;
   return response.json();
 }

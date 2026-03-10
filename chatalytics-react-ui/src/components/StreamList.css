@@ -308,6 +308,50 @@
   font-size: 13px;
 }
 
+/* ─── Skeleton loading ─── */
+@keyframes skel-shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.skel-bone {
+  background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 75%);
+  background-size: 800px 100%;
+  animation: skel-shimmer 1.8s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+.stream-card-skeleton {
+  pointer-events: none;
+}
+
+.skel-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.skel-checkbox {
+  width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.skel-pill {
+  width: 72px;
+  height: 24px;
+  border-radius: 20px;
+}
+
+.skel-chevron {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
 /* Responsive */
 @media (max-width: 640px) {
   .stream-card {

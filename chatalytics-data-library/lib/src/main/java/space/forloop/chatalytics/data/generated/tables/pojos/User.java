@@ -26,6 +26,7 @@ public class User implements Serializable {
     private String offlineImageUrl;
     private Integer viewCount;
     private Instant createdAt;
+    private Boolean featured;
 
     public User() {}
 
@@ -40,6 +41,7 @@ public class User implements Serializable {
         this.offlineImageUrl = value.offlineImageUrl;
         this.viewCount = value.viewCount;
         this.createdAt = value.createdAt;
+        this.featured = value.featured;
     }
 
     public User(
@@ -204,6 +206,14 @@ public class User implements Serializable {
      */
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Boolean getFeatured() {
+        return this.featured;
+    }
+
+    public void setFeatured(Boolean featured) {
+        this.featured = featured;
     }
 
     @Override

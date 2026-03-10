@@ -2,7 +2,6 @@ package space.forloop.chatalytics.api.services.realtime;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -13,6 +12,7 @@ import space.forloop.chatalytics.data.domain.LiveMetrics;
 import space.forloop.chatalytics.data.domain.TopWord;
 import space.forloop.chatalytics.data.repositories.MessageRepository;
 import space.forloop.chatalytics.data.repositories.StreamSnapshotRepository;
+import space.forloop.chatalytics.api.services.wrapper.GlobalStatsService;
 
 import java.time.Instant;
 import java.util.*;
@@ -23,19 +23,39 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class LiveMetricsAggregator {
 
     private static final int WINDOW_SECONDS = 60;
     private static final int TOP_WORDS_LIMIT = 10;
     private static final double HYPE_THRESHOLD = 2.0;
+    private static final long DEBOUNCE_MS = 200;
 
     private final ObjectMapper objectMapper;
     private final StringRedisTemplate stringRedisTemplate;
     private final StreamSnapshotRepository streamSnapshotRepository;
     private final MessageRepository messageRepository;
+    private final GlobalStatsService globalStatsService;
 
     private final ConcurrentHashMap<Long, StreamWindow> windows = new ConcurrentHashMap<>();
+    private final AtomicLong globalMessageDelta = new AtomicLong(0);
+    private volatile String lastBaselineUpdatedAt = "";
+
+    // Throttle: publish at most once per DEBOUNCE_MS window
+    private volatile long lastSnapshotPublishTime = 0;
+    private volatile long lastGlobalPublishTime = 0;
+
+    public LiveMetricsAggregator(
+            ObjectMapper objectMapper,
+            StringRedisTemplate stringRedisTemplate,
+            StreamSnapshotRepository streamSnapshotRepository,
+            MessageRepository messageRepository,
+            GlobalStatsService globalStatsService) {
+        this.objectMapper = objectMapper;
+        this.stringRedisTemplate = stringRedisTemplate;
+        this.streamSnapshotRepository = streamSnapshotRepository;
+        this.messageRepository = messageRepository;
+        this.globalStatsService = globalStatsService;
+    }
 
     @KafkaListener(topics = "raw-messages", groupId = "chatalytics-api-live")
     public void onMessage(String payload) {
@@ -52,6 +72,10 @@ public class LiveMetricsAggregator {
                 return new StreamWindow(sessionId, baseMessages, baseChatters);
             });
             window.record(irc);
+            globalMessageDelta.incrementAndGet();
+
+            throttleSnapshotPublish();
+            throttleGlobalPublish();
         } catch (JsonProcessingException e) {
             log.debug("Failed to parse IrcPayload: {}", e.getMessage());
         }
@@ -67,8 +91,40 @@ public class LiveMetricsAggregator {
         log.info("Live metrics: session ended — will be cleaned up on next publish cycle");
     }
 
+    /**
+     * Throttle: publish immediately if enough time has passed since the last publish.
+     * During high-volume chat, this fires every ~DEBOUNCE_MS. During quiet periods,
+     * the fallbackPublish() scheduler handles it.
+     */
+    private void throttleSnapshotPublish() {
+        long now = System.currentTimeMillis();
+        if (now - lastSnapshotPublishTime >= DEBOUNCE_MS) {
+            lastSnapshotPublishTime = now;
+            publishSnapshots();
+        }
+    }
+
+    private void throttleGlobalPublish() {
+        long now = System.currentTimeMillis();
+        if (now - lastGlobalPublishTime >= DEBOUNCE_MS) {
+            lastGlobalPublishTime = now;
+            publishGlobalCounter();
+        }
+    }
+
+    /**
+     * Fallback: if no messages arrive for a while, keep publishing so SSE clients
+     * still see updates (e.g., window eviction reducing counts).
+     */
     @Scheduled(fixedRate = 2000)
-    public void publishSnapshots() {
+    public void fallbackPublish() {
+        if (!windows.isEmpty()) {
+            publishSnapshots();
+        }
+        publishGlobalCounter();
+    }
+
+    private void publishSnapshots() {
         if (windows.isEmpty()) return;
 
         Instant now = Instant.now();
@@ -96,6 +152,22 @@ public class LiveMetricsAggregator {
                 log.warn("Failed to serialize LiveMetrics: {}", e.getMessage());
             }
         }
+    }
+
+    private void publishGlobalCounter() {
+        globalStatsService.getStats().ifPresent(baseline -> {
+            if (!baseline.updatedAt().equals(lastBaselineUpdatedAt)) {
+                globalMessageDelta.set(0);
+                lastBaselineUpdatedAt = baseline.updatedAt();
+            }
+            long total = baseline.totalMessages() + globalMessageDelta.get();
+            try {
+                String json = objectMapper.writeValueAsString(Map.of("totalMessages", total));
+                stringRedisTemplate.convertAndSend("live:global:messages", json);
+            } catch (JsonProcessingException e) {
+                log.warn("Failed to serialize global counter", e);
+            }
+        });
     }
 
     private int fetchLatestViewerCount(long sessionId) {

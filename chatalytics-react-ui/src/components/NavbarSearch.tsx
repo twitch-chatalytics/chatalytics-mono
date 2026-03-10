@@ -91,7 +91,18 @@ export default function NavbarSearch({ user, onNavigate }: Props) {
       {(results.length > 0 || searching) && (
         <div className="navbar-search-results">
           {searching && results.length === 0 && (
-            <div className="navbar-search-loading">Searching...</div>
+            <div className="navbar-search-skeletons">
+              {Array.from({ length: 3 }, (_, i) => (
+                <div key={i} className="navbar-search-result">
+                  <div className="navbar-skel" style={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0 }} />
+                  <div className="navbar-result-info">
+                    <div className="navbar-skel" style={{ width: 100, height: 14, marginBottom: 4 }} />
+                    <div className="navbar-skel" style={{ width: 70, height: 11 }} />
+                  </div>
+                  <div className="navbar-skel" style={{ width: 56, height: 30, borderRadius: 8, flexShrink: 0 }} />
+                </div>
+              ))}
+            </div>
           )}
           {results.map(result => (
             <div key={result.id} className="navbar-search-result">

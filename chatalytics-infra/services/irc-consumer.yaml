@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/name: irc-consumer
     app.kubernetes.io/part-of: chatalytics
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app.kubernetes.io/name: irc-consumer
@@ -29,6 +29,8 @@ spec:
           env:
             - name: SERVER_PORT
               value: "8080"
+            - name: OTEL_SERVICE_NAME
+              value: "chatalytics-irc-consumer"
           envFrom:
             - secretRef:
                 name: chatalytics-secrets
@@ -46,15 +48,16 @@ spec:
             timeoutSeconds: 5
             failureThreshold: 3
           livenessProbe:
-            tcpSocket:
+            httpGet:
+              path: /actuator/health
               port: 8080
             periodSeconds: 15
             timeoutSeconds: 5
             failureThreshold: 4
           resources:
             requests:
-              memory: "256Mi"
-              cpu: "100m"
-            limits:
               memory: "512Mi"
-              cpu: "500m"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"

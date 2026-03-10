@@ -10,6 +10,8 @@ public class CacheConstants {
 
     public static final String STREAM_RECAP = "streamRecap";
 
+    public static final String STREAM_RECAP_LIVE = "streamRecapLive";
+
     public static final String SESSIONS = "sessions";
 
     public static final String STREAM_CLIPS = "streamClips";
@@ -29,5 +31,13 @@ public class CacheConstants {
     public static final String SOCIALBLADE_CHANNEL = "socialbladeChannel";
 
     public static final String SOCIALBLADE_DAILY = "socialbladeDailyData";
+
+    public static final String CHANNEL_BENCHMARK = "channelBenchmark";
+
+    public static final String CHANNEL_BRAND_SAFETY = "channelBrandSafety";
+
+    public static final String ALERT_EVENTS = "alertEvents";
+
+    public static final String CAMPAIGN_REPORT = "campaignReport";
 
 }

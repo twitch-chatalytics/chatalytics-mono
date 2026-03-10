@@ -13,6 +13,7 @@ import ChannelCompareBar from './components/ChannelCompareBar';
 import NavbarSearch from './components/NavbarSearch';
 import AdvertiserDashboard from './components/AdvertiserDashboard';
 import ChannelReport from './components/ChannelReport';
+import StreamerListPage from './components/StreamerListPage';
 
 export default function App() {
   const [drawerAuthor, setDrawerAuthor] = useState<string | null>(null);
@@ -137,9 +138,14 @@ export default function App() {
     <>
       <nav className="app-navbar">
         <div className="app-navbar-inner">
-          <span className="app-logo" onClick={() => navigateTo('/')}>
-            chatalytics
-          </span>
+          <div className="app-nav-left">
+            <span className="app-logo" onClick={() => navigateTo('/')}>
+              chatalytics
+            </span>
+            <button className="app-nav-link" onClick={() => navigateTo('/streamers')}>
+              Streamers
+            </button>
+          </div>
           <NavbarSearch user={user} onNavigate={navigateTo} />
           <div className="app-nav-right">
             {!authLoading && (
@@ -210,6 +216,8 @@ export default function App() {
           )
         ) : currentPath === '/suggested' ? (
           <SuggestedStreamers user={user} />
+        ) : currentPath === '/streamers' ? (
+          <StreamerListPage onNavigate={navigateTo} />
         ) : (
           <StreamerDirectory user={user} />
         )}

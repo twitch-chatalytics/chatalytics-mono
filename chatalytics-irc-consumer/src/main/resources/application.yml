@@ -20,7 +20,7 @@ spring:
         connections.max.idle.ms: 10000
         request.timeout.ms: 30000
         retry.backoff.ms: 1000
-        max.poll.records: 500  # Maximum number of records to fetch in one poll
+        max.poll.records: 1000  # Maximum number of records to fetch in one poll
         fetch.min.bytes: 1024  # Minimum amount of data to fetch in one request
         fetch.max.wait.ms: 500 # Maximum time to wait for fetch.min.bytes
         batch-listener: true     # Enable batch listening
@@ -28,3 +28,23 @@ spring:
   threads:
     virtual:
       enabled: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics
+  endpoint:
+    health:
+      show-details: always
+  otlp:
+    metrics:
+      export:
+        url: http://signoz-otel-collector.signoz.svc.cluster.local:4318/v1/metrics
+        step: 60s
+        resource-attributes:
+          service.name: ${OTEL_SERVICE_NAME:chatalytics-irc-consumer}
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true

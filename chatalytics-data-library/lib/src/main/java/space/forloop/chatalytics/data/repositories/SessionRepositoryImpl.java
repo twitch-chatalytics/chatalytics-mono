@@ -161,22 +161,15 @@ public class SessionRepositoryImpl implements SessionRepository {
             );
         }
 
-        // Subquery: latest game_name per session using DISTINCT ON (PostgreSQL)
-        var latestSnapshot = DSL.table(
-                "(SELECT DISTINCT ON (session_id) session_id AS ss_session_id, game_name AS last_game_name " +
-                "FROM twitch.stream_snapshot ORDER BY session_id, \"timestamp\" DESC)"
-        ).asTable("latest_snap");
+        // LATERAL join: latest game_name for each session (only runs per-row, not full table scan)
+        Field<String> lastGameName = DSL.field(DSL.name("latest_snap", "game_name"), String.class);
 
-        // Subquery: peak viewer count per session
-        var peakViewers = DSL.table(
-                "(SELECT session_id AS pv_session_id, MAX(viewer_count) AS peak_viewer_count " +
-                "FROM twitch.stream_snapshot GROUP BY session_id)"
-        ).asTable("peak_viewers");
-
-        Field<Long> snapSessionId = DSL.field(DSL.name("latest_snap", "ss_session_id"), Long.class);
-        Field<String> lastGameName = DSL.field(DSL.name("latest_snap", "last_game_name"), String.class);
-        Field<Long> pvSessionId = DSL.field(DSL.name("peak_viewers", "pv_session_id"), Long.class);
+        // LATERAL join: peak viewer count for each session
         Field<Integer> peakViewerCount = DSL.field(DSL.name("peak_viewers", "peak_viewer_count"), Integer.class);
+
+        // LATERAL join: message stats computed directly from message table
+        Field<Long> totalMessages = DSL.field(DSL.name("msg_stats", "total_messages"), Long.class);
+        Field<Long> totalChatters = DSL.field(DSL.name("msg_stats", "total_chatters"), Long.class);
 
         Field<Long> durationMinutes = DSL.field(
                 "EXTRACT(EPOCH FROM (COALESCE({0}, NOW()) - {1})) / 60",
@@ -189,22 +182,28 @@ public class SessionRepositoryImpl implements SessionRepository {
                         SESSION.TWITCH_ID.as("twitchId"),
                         SESSION.START_TIME.as("startTime"),
                         SESSION.END_TIME.as("endTime"),
-                        DSL.count(MESSAGE.ID).as("totalMessages"),
-                        DSL.countDistinct(MESSAGE.AUTHOR).as("totalChatters"),
+                        DSL.coalesce(totalMessages, 0L).as("totalMessages"),
+                        DSL.coalesce(totalChatters, 0L).as("totalChatters"),
                         lastGameName.as("lastGameName"),
                         peakViewerCount.as("peakViewerCount"),
-                        DSL.when(durationMinutes.gt(0L),
-                                DSL.count(MESSAGE.ID).cast(Double.class).div(durationMinutes.cast(Double.class))
+                        DSL.field(
+                                "CASE WHEN {0} > 0 THEN COALESCE({1}, 0)::double precision / {0} ELSE 0 END",
+                                Double.class,
+                                durationMinutes, totalMessages
                         ).as("messagesPerMinute"),
                         durationMinutes.as("durationMinutes")
                 )
                 .from(SESSION)
-                .leftJoin(MESSAGE).on(SESSION.ID.eq(MESSAGE.SESSION_ID))
-                .leftJoin(latestSnapshot).on(SESSION.ID.eq(snapSessionId))
-                .leftJoin(peakViewers).on(SESSION.ID.eq(pvSessionId))
+                .leftJoin(DSL.table(
+                        "LATERAL (SELECT COUNT(*) AS total_messages, COUNT(DISTINCT author) AS total_chatters FROM twitch.message WHERE session_id = twitch.session.id)"
+                ).asTable("msg_stats")).on(DSL.trueCondition())
+                .leftJoin(DSL.table(
+                        "LATERAL (SELECT game_name FROM twitch.stream_snapshot WHERE session_id = twitch.session.id ORDER BY \"timestamp\" DESC LIMIT 1)"
+                ).asTable("latest_snap")).on(DSL.trueCondition())
+                .leftJoin(DSL.table(
+                        "LATERAL (SELECT MAX(viewer_count) AS peak_viewer_count FROM twitch.stream_snapshot WHERE session_id = twitch.session.id)"
+                ).asTable("peak_viewers")).on(DSL.trueCondition())
                 .where(conditions)
-                .groupBy(SESSION.ID, SESSION.TWITCH_ID, SESSION.START_TIME, SESSION.END_TIME,
-                        lastGameName, peakViewerCount, durationMinutes)
                 .orderBy(SESSION.START_TIME.desc(), SESSION.ID.desc())
                 .limit(limit)
                 .fetchInto(SessionSummaryView.class);

@@ -1,5 +1,25 @@
 server:
-  port: 0
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics
+  endpoint:
+    health:
+      show-details: always
+  otlp:
+    metrics:
+      export:
+        url: http://signoz-otel-collector.signoz.svc.cluster.local:4318/v1/metrics
+        step: 60s
+        resource-attributes:
+          service.name: ${OTEL_SERVICE_NAME:chatalytics-irc-producer}
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
 
 spring:
   threads:

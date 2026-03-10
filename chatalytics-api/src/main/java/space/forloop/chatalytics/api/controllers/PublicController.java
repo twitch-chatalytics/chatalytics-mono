@@ -53,6 +53,19 @@ public class PublicController {
         return publicStatsService.getStats(twitchId);
     }
 
+    @GetMapping("/stats/batch")
+    public Map<Long, ChannelStats> getStatsBatch(@RequestParam List<Long> ids) {
+        Map<Long, ChannelStats> result = new java.util.LinkedHashMap<>();
+        for (Long id : ids) {
+            try {
+                result.put(id, publicStatsService.getStats(id));
+            } catch (Exception e) {
+                log.warn("Failed to fetch stats for twitchId {}", id);
+            }
+        }
+        return result;
+    }
+
     @GetMapping("/chatter-profile")
     public ResponseEntity<ChatterProfile> getChatterProfile(
             @RequestParam String author,

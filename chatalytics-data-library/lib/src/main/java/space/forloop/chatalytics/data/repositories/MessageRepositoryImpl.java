@@ -295,15 +295,20 @@ public class MessageRepositoryImpl implements MessageRepository {
 
     @Override
     public void batchWrite(List<Message> messages) {
+        if (messages.isEmpty()) return;
 
-        dsl.batched(ctx -> messages.forEach(dto ->
-                ctx.dsl().insertInto(MESSAGE)
-                        .set(ctx.dsl().newRecord(MESSAGE, dto))
-                        .onConflict(MESSAGE.ID)
-                        .doUpdate()
-                        .set(ctx.dsl().newRecord(MESSAGE, dto))
-                        .execute()
-        ));
+        // Multi-row INSERT for maximum throughput (single SQL statement vs N round-trips)
+        var insert = dsl.insertInto(MESSAGE,
+                MESSAGE.TWITCH_ID, MESSAGE.MESSAGE_TEXT, MESSAGE.TIMESTAMP,
+                MESSAGE.SESSION_ID, MESSAGE.AUTHOR);
+
+        for (Message dto : messages) {
+            insert = insert.values(
+                    dto.getTwitchId(), dto.getMessageText(), dto.getTimestamp(),
+                    dto.getSessionId(), dto.getAuthor());
+        }
+
+        insert.execute();
     }
 
     @Override

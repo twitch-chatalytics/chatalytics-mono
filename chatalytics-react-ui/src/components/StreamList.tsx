@@ -143,6 +143,20 @@ export default function StreamList({ twitchId, channelLogin, onSelectSession, co
 
   return (
     <div className="stream-list-container">
+      {!channel && (
+        <div className="stream-hero">
+          <div className="stream-hero-content no-banner">
+            <div className="skel-bone skel-avatar" />
+            <div className="stream-hero-info">
+              <div className="stream-hero-name-row">
+                <div className="skel-bone" style={{ width: 160, height: 28 }} />
+                <div className="skel-bone" style={{ width: 60, height: 22, borderRadius: 20 }} />
+              </div>
+              <div className="skel-bone" style={{ width: 240, height: 14, marginTop: 6 }} />
+            </div>
+          </div>
+        </div>
+      )}
       {channel && (
         <div className="stream-hero">
           <div className="stream-hero-content no-banner">
@@ -201,7 +215,25 @@ export default function StreamList({ twitchId, channelLogin, onSelectSession, co
       <DateRangeFilter onChange={handleDateChange} presets={STREAM_PRESETS} />
 
       {loading ? (
-        <div className="stream-list-loading">Loading streams...</div>
+        <div className="stream-list">
+          {Array.from({ length: 5 }, (_, i) => (
+            <div key={i} className="stream-card stream-card-skeleton">
+              <div className="skel-checkbox skel-bone" />
+              <div className="stream-card-body">
+                <div className="stream-card-header">
+                  <div className="skel-bone" style={{ width: 140, height: 14 }} />
+                </div>
+                <div className="skel-bone" style={{ width: 180, height: 16, marginBottom: 8 }} />
+                <div className="stream-card-pills">
+                  <div className="skel-bone skel-pill" />
+                  <div className="skel-bone skel-pill" />
+                  <div className="skel-bone skel-pill" />
+                </div>
+              </div>
+              <div className="skel-bone skel-chevron" />
+            </div>
+          ))}
+        </div>
       ) : sessions.length === 0 ? (
         <div className="stream-list-empty">No streams found.</div>
       ) : (
@@ -285,7 +317,23 @@ export default function StreamList({ twitchId, channelLogin, onSelectSession, co
           })}
 
           <div ref={sentinelRef} className="stream-list-sentinel">
-            {loadingMore && <div className="stream-list-loading-more">Loading more...</div>}
+            {loadingMore && (
+              <div className="stream-card stream-card-skeleton" style={{ marginTop: 12 }}>
+                <div className="skel-checkbox skel-bone" />
+                <div className="stream-card-body">
+                  <div className="stream-card-header">
+                    <div className="skel-bone" style={{ width: 140, height: 14 }} />
+                  </div>
+                  <div className="skel-bone" style={{ width: 180, height: 16, marginBottom: 8 }} />
+                  <div className="stream-card-pills">
+                    <div className="skel-bone skel-pill" />
+                    <div className="skel-bone skel-pill" />
+                    <div className="skel-bone skel-pill" />
+                  </div>
+                </div>
+                <div className="skel-bone skel-chevron" />
+              </div>
+            )}
           </div>
         </div>
       )}
