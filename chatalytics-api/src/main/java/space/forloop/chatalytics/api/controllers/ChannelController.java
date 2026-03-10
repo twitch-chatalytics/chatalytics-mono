@@ -82,7 +82,7 @@ public class ChannelController {
         if (user == null) {
             return ResponseEntity.status(401).body(Map.of("error", "Not authenticated"));
         }
-        long twitchId = (long) user.getAttribute("twitchId");
-        return ResponseEntity.ok(streamerRequestService.vote(request.streamerLogin(), twitchId));
+        long channelId = (long) user.getAttribute("channelId");
+        return ResponseEntity.ok(streamerRequestService.vote(request.streamerLogin(), channelId));
     }
 }

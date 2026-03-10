@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.time.LocalDate;
 
 public record SocialBladeDailyPoint(
-        long twitchId,
+        long channelId,
         LocalDate date,
         Long followers,
         Long views,

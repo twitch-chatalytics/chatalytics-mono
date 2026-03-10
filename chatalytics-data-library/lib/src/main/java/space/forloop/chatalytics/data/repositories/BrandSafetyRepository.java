@@ -6,7 +6,7 @@ import java.util.Optional;
 
 public interface BrandSafetyRepository {
 
-    Optional<ChannelBrandSafety> findByTwitchId(long twitchId);
+    Optional<ChannelBrandSafety> findByChannelId(long channelId);
 
     void save(ChannelBrandSafety safety);
 }

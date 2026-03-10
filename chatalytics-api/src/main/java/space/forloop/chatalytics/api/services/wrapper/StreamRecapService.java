@@ -314,7 +314,7 @@ public class StreamRecapService {
 
     private List<StreamClip> fetchTopClips(SessionWithUser session, int limit) {
         try {
-            String broadcasterId = String.valueOf(session.twitchId());
+            String broadcasterId = String.valueOf(session.channelId());
             Instant endedAt = session.endTime() != null ? session.endTime() : Instant.now();
             List<TwitchClipData> clips = twitchService.findClips(broadcasterId, session.startTime(), endedAt, limit);
             return clips.stream()

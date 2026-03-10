@@ -16,8 +16,8 @@ public class PublicChatterProfileService {
 
     private final MessageRepository messageRepository;
 
-    @Cacheable(value = CHATTER_PROFILE, key = "#twitchId + ':' + #author.toLowerCase()")
-    public ChatterProfile getChatterProfile(String author, Long twitchId) {
-        return messageRepository.chatterProfile(author, twitchId).orElse(null);
+    @Cacheable(value = CHATTER_PROFILE, key = "#channelId + ':' + #author.toLowerCase()")
+    public ChatterProfile getChatterProfile(String author, Long channelId) {
+        return messageRepository.chatterProfile(author, channelId).orElse(null);
     }
 }

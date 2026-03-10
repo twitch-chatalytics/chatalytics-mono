@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { LiveMetrics } from '../types/message';
 
-export function useLiveMetrics(twitchId: number | null) {
+export function useLiveMetrics(channelId: number | null) {
   const [metrics, setMetrics] = useState<LiveMetrics | null>(null);
   const [connected, setConnected] = useState(false);
   const sourceRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
-    if (!twitchId) return;
+    if (!channelId) return;
 
-    const source = new EventSource(`/public/live/${twitchId}/stream`);
+    const source = new EventSource(`/public/live/${channelId}/stream`);
     sourceRef.current = source;
 
     source.addEventListener('metrics', (event) => {
@@ -34,7 +34,7 @@ export function useLiveMetrics(twitchId: number | null) {
       setMetrics(null);
       setConnected(false);
     };
-  }, [twitchId]);
+  }, [channelId]);
 
   return { metrics, connected };
 }

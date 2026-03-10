@@ -31,32 +31,32 @@ public class ViewerApiKeyService {
 
     private final DSLContext dsl;
 
-    public void storeKey(long viewerTwitchId, String provider, String apiKey, String apiSecret) {
+    public void storeKey(long viewerChannelId, String provider, String apiKey, String apiSecret) {
         String encryptedKey = encrypt(apiKey);
         String encryptedSecret = apiSecret != null ? encrypt(apiSecret) : null;
 
-        dsl.insertInto(DSL.table("twitch.viewer_api_key"))
-                .set(DSL.field("viewer_twitch_id", Long.class), viewerTwitchId)
+        dsl.insertInto(DSL.table("chat.viewer_api_key"))
+                .set(DSL.field("viewer_channel_id", Long.class), viewerChannelId)
                 .set(DSL.field("provider", String.class), provider)
                 .set(DSL.field("encrypted_key", String.class), encryptedKey)
                 .set(DSL.field("encrypted_secret", String.class), encryptedSecret)
                 .set(DSL.field("updated_at", Instant.class), Instant.now())
-                .onConflict(DSL.field("viewer_twitch_id"), DSL.field("provider"))
+                .onConflict(DSL.field("viewer_channel_id"), DSL.field("provider"))
                 .doUpdate()
                 .set(DSL.field("encrypted_key", String.class), encryptedKey)
                 .set(DSL.field("encrypted_secret", String.class), encryptedSecret)
                 .set(DSL.field("updated_at", Instant.class), Instant.now())
                 .execute();
 
-        log.info("Stored {} API key for viewer {}", provider, viewerTwitchId);
+        log.info("Stored {} API key for viewer {}", provider, viewerChannelId);
     }
 
-    public Optional<String[]> getKey(long viewerTwitchId, String provider) {
+    public Optional<String[]> getKey(long viewerChannelId, String provider) {
         var record = dsl.select(
                         DSL.field("encrypted_key", String.class),
                         DSL.field("encrypted_secret", String.class))
-                .from(DSL.table("twitch.viewer_api_key"))
-                .where(DSL.field("viewer_twitch_id", Long.class).eq(viewerTwitchId))
+                .from(DSL.table("chat.viewer_api_key"))
+                .where(DSL.field("viewer_channel_id", Long.class).eq(viewerChannelId))
                 .and(DSL.field("provider", String.class).eq(provider))
                 .fetchOne();
 
@@ -67,19 +67,19 @@ public class ViewerApiKeyService {
         return Optional.of(new String[]{key, secret});
     }
 
-    public void deleteKey(long viewerTwitchId, String provider) {
-        dsl.deleteFrom(DSL.table("twitch.viewer_api_key"))
-                .where(DSL.field("viewer_twitch_id", Long.class).eq(viewerTwitchId))
+    public void deleteKey(long viewerChannelId, String provider) {
+        dsl.deleteFrom(DSL.table("chat.viewer_api_key"))
+                .where(DSL.field("viewer_channel_id", Long.class).eq(viewerChannelId))
                 .and(DSL.field("provider", String.class).eq(provider))
                 .execute();
 
-        log.info("Deleted {} API key for viewer {}", provider, viewerTwitchId);
+        log.info("Deleted {} API key for viewer {}", provider, viewerChannelId);
     }
 
-    public boolean hasKey(long viewerTwitchId, String provider) {
+    public boolean hasKey(long viewerChannelId, String provider) {
         return dsl.fetchCount(
-                DSL.selectFrom(DSL.table("twitch.viewer_api_key"))
-                        .where(DSL.field("viewer_twitch_id", Long.class).eq(viewerTwitchId))
+                DSL.selectFrom(DSL.table("chat.viewer_api_key"))
+                        .where(DSL.field("viewer_channel_id", Long.class).eq(viewerChannelId))
                         .and(DSL.field("provider", String.class).eq(provider))
         ) > 0;
     }

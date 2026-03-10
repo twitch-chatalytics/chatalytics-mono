@@ -49,14 +49,14 @@ public class MessageWordRecord extends UpdatableRecordImpl<MessageWordRecord> {
     /**
      * Setter for <code>twitch.message_word.twitch_id</code>.
      */
-    public void setTwitchId(Long value) {
+    public void setChannelId(Long value) {
         set(2, value);
     }
 
     /**
      * Getter for <code>twitch.message_word.twitch_id</code>.
      */
-    public Long getTwitchId() {
+    public Long getChannelId() {
         return (Long) get(2);
     }
 
@@ -111,12 +111,12 @@ public class MessageWordRecord extends UpdatableRecordImpl<MessageWordRecord> {
     /**
      * Create a detached, initialised MessageWordRecord
      */
-    public MessageWordRecord(Long id, Long messageId, Long twitchId, Long sessionId, String word) {
+    public MessageWordRecord(Long id, Long messageId, Long channelId, Long sessionId, String word) {
         super(MessageWord.MESSAGE_WORD);
 
         setId(id);
         setMessageId(messageId);
-        setTwitchId(twitchId);
+        setChannelId(channelId);
         setSessionId(sessionId);
         setWord(word);
         resetChangedOnNotNull();
@@ -131,7 +131,7 @@ public class MessageWordRecord extends UpdatableRecordImpl<MessageWordRecord> {
         if (value != null) {
             setId(value.getId());
             setMessageId(value.getMessageId());
-            setTwitchId(value.getTwitchId());
+            setChannelId(value.getChannelId());
             setSessionId(value.getSessionId());
             setWord(value.getWord());
             resetChangedOnNotNull();

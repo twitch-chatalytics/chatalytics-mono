@@ -5,5 +5,5 @@ import lombok.Builder;
 import java.time.Instant;
 
 @Builder
-public record SessionWithUser(Long id, Long twitchId, Instant startTime, Instant endTime, String login) {
+public record SessionWithUser(Long id, Long channelId, String platform, Instant startTime, Instant endTime, String login) {
 }

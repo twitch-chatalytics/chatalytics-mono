@@ -1,6 +1,6 @@
 import { AdvertiserAccount, AlertEvent, AlertRule, AuthenticityTrendPoint, AuthUser, Campaign, CampaignReport, ChannelAuthenticityReport, ChannelBenchmark, ChannelBrandSafety, ChannelProfile, ChannelStats, ChatterProfile, FeaturedChannel, GlobalStats, Message, SessionAuthenticityReport, SessionSummaryView, SocialBladeChannel, SocialBladeDailyPoint, StreamerRequestSummary, StreamRecap, TwitchSearchResult, VoteResponse } from '../types/message';
 
-const DEFAULT_TWITCH_ID = 552120296;
+const DEFAULT_CHANNEL_ID = 552120296;
 
 export interface DateRange {
   from?: string;
@@ -8,9 +8,9 @@ export interface DateRange {
 }
 
 export async function fetchStats(
-  twitchId: number = DEFAULT_TWITCH_ID,
+  channelId: number = DEFAULT_CHANNEL_ID,
 ): Promise<ChannelStats> {
-  const response = await fetch(`/public/stats?twitchId=${twitchId}`);
+  const response = await fetch(`/public/stats?channelId=${channelId}`);
 
   if (!response.ok) {
     throw new Error(`Failed to fetch stats: ${response.statusText}`);
@@ -31,11 +31,11 @@ export async function fetchStatsBatch(
 
 export async function searchAuthors(
   query: string,
-  twitchId: number = DEFAULT_TWITCH_ID,
+  channelId: number = DEFAULT_CHANNEL_ID,
 ): Promise<string[]> {
   const params = new URLSearchParams({
     q: query,
-    twitchId: String(twitchId),
+    channelId: String(channelId),
   });
 
   const response = await fetch(`/public/authors?${params}`);
@@ -50,10 +50,10 @@ export async function searchAuthors(
 export async function fetchMessageContext(
   messageId: number,
   seconds: number = 30,
-  twitchId: number = DEFAULT_TWITCH_ID,
+  channelId: number = DEFAULT_CHANNEL_ID,
 ): Promise<Message[]> {
   const params = new URLSearchParams({
-    twitchId: String(twitchId),
+    channelId: String(channelId),
     seconds: String(seconds),
   });
 
@@ -68,11 +68,11 @@ export async function fetchMessageContext(
 
 export async function fetchChatterProfile(
   author: string,
-  twitchId: number = DEFAULT_TWITCH_ID,
+  channelId: number = DEFAULT_CHANNEL_ID,
 ): Promise<ChatterProfile | null> {
   const params = new URLSearchParams({
     author,
-    twitchId: String(twitchId),
+    channelId: String(channelId),
   });
 
   const response = await fetch(`/public/chatter-profile?${params}`);
@@ -86,11 +86,11 @@ export async function fetchChatterProfile(
 
 export async function fetchChatterSummary(
   author: string,
-  twitchId: number = DEFAULT_TWITCH_ID,
+  channelId: number = DEFAULT_CHANNEL_ID,
 ): Promise<string | null> {
   const params = new URLSearchParams({
     author,
-    twitchId: String(twitchId),
+    channelId: String(channelId),
   });
 
   const response = await fetch(`/public/chatter-summary?${params}`);
@@ -104,9 +104,9 @@ export async function fetchChatterSummary(
 }
 
 export async function fetchChannel(
-  twitchId: number = DEFAULT_TWITCH_ID,
+  channelId: number = DEFAULT_CHANNEL_ID,
 ): Promise<ChannelProfile | null> {
-  const response = await fetch(`/public/channel?twitchId=${twitchId}`);
+  const response = await fetch(`/public/channel?channelId=${channelId}`);
   if (!response.ok) return null;
   return response.json();
 }
@@ -118,11 +118,11 @@ export async function fetchMessagesByAuthor(
   dateRange?: DateRange,
   cursor?: { timestamp: string; id: number },
   limit: number = PAGE_SIZE,
-  twitchId: number = DEFAULT_TWITCH_ID,
+  channelId: number = DEFAULT_CHANNEL_ID,
 ): Promise<Message[]> {
   const params = new URLSearchParams({
     author,
-    twitchId: String(twitchId),
+    channelId: String(channelId),
     limit: String(limit),
   });
 
@@ -152,10 +152,10 @@ export async function fetchSessions(
   dateRange?: DateRange,
   cursor?: { startTime: string; id: number },
   limit: number = SESSIONS_PAGE_SIZE,
-  twitchId: number = DEFAULT_TWITCH_ID,
+  channelId: number = DEFAULT_CHANNEL_ID,
 ): Promise<SessionSummaryView[]> {
   const params = new URLSearchParams({
-    twitchId: String(twitchId),
+    channelId: String(channelId),
     limit: String(limit),
   });
 
@@ -265,9 +265,9 @@ export async function fetchChannelByLogin(login: string): Promise<ChannelProfile
 // ─── Advertiser ───
 
 export async function fetchChannelAuthenticity(
-  twitchId: number,
+  channelId: number,
 ): Promise<ChannelAuthenticityReport | null> {
-  const response = await fetch(`/advertiser/channel/${twitchId}/authenticity`, { credentials: 'include' });
+  const response = await fetch(`/advertiser/channel/${channelId}/authenticity`, { credentials: 'include' });
   if (!response.ok) return null;
   return response.json();
 }
@@ -281,10 +281,10 @@ export async function fetchSessionAuthenticity(
 }
 
 export async function fetchAuthenticityTrend(
-  twitchId: number,
+  channelId: number,
   limit: number = 50,
 ): Promise<AuthenticityTrendPoint[]> {
-  const response = await fetch(`/advertiser/channel/${twitchId}/trend?limit=${limit}`, { credentials: 'include' });
+  const response = await fetch(`/advertiser/channel/${channelId}/trend?limit=${limit}`, { credentials: 'include' });
   if (!response.ok) return [];
   return response.json();
 }
@@ -296,10 +296,10 @@ export async function fetchAdvertiserMe(): Promise<AdvertiserAccount | null> {
 }
 
 export async function fetchChannelSessions(
-  twitchId: number,
+  channelId: number,
   limit: number = 100,
 ): Promise<SessionAuthenticityReport[]> {
-  const response = await fetch(`/advertiser/channel/${twitchId}/sessions?limit=${limit}`, { credentials: 'include' });
+  const response = await fetch(`/advertiser/channel/${channelId}/sessions?limit=${limit}`, { credentials: 'include' });
   if (!response.ok) return [];
   return response.json();
 }
@@ -307,18 +307,18 @@ export async function fetchChannelSessions(
 // ─── SocialBlade ───
 
 export async function fetchSocialBladeChannel(
-  twitchId: number,
+  channelId: number,
 ): Promise<SocialBladeChannel | null> {
-  const response = await fetch(`/advertiser/channel/${twitchId}/socialblade`, { credentials: 'include' });
+  const response = await fetch(`/advertiser/channel/${channelId}/socialblade`, { credentials: 'include' });
   if (!response.ok) return null;
   return response.json();
 }
 
 export async function fetchSocialBladeDaily(
-  twitchId: number,
+  channelId: number,
   limit: number = 90,
 ): Promise<SocialBladeDailyPoint[]> {
-  const response = await fetch(`/advertiser/channel/${twitchId}/socialblade/daily?limit=${limit}`, { credentials: 'include' });
+  const response = await fetch(`/advertiser/channel/${channelId}/socialblade/daily?limit=${limit}`, { credentials: 'include' });
   if (!response.ok) return [];
   return response.json();
 }
@@ -326,9 +326,9 @@ export async function fetchSocialBladeDaily(
 // --- Benchmark ---
 
 export async function fetchChannelBenchmark(
-  twitchId: number,
+  channelId: number,
 ): Promise<ChannelBenchmark | null> {
-  const response = await fetch(`/advertiser/channel/${twitchId}/benchmark`, { credentials: 'include' });
+  const response = await fetch(`/advertiser/channel/${channelId}/benchmark`, { credentials: 'include' });
   if (!response.ok) return null;
   return response.json();
 }
@@ -336,27 +336,27 @@ export async function fetchChannelBenchmark(
 // --- Brand Safety ---
 
 export async function fetchChannelBrandSafety(
-  twitchId: number,
+  channelId: number,
 ): Promise<ChannelBrandSafety | null> {
-  const response = await fetch(`/advertiser/channel/${twitchId}/brand-safety`, { credentials: 'include' });
+  const response = await fetch(`/advertiser/channel/${channelId}/brand-safety`, { credentials: 'include' });
   if (!response.ok) return null;
   return response.json();
 }
 
 // ─── Alerts ───
 
-export async function fetchAlertRules(twitchId: number): Promise<AlertRule[]> {
-  const response = await fetch(`/advertiser/channel/${twitchId}/alerts/rules`, { credentials: 'include' });
+export async function fetchAlertRules(channelId: number): Promise<AlertRule[]> {
+  const response = await fetch(`/advertiser/channel/${channelId}/alerts/rules`, { credentials: 'include' });
   if (!response.ok) return [];
   return response.json();
 }
 
 export async function createAlertRule(
-  twitchId: number,
+  channelId: number,
   alertType: string,
   thresholdValue: number | null,
 ): Promise<AlertRule> {
-  const response = await fetch(`/advertiser/channel/${twitchId}/alerts/rules`, {
+  const response = await fetch(`/advertiser/channel/${channelId}/alerts/rules`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
@@ -375,10 +375,10 @@ export async function deleteAlertRule(ruleId: number): Promise<void> {
 }
 
 export async function fetchAlertEvents(
-  twitchId: number,
+  channelId: number,
   limit: number = 50,
 ): Promise<AlertEvent[]> {
-  const response = await fetch(`/advertiser/channel/${twitchId}/alerts/events?limit=${limit}`, { credentials: 'include' });
+  const response = await fetch(`/advertiser/channel/${channelId}/alerts/events?limit=${limit}`, { credentials: 'include' });
   if (!response.ok) return [];
   return response.json();
 }
@@ -393,17 +393,17 @@ export async function acknowledgeAlertEvent(eventId: number): Promise<void> {
 
 // ─── Campaigns ───
 
-export async function fetchCampaigns(twitchId: number): Promise<Campaign[]> {
-  const response = await fetch(`/advertiser/channel/${twitchId}/campaigns`, { credentials: 'include' });
+export async function fetchCampaigns(channelId: number): Promise<Campaign[]> {
+  const response = await fetch(`/advertiser/channel/${channelId}/campaigns`, { credentials: 'include' });
   if (!response.ok) return [];
   return response.json();
 }
 
 export async function createCampaign(
-  twitchId: number,
+  channelId: number,
   data: { campaignName: string; brandName?: string; brandKeywords: string[]; startDate: string; endDate: string; dealPrice?: number },
 ): Promise<Campaign> {
-  const response = await fetch(`/advertiser/channel/${twitchId}/campaigns`, {
+  const response = await fetch(`/advertiser/channel/${channelId}/campaigns`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',

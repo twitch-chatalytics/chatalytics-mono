@@ -44,7 +44,7 @@ public class UserRepositoryImpl implements UserRepository {
         return dsl.select(USER.asterisk())
                 .from(USER)
                 .join(SESSION_SUMMARY)
-                .on(USER.ID.eq(SESSION_SUMMARY.TWITCH_ID))
+                .on(USER.ID.eq(SESSION_SUMMARY.CHANNEL_ID))
                 .where(SESSION_SUMMARY.TOTAL_MESSAGES.greaterThan(0L))
                 .fetchInto(User.class);
     }

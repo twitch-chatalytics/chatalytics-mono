@@ -34,10 +34,10 @@ public class AdvertiserController {
     private final CampaignRepository campaignRepository;
     private final CampaignVerificationService campaignVerificationService;
 
-    @GetMapping("/channel/{twitchId}/authenticity")
-    @Cacheable(value = CHANNEL_AUTHENTICITY, key = "#twitchId")
-    public ChannelAuthenticity channelAuthenticity(@PathVariable long twitchId) {
-        return channelAuthenticityRepository.findByTwitchId(twitchId)
+    @GetMapping("/channel/{channelId}/authenticity")
+    @Cacheable(value = CHANNEL_AUTHENTICITY, key = "#channelId")
+    public ChannelAuthenticity channelAuthenticity(@PathVariable long channelId) {
+        return channelAuthenticityRepository.findByChannelId(channelId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
@@ -48,46 +48,46 @@ public class AdvertiserController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
-    @GetMapping("/channel/{twitchId}/sessions")
+    @GetMapping("/channel/{channelId}/sessions")
     public List<SessionAuthenticity> channelSessions(
-            @PathVariable long twitchId,
+            @PathVariable long channelId,
             @RequestParam(defaultValue = "20") int limit,
             @RequestParam(defaultValue = "0") int offset) {
-        return sessionAuthenticityRepository.findByTwitchId(twitchId, limit, offset);
+        return sessionAuthenticityRepository.findByChannelId(channelId, limit, offset);
     }
 
-    @GetMapping("/channel/{twitchId}/trend")
+    @GetMapping("/channel/{channelId}/trend")
     public List<AuthenticityTrendPoint> channelTrend(
-            @PathVariable long twitchId,
+            @PathVariable long channelId,
             @RequestParam(defaultValue = "50") int limit) {
-        return sessionAuthenticityRepository.findTrendByTwitchId(twitchId, limit);
+        return sessionAuthenticityRepository.findTrendByChannelId(channelId, limit);
     }
 
-    @GetMapping("/channel/{twitchId}/socialblade")
-    @Cacheable(value = SOCIALBLADE_CHANNEL, key = "#twitchId")
-    public SocialBladeChannel socialBladeChannel(@PathVariable long twitchId) {
-        return socialBladeRepository.findByTwitchId(twitchId)
+    @GetMapping("/channel/{channelId}/socialblade")
+    @Cacheable(value = SOCIALBLADE_CHANNEL, key = "#channelId")
+    public SocialBladeChannel socialBladeChannel(@PathVariable long channelId) {
+        return socialBladeRepository.findByChannelId(channelId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
-    @GetMapping("/channel/{twitchId}/socialblade/daily")
-    @Cacheable(value = SOCIALBLADE_DAILY, key = "#twitchId")
+    @GetMapping("/channel/{channelId}/socialblade/daily")
+    @Cacheable(value = SOCIALBLADE_DAILY, key = "#channelId")
     public List<SocialBladeDailyPoint> socialBladeDaily(
-            @PathVariable long twitchId,
+            @PathVariable long channelId,
             @RequestParam(defaultValue = "90") int limit) {
-        return socialBladeRepository.findDailyByTwitchId(twitchId, limit);
+        return socialBladeRepository.findDailyByChannelId(channelId, limit);
     }
 
-    @GetMapping("/channel/{twitchId}/benchmark")
-    @Cacheable(value = CHANNEL_BENCHMARK, key = "#twitchId")
-    public ChannelBenchmark channelBenchmark(@PathVariable long twitchId) {
-        return benchmarkService.computeBenchmark(twitchId);
+    @GetMapping("/channel/{channelId}/benchmark")
+    @Cacheable(value = CHANNEL_BENCHMARK, key = "#channelId")
+    public ChannelBenchmark channelBenchmark(@PathVariable long channelId) {
+        return benchmarkService.computeBenchmark(channelId);
     }
 
-    @GetMapping("/channel/{twitchId}/brand-safety")
-    @Cacheable(value = CHANNEL_BRAND_SAFETY, key = "#twitchId")
-    public ChannelBrandSafety channelBrandSafety(@PathVariable long twitchId) {
-        return brandSafetyRepository.findByTwitchId(twitchId)
+    @GetMapping("/channel/{channelId}/brand-safety")
+    @Cacheable(value = CHANNEL_BRAND_SAFETY, key = "#channelId")
+    public ChannelBrandSafety channelBrandSafety(@PathVariable long channelId) {
+        return brandSafetyRepository.findByChannelId(channelId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
     }
 
@@ -96,8 +96,8 @@ public class AdvertiserController {
         if (user == null) {
             return ResponseEntity.status(401).body(Map.of("error", "Not authenticated"));
         }
-        long twitchId = (long) user.getAttribute("twitchId");
-        return advertiserAccountRepository.findByViewerId(twitchId)
+        long channelId = (long) user.getAttribute("channelId");
+        return advertiserAccountRepository.findByViewerId(channelId)
                 .map(account -> ResponseEntity.ok(Map.of(
                         "tier", account.tier(),
                         "status", account.status(),
@@ -108,19 +108,19 @@ public class AdvertiserController {
 
     // ─── Alerts ───
 
-    @GetMapping("/channel/{twitchId}/alerts/rules")
-    public List<AlertRule> alertRules(@PathVariable long twitchId) {
-        return alertRepository.findRulesByTwitchId(twitchId);
+    @GetMapping("/channel/{channelId}/alerts/rules")
+    public List<AlertRule> alertRules(@PathVariable long channelId) {
+        return alertRepository.findRulesByChannelId(channelId);
     }
 
-    @PostMapping("/channel/{twitchId}/alerts/rules")
-    public AlertRule createAlertRule(@PathVariable long twitchId, @RequestBody Map<String, Object> body) {
+    @PostMapping("/channel/{channelId}/alerts/rules")
+    public AlertRule createAlertRule(@PathVariable long channelId, @RequestBody Map<String, Object> body) {
         String alertType = (String) body.get("alertType");
         Double thresholdValue = body.get("thresholdValue") != null
                 ? ((Number) body.get("thresholdValue")).doubleValue()
                 : null;
 
-        AlertRule rule = new AlertRule(null, twitchId, alertType, thresholdValue, true, null);
+        AlertRule rule = new AlertRule(null, channelId, alertType, thresholdValue, true, null);
         return alertRepository.saveRule(rule);
     }
 
@@ -130,12 +130,12 @@ public class AdvertiserController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/channel/{twitchId}/alerts/events")
-    @Cacheable(value = ALERT_EVENTS, key = "#twitchId + '-' + #limit")
+    @GetMapping("/channel/{channelId}/alerts/events")
+    @Cacheable(value = ALERT_EVENTS, key = "#channelId + '-' + #limit")
     public List<AlertEvent> alertEvents(
-            @PathVariable long twitchId,
+            @PathVariable long channelId,
             @RequestParam(defaultValue = "50") int limit) {
-        return alertRepository.findEventsByTwitchId(twitchId, limit);
+        return alertRepository.findEventsByChannelId(channelId, limit);
     }
 
     @GetMapping("/alerts/events/recent")
@@ -151,16 +151,16 @@ public class AdvertiserController {
 
     // ─── Campaigns ───
 
-    @GetMapping("/channel/{twitchId}/campaigns")
-    public List<Campaign> listCampaigns(@PathVariable long twitchId) {
-        return campaignRepository.findByTwitchId(twitchId);
+    @GetMapping("/channel/{channelId}/campaigns")
+    public List<Campaign> listCampaigns(@PathVariable long channelId) {
+        return campaignRepository.findByChannelId(channelId);
     }
 
-    @PostMapping("/channel/{twitchId}/campaigns")
-    public Campaign createCampaign(@PathVariable long twitchId, @RequestBody CreateCampaignRequest request) {
+    @PostMapping("/channel/{channelId}/campaigns")
+    public Campaign createCampaign(@PathVariable long channelId, @RequestBody CreateCampaignRequest request) {
         Campaign campaign = new Campaign(
                 null,
-                twitchId,
+                channelId,
                 request.campaignName(),
                 request.brandName(),
                 request.brandKeywords() != null ? request.brandKeywords() : List.of(),

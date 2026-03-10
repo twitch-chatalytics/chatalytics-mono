@@ -24,13 +24,13 @@ public class LiveMetricsRedisSubscriber implements MessageListener {
             return;
         }
 
-        // channel format: "live:metrics:{twitchId}"
+        // channel format: "live:metrics:{channelId}"
         try {
-            String twitchIdStr = channel.substring(channel.lastIndexOf(':') + 1);
-            long twitchId = Long.parseLong(twitchIdStr);
-            sseEmitterRegistry.broadcast(twitchId, json);
+            String channelIdStr = channel.substring(channel.lastIndexOf(':') + 1);
+            long channelId = Long.parseLong(channelIdStr);
+            sseEmitterRegistry.broadcast(channelId, json);
         } catch (NumberFormatException e) {
-            log.warn("Invalid twitchId in Redis channel: {}", channel);
+            log.warn("Invalid channelId in Redis channel: {}", channel);
         }
     }
 }

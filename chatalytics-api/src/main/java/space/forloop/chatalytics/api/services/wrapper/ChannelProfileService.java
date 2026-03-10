@@ -14,9 +14,9 @@ public class ChannelProfileService {
 
     private final UserRepository userRepository;
 
-    @Cacheable(value = CHANNEL_PROFILE, key = "#twitchId")
-    public ChannelProfile getProfile(long twitchId) {
-        return userRepository.findById(twitchId)
+    @Cacheable(value = CHANNEL_PROFILE, key = "#channelId")
+    public ChannelProfile getProfile(long channelId) {
+        return userRepository.findById(channelId)
                 .map(u -> new ChannelProfile(u.getId(), u.getLogin(), u.getDisplayName(),
                         u.getBroadcasterType(), u.getDescription(), u.getProfileImageUrl(),
                         u.getOfflineImageUrl(), u.getCreatedAt()))

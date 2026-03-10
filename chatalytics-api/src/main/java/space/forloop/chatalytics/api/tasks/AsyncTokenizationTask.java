@@ -36,7 +36,7 @@ public class AsyncTokenizationTask {
         );
 
         // Fetch un-tokenized messages in chunks
-        var messages = dsl.select(MESSAGE.ID, MESSAGE.TWITCH_ID, MESSAGE.SESSION_ID, MESSAGE.MESSAGE_TEXT)
+        var messages = dsl.select(MESSAGE.ID, MESSAGE.CHANNEL_ID, MESSAGE.SESSION_ID, MESSAGE.MESSAGE_TEXT)
                 .from(MESSAGE)
                 .where(TOKENIZED_AT.isNull())
                 .orderBy(MESSAGE.ID.asc())
@@ -49,14 +49,14 @@ public class AsyncTokenizationTask {
 
         // Build bulk word inserts
         var insert = dsl.insertInto(MESSAGE_WORD,
-                MESSAGE_WORD.MESSAGE_ID, MESSAGE_WORD.TWITCH_ID, MESSAGE_WORD.SESSION_ID, MESSAGE_WORD.WORD);
+                MESSAGE_WORD.MESSAGE_ID, MESSAGE_WORD.CHANNEL_ID, MESSAGE_WORD.SESSION_ID, MESSAGE_WORD.WORD);
 
         int wordCount = 0;
         List<Long> processedIds = new ArrayList<>();
 
         for (var row : messages) {
             Long messageId = row.get(MESSAGE.ID);
-            Long twitchId = row.get(MESSAGE.TWITCH_ID);
+            Long channelId = row.get(MESSAGE.CHANNEL_ID);
             Long sessionId = row.get(MESSAGE.SESSION_ID);
             String text = row.get(MESSAGE.MESSAGE_TEXT);
             processedIds.add(messageId);
@@ -67,7 +67,7 @@ public class AsyncTokenizationTask {
 
             for (String token : tokens) {
                 if (!token.isEmpty() && !stopwords.contains(token)) {
-                    insert = insert.values(messageId, twitchId, sessionId, token);
+                    insert = insert.values(messageId, channelId, sessionId, token);
                     wordCount++;
                 }
             }

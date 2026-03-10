@@ -63,10 +63,10 @@ public class LiveMetricsAggregator {
             IrcPayload irc = objectMapper.readValue(payload, IrcPayload.class);
             if (irc.getSession() == null) return;
 
-            long twitchId = irc.getSession().twitchId();
+            long channelId = irc.getSession().channelId();
             long sessionId = irc.getSession().id();
 
-            StreamWindow window = windows.computeIfAbsent(twitchId, k -> {
+            StreamWindow window = windows.computeIfAbsent(channelId, k -> {
                 long baseMessages = messageRepository.countMessagesBySessionId(sessionId);
                 long baseChatters = messageRepository.countChattersBySessionId(sessionId);
                 return new StreamWindow(sessionId, baseMessages, baseChatters);
@@ -132,7 +132,7 @@ public class LiveMetricsAggregator {
 
         while (it.hasNext()) {
             Map.Entry<Long, StreamWindow> entry = it.next();
-            long twitchId = entry.getKey();
+            long channelId = entry.getKey();
             StreamWindow window = entry.getValue();
 
             window.evictOlderThan(now.minusSeconds(WINDOW_SECONDS));
@@ -143,11 +143,11 @@ public class LiveMetricsAggregator {
             }
 
             int viewerCount = fetchLatestViewerCount(window.sessionId);
-            LiveMetrics metrics = window.snapshot(twitchId, now, viewerCount);
+            LiveMetrics metrics = window.snapshot(channelId, now, viewerCount);
 
             try {
                 String json = objectMapper.writeValueAsString(metrics);
-                stringRedisTemplate.convertAndSend("live:metrics:" + twitchId, json);
+                stringRedisTemplate.convertAndSend("live:metrics:" + channelId, json);
             } catch (JsonProcessingException e) {
                 log.warn("Failed to serialize LiveMetrics: {}", e.getMessage());
             }
@@ -235,7 +235,7 @@ public class LiveMetricsAggregator {
             return messages.isEmpty();
         }
 
-        LiveMetrics snapshot(long twitchId, Instant now, int viewerCount) {
+        LiveMetrics snapshot(long channelId, Instant now, int viewerCount) {
             int messageCount = messages.size();
             double mpm = messageCount; // messages in last 60s ≈ messages per minute
 
@@ -263,7 +263,8 @@ public class LiveMetricsAggregator {
                     .toList();
 
             return new LiveMetrics(
-                    twitchId,
+                    channelId,
+                    "twitch",
                     sessionId,
                     now,
                     Math.round(mpm * 10.0) / 10.0,

@@ -20,7 +20,7 @@ public class SettingsController {
             @RequestBody Map<String, String> body,
             OAuth2AuthenticationToken auth) {
 
-        long viewerTwitchId = Long.parseLong(auth.getPrincipal().getName());
+        long viewerChannelId = Long.parseLong(auth.getPrincipal().getName());
         String provider = body.get("provider");
         String apiKey = body.get("apiKey");
         String apiSecret = body.get("apiSecret");
@@ -29,7 +29,7 @@ public class SettingsController {
             return ResponseEntity.badRequest().body(Map.of("error", "provider and apiKey are required"));
         }
 
-        viewerApiKeyService.storeKey(viewerTwitchId, provider, apiKey, apiSecret);
+        viewerApiKeyService.storeKey(viewerChannelId, provider, apiKey, apiSecret);
         return ResponseEntity.ok(Map.of("status", "saved", "provider", provider));
     }
 
@@ -38,8 +38,8 @@ public class SettingsController {
             @PathVariable String provider,
             OAuth2AuthenticationToken auth) {
 
-        long viewerTwitchId = Long.parseLong(auth.getPrincipal().getName());
-        viewerApiKeyService.deleteKey(viewerTwitchId, provider);
+        long viewerChannelId = Long.parseLong(auth.getPrincipal().getName());
+        viewerApiKeyService.deleteKey(viewerChannelId, provider);
         return ResponseEntity.ok(Map.of("status", "deleted", "provider", provider));
     }
 
@@ -48,8 +48,8 @@ public class SettingsController {
             @PathVariable String provider,
             OAuth2AuthenticationToken auth) {
 
-        long viewerTwitchId = Long.parseLong(auth.getPrincipal().getName());
-        boolean hasKey = viewerApiKeyService.hasKey(viewerTwitchId, provider);
+        long viewerChannelId = Long.parseLong(auth.getPrincipal().getName());
+        boolean hasKey = viewerApiKeyService.hasKey(viewerChannelId, provider);
         return ResponseEntity.ok(Map.of("provider", provider, "configured", hasKey));
     }
 }

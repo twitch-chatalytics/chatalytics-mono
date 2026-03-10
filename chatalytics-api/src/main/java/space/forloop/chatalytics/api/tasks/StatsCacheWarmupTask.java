@@ -58,7 +58,7 @@ public class StatsCacheWarmupTask {
             try {
                 publicStatsService.getStats(channel.getId());
             } catch (Exception e) {
-                log.warn("Failed to warm stats for twitchId {}: {}", channel.getId(), e.getMessage());
+                log.warn("Failed to warm stats for channelId {}: {}", channel.getId(), e.getMessage());
             }
         }
         log.info("Stats cache warmup complete");
@@ -71,10 +71,10 @@ public class StatsCacheWarmupTask {
         log.info("Pre-caching data for {} featured channels", featured.size());
 
         for (FeaturedChannel fc : featured) {
-            long twitchId = fc.channel().id();
+            long channelId = fc.channel().id();
             try {
                 // Pre-cache the session list (first page)
-                List<SessionSummaryView> sessions = sessionListService.findFirstPage(twitchId, 20);
+                List<SessionSummaryView> sessions = sessionListService.findFirstPage(channelId, 20);
 
                 // Pre-cache recaps for the latest sessions
                 int recapCount = 0;

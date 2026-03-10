@@ -5,7 +5,7 @@ import java.time.Instant;
 
 public record AlertRule(
         Long id,
-        long twitchId,
+        long channelId,
         String alertType,
         Double thresholdValue,
         boolean enabled,

@@ -6,7 +6,7 @@ import java.time.Instant;
 public record AlertEvent(
         Long id,
         Long alertRuleId,
-        long twitchId,
+        long channelId,
         String alertType,
         String message,
         String severity,

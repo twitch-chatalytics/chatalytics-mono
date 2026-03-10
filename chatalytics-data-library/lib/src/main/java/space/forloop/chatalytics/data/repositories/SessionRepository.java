@@ -28,13 +28,13 @@ public interface SessionRepository {
 
     long countByUserId(long userId);
 
-    List<SessionSummaryView> findSessionsWithStats(long twitchId, int limit);
+    List<SessionSummaryView> findSessionsWithStats(long channelId, int limit);
 
     List<SessionSummaryView> findSessionsWithStats(
-            long twitchId, int limit,
+            long channelId, int limit,
             Instant from, Instant to,
             Instant beforeStartTime, Long beforeId
     );
 
-    Double avgStreamDurationMinutes(Long twitchId);
+    Double avgStreamDurationMinutes(Long channelId);
 }

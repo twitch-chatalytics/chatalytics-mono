@@ -29,7 +29,7 @@ public class SessionRepositoryImpl implements SessionRepository {
         return dsl
                 .selectCount()
                 .from(SESSION)
-                .where(SESSION.TWITCH_ID.eq(userId))
+                .where(SESSION.CHANNEL_ID.eq(userId))
                 .fetchSingleInto(Long.class);
     }
 
@@ -40,7 +40,7 @@ public class SessionRepositoryImpl implements SessionRepository {
                 .from(SESSION)
                 .leftJoin(MESSAGE)
                 .on(SESSION.ID.eq(MESSAGE.SESSION_ID))
-                .where(SESSION.TWITCH_ID.eq(userId))
+                .where(SESSION.CHANNEL_ID.eq(userId))
                 .groupBy(SESSION.fields())
                 .having(DSL.count(MESSAGE.ID).gt(0))
                 .orderBy(SESSION.START_TIME.asc())
@@ -51,7 +51,7 @@ public class SessionRepositoryImpl implements SessionRepository {
     public Optional<SessionWithUser> findByIdWithUser(long sessionId) {
         return dsl.select(SESSION.asterisk(), USER.LOGIN)
                 .from(SESSION)
-                .join(USER).on(SESSION.TWITCH_ID.eq(USER.ID))
+                .join(USER).on(SESSION.CHANNEL_ID.eq(USER.ID))
                 .where(SESSION.ID.eq(sessionId))
                 .fetchOptionalInto(SessionWithUser.class);
 
@@ -61,7 +61,7 @@ public class SessionRepositoryImpl implements SessionRepository {
     public List<SessionWithUser> findAllOpenSessionsWithUser() {
         return dsl.select(SESSION.asterisk(), USER.LOGIN)
                 .from(SESSION)
-                .join(USER).on(SESSION.TWITCH_ID.eq(USER.ID))
+                .join(USER).on(SESSION.CHANNEL_ID.eq(USER.ID))
                 .where(SESSION.END_TIME.isNull())
                 .fetchInto(SessionWithUser.class);
     }
@@ -122,7 +122,7 @@ public class SessionRepositoryImpl implements SessionRepository {
     }
 
     @Override
-    public Double avgStreamDurationMinutes(Long twitchId) {
+    public Double avgStreamDurationMinutes(Long channelId) {
         return dsl.select(
                 DSL.avg(DSL.field(
                         "EXTRACT(EPOCH FROM (end_time - start_time)) / 60",
@@ -130,24 +130,24 @@ public class SessionRepositoryImpl implements SessionRepository {
                 ))
         )
         .from(SESSION)
-        .where(SESSION.TWITCH_ID.eq(twitchId))
+        .where(SESSION.CHANNEL_ID.eq(channelId))
         .and(SESSION.END_TIME.isNotNull())
         .fetchOneInto(Double.class);
     }
 
     @Override
-    public List<SessionSummaryView> findSessionsWithStats(long twitchId, int limit) {
-        return findSessionsWithStats(twitchId, limit, null, null, null, null);
+    public List<SessionSummaryView> findSessionsWithStats(long channelId, int limit) {
+        return findSessionsWithStats(channelId, limit, null, null, null, null);
     }
 
     @Override
     public List<SessionSummaryView> findSessionsWithStats(
-            long twitchId, int limit,
+            long channelId, int limit,
             Instant from, Instant to,
             Instant beforeStartTime, Long beforeId) {
 
         List<Condition> conditions = new ArrayList<>();
-        conditions.add(SESSION.TWITCH_ID.eq(twitchId));
+        conditions.add(SESSION.CHANNEL_ID.eq(channelId));
 
         if (from != null) {
             conditions.add(SESSION.START_TIME.ge(from));
@@ -179,7 +179,7 @@ public class SessionRepositoryImpl implements SessionRepository {
 
         return dsl.select(
                         SESSION.ID.as("sessionId"),
-                        SESSION.TWITCH_ID.as("twitchId"),
+                        SESSION.CHANNEL_ID.as("channelId"),
                         SESSION.START_TIME.as("startTime"),
                         SESSION.END_TIME.as("endTime"),
                         DSL.coalesce(totalMessages, 0L).as("totalMessages"),
@@ -195,13 +195,13 @@ public class SessionRepositoryImpl implements SessionRepository {
                 )
                 .from(SESSION)
                 .leftJoin(DSL.table(
-                        "LATERAL (SELECT COUNT(*) AS total_messages, COUNT(DISTINCT author) AS total_chatters FROM twitch.message WHERE session_id = twitch.session.id)"
+                        "LATERAL (SELECT COUNT(*) AS total_messages, COUNT(DISTINCT author) AS total_chatters FROM chat.message WHERE session_id = chat.session.id)"
                 ).asTable("msg_stats")).on(DSL.trueCondition())
                 .leftJoin(DSL.table(
-                        "LATERAL (SELECT game_name FROM twitch.stream_snapshot WHERE session_id = twitch.session.id ORDER BY \"timestamp\" DESC LIMIT 1)"
+                        "LATERAL (SELECT game_name FROM chat.stream_snapshot WHERE session_id = chat.session.id ORDER BY \"timestamp\" DESC LIMIT 1)"
                 ).asTable("latest_snap")).on(DSL.trueCondition())
                 .leftJoin(DSL.table(
-                        "LATERAL (SELECT MAX(viewer_count) AS peak_viewer_count FROM twitch.stream_snapshot WHERE session_id = twitch.session.id)"
+                        "LATERAL (SELECT MAX(viewer_count) AS peak_viewer_count FROM chat.stream_snapshot WHERE session_id = chat.session.id)"
                 ).asTable("peak_viewers")).on(DSL.trueCondition())
                 .where(conditions)
                 .orderBy(SESSION.START_TIME.desc(), SESSION.ID.desc())

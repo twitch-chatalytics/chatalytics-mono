@@ -40,8 +40,10 @@ public class PublicController {
     private final ChannelProfileService channelProfileService;
 
     @GetMapping("/channel")
-    public ResponseEntity<ChannelProfile> getChannel(@RequestParam Long twitchId) {
-        ChannelProfile profile = channelProfileService.getProfile(twitchId);
+    public ResponseEntity<ChannelProfile> getChannel(
+            @RequestParam Long channelId,
+            @RequestParam(defaultValue = "twitch") String platform) {
+        ChannelProfile profile = channelProfileService.getProfile(channelId);
         if (profile == null) {
             return ResponseEntity.notFound().build();
         }
@@ -49,8 +51,10 @@ public class PublicController {
     }
 
     @GetMapping("/stats")
-    public ChannelStats getStats(@RequestParam Long twitchId) {
-        return publicStatsService.getStats(twitchId);
+    public ChannelStats getStats(
+            @RequestParam Long channelId,
+            @RequestParam(defaultValue = "twitch") String platform) {
+        return publicStatsService.getStats(channelId);
     }
 
     @GetMapping("/stats/batch")
@@ -60,7 +64,7 @@ public class PublicController {
             try {
                 result.put(id, publicStatsService.getStats(id));
             } catch (Exception e) {
-                log.warn("Failed to fetch stats for twitchId {}", id);
+                log.warn("Failed to fetch stats for channelId {}", id);
             }
         }
         return result;
@@ -69,8 +73,9 @@ public class PublicController {
     @GetMapping("/chatter-profile")
     public ResponseEntity<ChatterProfile> getChatterProfile(
             @RequestParam String author,
-            @RequestParam Long twitchId) {
-        ChatterProfile profile = publicChatterProfileService.getChatterProfile(author, twitchId);
+            @RequestParam Long channelId,
+            @RequestParam(defaultValue = "twitch") String platform) {
+        ChatterProfile profile = publicChatterProfileService.getChatterProfile(author, channelId);
         if (profile == null) {
             return ResponseEntity.notFound().build();
         }
@@ -80,8 +85,9 @@ public class PublicController {
     @GetMapping("/chatter-summary")
     public ResponseEntity<Map<String, String>> getChatterSummary(
             @RequestParam String author,
-            @RequestParam Long twitchId) {
-        String summary = chatterSummaryService.summarize(author, twitchId);
+            @RequestParam Long channelId,
+            @RequestParam(defaultValue = "twitch") String platform) {
+        String summary = chatterSummaryService.summarize(author, channelId);
         if (summary == null) {
             return ResponseEntity.notFound().build();
         }
@@ -89,47 +95,53 @@ public class PublicController {
     }
 
     @GetMapping("/authors")
-    public List<String> searchAuthors(@RequestParam String q, @RequestParam Long twitchId) {
-        return messageRepository.searchAuthors(q, twitchId);
+    public List<String> searchAuthors(
+            @RequestParam String q,
+            @RequestParam Long channelId,
+            @RequestParam(defaultValue = "twitch") String platform) {
+        return messageRepository.searchAuthors(q, channelId);
     }
 
     @GetMapping("/messages/{id}/context")
     public ResponseEntity<List<Message>> findContext(
             @PathVariable Long id,
-            @RequestParam Long twitchId,
-            @RequestParam(defaultValue = "30") int seconds) {
+            @RequestParam Long channelId,
+            @RequestParam(defaultValue = "30") int seconds,
+            @RequestParam(defaultValue = "twitch") String platform) {
         return messageRepository.findById(id)
-                .map(msg -> ResponseEntity.ok(messageRepository.findContext(twitchId, msg.getTimestamp(), seconds)))
+                .map(msg -> ResponseEntity.ok(messageRepository.findContext(channelId, msg.getTimestamp(), seconds)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/messages")
     public List<Message> findByAuthor(
             @RequestParam String author,
-            @RequestParam Long twitchId,
+            @RequestParam Long channelId,
             @RequestParam(required = false) Instant from,
             @RequestParam(required = false) Instant to,
             @RequestParam(required = false) Instant beforeTimestamp,
             @RequestParam(required = false) Long beforeId,
-            @RequestParam(defaultValue = "50") int limit) {
-        return messageRepository.findByAuthor(author, twitchId, from, to, beforeTimestamp, beforeId, Math.min(limit, 200));
+            @RequestParam(defaultValue = "50") int limit,
+            @RequestParam(defaultValue = "twitch") String platform) {
+        return messageRepository.findByAuthor(author, channelId, from, to, beforeTimestamp, beforeId, Math.min(limit, 200));
     }
 
     @GetMapping("/sessions")
     public List<SessionSummaryView> getSessions(
-            @RequestParam Long twitchId,
+            @RequestParam Long channelId,
             @RequestParam(defaultValue = "20") int limit,
             @RequestParam(required = false) Instant from,
             @RequestParam(required = false) Instant to,
             @RequestParam(required = false) Instant beforeStartTime,
-            @RequestParam(required = false) Long beforeId) {
+            @RequestParam(required = false) Long beforeId,
+            @RequestParam(defaultValue = "twitch") String platform) {
         int safeLimit = Math.min(limit, 100);
         // First page with no filters → serve from Redis cache
         if (from == null && to == null && beforeStartTime == null && beforeId == null) {
-            return sessionListService.findFirstPage(twitchId, safeLimit);
+            return sessionListService.findFirstPage(channelId, safeLimit);
         }
         return sessionRepository.findSessionsWithStats(
-                twitchId, safeLimit, from, to, beforeStartTime, beforeId);
+                channelId, safeLimit, from, to, beforeStartTime, beforeId);
     }
 
     @GetMapping("/sessions/{id}/recap")

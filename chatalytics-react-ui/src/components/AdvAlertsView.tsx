@@ -10,7 +10,7 @@ import {
 } from '../api/client';
 
 interface AdvAlertsViewProps {
-  twitchId: number;
+  channelId: number;
 }
 
 const ALERT_TYPE_OPTIONS = [
@@ -55,7 +55,7 @@ function severityClass(severity: string): string {
   }
 }
 
-export default function AdvAlertsView({ twitchId }: AdvAlertsViewProps) {
+export default function AdvAlertsView({ channelId }: AdvAlertsViewProps) {
   const [rules, setRules] = useState<AlertRule[]>([]);
   const [events, setEvents] = useState<AlertEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,12 +66,12 @@ export default function AdvAlertsView({ twitchId }: AdvAlertsViewProps) {
   const [saving, setSaving] = useState(false);
 
   const loadData = useCallback(async () => {
-    if (!twitchId) return;
+    if (!channelId) return;
     setLoading(true);
     try {
       const [rulesData, eventsData] = await Promise.all([
-        fetchAlertRules(twitchId),
-        fetchAlertEvents(twitchId),
+        fetchAlertRules(channelId),
+        fetchAlertEvents(channelId),
       ]);
       setRules(rulesData);
       setEvents(eventsData);
@@ -79,18 +79,18 @@ export default function AdvAlertsView({ twitchId }: AdvAlertsViewProps) {
       // silent
     }
     setLoading(false);
-  }, [twitchId]);
+  }, [channelId]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
   const handleAddRule = async () => {
-    if (!twitchId || saving) return;
+    if (!channelId || saving) return;
     setSaving(true);
     try {
       const threshold = newType === 'authenticity_drop' ? parseFloat(newThreshold) : null;
-      const created = await createAlertRule(twitchId, newType, threshold);
+      const created = await createAlertRule(channelId, newType, threshold);
       setRules(prev => [created, ...prev]);
     } catch {
       // silent

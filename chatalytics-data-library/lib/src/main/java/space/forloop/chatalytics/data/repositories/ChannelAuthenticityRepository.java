@@ -6,7 +6,7 @@ import java.util.Optional;
 
 public interface ChannelAuthenticityRepository {
 
-    Optional<ChannelAuthenticity> findByTwitchId(long twitchId);
+    Optional<ChannelAuthenticity> findByChannelId(long channelId);
 
     void save(ChannelAuthenticity channelAuthenticity);
 }

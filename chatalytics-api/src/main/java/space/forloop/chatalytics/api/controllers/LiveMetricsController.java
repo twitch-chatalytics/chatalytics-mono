@@ -31,13 +31,13 @@ public class LiveMetricsController {
         return emitter;
     }
 
-    @GetMapping(value = "/{twitchId}/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter stream(@PathVariable long twitchId) {
+    @GetMapping(value = "/{channelId}/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter stream(@PathVariable long channelId) {
         SseEmitter emitter = new SseEmitter(SSE_TIMEOUT);
 
-        sseEmitterRegistry.register(twitchId, emitter);
+        sseEmitterRegistry.register(channelId, emitter);
 
-        Runnable cleanup = () -> sseEmitterRegistry.unregister(twitchId, emitter);
+        Runnable cleanup = () -> sseEmitterRegistry.unregister(channelId, emitter);
         emitter.onCompletion(cleanup);
         emitter.onTimeout(cleanup);
         emitter.onError(e -> cleanup.run());

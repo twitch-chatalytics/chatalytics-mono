@@ -72,7 +72,7 @@ public class Twitch extends SchemaImpl {
      * No further instances allowed
      */
     private Twitch() {
-        super("twitch", null);
+        super("chat", null);
     }
 
 

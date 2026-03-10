@@ -6,7 +6,7 @@ import java.util.List;
 
 public record SessionAuthenticity(
         long sessionId,
-        long twitchId,
+        long channelId,
         int authenticityScore,
         String confidenceLevel,
 

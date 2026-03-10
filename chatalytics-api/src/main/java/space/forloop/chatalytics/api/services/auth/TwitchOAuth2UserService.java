@@ -44,18 +44,18 @@ public class TwitchOAuth2UserService extends DefaultOAuth2UserService {
 
         Map<String, Object> userData = fetchTwitchUser(accessToken, clientId);
 
-        long twitchId = Long.parseLong(String.valueOf(userData.get("id")));
+        long channelId = Long.parseLong(String.valueOf(userData.get("id")));
         String login = (String) userData.get("login");
         String displayName = (String) userData.get("display_name");
         String profileImageUrl = (String) userData.get("profile_image_url");
 
-        viewerRepository.save(new Viewer(twitchId, login, displayName, profileImageUrl, Instant.now()));
+        viewerRepository.save(new Viewer(channelId, login, displayName, profileImageUrl, Instant.now()));
 
         Map<String, Object> attributes = new HashMap<>(userData);
-        attributes.put("twitchId", twitchId);
+        attributes.put("channelId", channelId);
 
         // Grant ROLE_ADVERTISER if active advertiser account exists
-        boolean isAdvertiser = advertiserAccountRepository.findActiveByViewerId(twitchId).isPresent();
+        boolean isAdvertiser = advertiserAccountRepository.findActiveByViewerId(channelId).isPresent();
         var roles = isAdvertiser
                 ? AuthorityUtils.createAuthorityList("ROLE_USER", "ROLE_ADVERTISER")
                 : AuthorityUtils.createAuthorityList("ROLE_USER");

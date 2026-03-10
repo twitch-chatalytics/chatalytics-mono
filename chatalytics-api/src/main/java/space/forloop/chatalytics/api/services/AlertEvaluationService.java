@@ -50,7 +50,7 @@ public class AlertEvaluationService {
     private void evaluateAuthenticityDrop(AlertRule rule) {
         if (rule.thresholdValue() == null) return;
 
-        channelAuthenticityRepository.findByTwitchId(rule.twitchId()).ifPresent(ca -> {
+        channelAuthenticityRepository.findByChannelId(rule.channelId()).ifPresent(ca -> {
             if (ca.avgAuthenticityScore() != null && ca.avgAuthenticityScore() < rule.thresholdValue()) {
                 if (hasUnacknowledgedEvent(rule)) return;
 
@@ -60,7 +60,7 @@ public class AlertEvaluationService {
                 alertRepository.saveEvent(new AlertEvent(
                         null,
                         rule.id(),
-                        rule.twitchId(),
+                        rule.channelId(),
                         rule.alertType(),
                         String.format("Authenticity score dropped to %.0f, below threshold of %.0f",
                                 ca.avgAuthenticityScore(), rule.thresholdValue()),
@@ -68,13 +68,13 @@ public class AlertEvaluationService {
                         false,
                         null
                 ));
-                log.info("Fired authenticity_drop alert for twitchId {}", rule.twitchId());
+                log.info("Fired authenticity_drop alert for channelId {}", rule.channelId());
             }
         });
     }
 
     private void evaluateGrowthAnomaly(AlertRule rule) {
-        List<SocialBladeDailyPoint> daily = socialBladeRepository.findDailyByTwitchId(rule.twitchId(), 90);
+        List<SocialBladeDailyPoint> daily = socialBladeRepository.findDailyByChannelId(rule.channelId(), 90);
         if (daily.size() < 7) return;
 
         // Calculate average daily follower change
@@ -98,7 +98,7 @@ public class AlertEvaluationService {
             alertRepository.saveEvent(new AlertEvent(
                     null,
                     rule.id(),
-                    rule.twitchId(),
+                    rule.channelId(),
                     rule.alertType(),
                     String.format("Unusual follower growth detected. Recent growth exceeds 3x the average daily change of %.0f",
                             avgChange),
@@ -106,17 +106,17 @@ public class AlertEvaluationService {
                     false,
                     null
             ));
-            log.info("Fired growth_anomaly alert for twitchId {}", rule.twitchId());
+            log.info("Fired growth_anomaly alert for channelId {}", rule.channelId());
         }
     }
 
     private void evaluateViewerChange(AlertRule rule) {
         // Query recent sessions vs older sessions for peak viewer count
-        var sessionTable = table(name("twitch", "session_summary"));
+        var sessionTable = table(name("chat", "session_summary"));
 
         List<Integer> recentViewers = dsl.select(field("peak_viewer_count", Integer.class))
                 .from(sessionTable)
-                .where(field("twitch_id").eq(rule.twitchId()))
+                .where(field("channel_id").eq(rule.channelId()))
                 .and(field("peak_viewer_count").isNotNull())
                 .orderBy(field("start_time").desc())
                 .limit(5)
@@ -124,7 +124,7 @@ public class AlertEvaluationService {
 
         List<Integer> olderViewers = dsl.select(field("peak_viewer_count", Integer.class))
                 .from(sessionTable)
-                .where(field("twitch_id").eq(rule.twitchId()))
+                .where(field("channel_id").eq(rule.channelId()))
                 .and(field("peak_viewer_count").isNotNull())
                 .orderBy(field("start_time").desc())
                 .limit(5)
@@ -150,7 +150,7 @@ public class AlertEvaluationService {
             alertRepository.saveEvent(new AlertEvent(
                     null,
                     rule.id(),
-                    rule.twitchId(),
+                    rule.channelId(),
                     rule.alertType(),
                     String.format("Average peak viewers %s by %.0f%% (from %.0f to %.0f)",
                             direction, Math.abs(changePct), olderAvg, recentAvg),
@@ -158,12 +158,12 @@ public class AlertEvaluationService {
                     false,
                     null
             ));
-            log.info("Fired viewer_change alert for twitchId {}", rule.twitchId());
+            log.info("Fired viewer_change alert for channelId {}", rule.channelId());
         }
     }
 
     private boolean hasUnacknowledgedEvent(AlertRule rule) {
-        List<AlertEvent> existing = alertRepository.findEventsByTwitchId(rule.twitchId(), 100);
+        List<AlertEvent> existing = alertRepository.findEventsByChannelId(rule.channelId(), 100);
         return existing.stream()
                 .anyMatch(e -> e.alertRuleId() != null
                         && e.alertRuleId().equals(rule.id())

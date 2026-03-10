@@ -7,7 +7,7 @@ import java.util.List;
 
 public record Campaign(
         Long id,
-        long twitchId,
+        long channelId,
         String campaignName,
         String brandName,
         List<String> brandKeywords,

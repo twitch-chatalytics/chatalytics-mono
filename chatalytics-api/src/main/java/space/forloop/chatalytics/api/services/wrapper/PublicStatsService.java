@@ -20,19 +20,19 @@ public class PublicStatsService {
     private final SessionRepository sessionRepository;
     private final StreamSnapshotRepository snapshotRepository;
 
-    @Cacheable(value = PUBLIC_STATS, key = "#twitchId", sync = true)
-    public ChannelStats getStats(Long twitchId) {
+    @Cacheable(value = PUBLIC_STATS, key = "#channelId", sync = true)
+    public ChannelStats getStats(Long channelId) {
 
         return new ChannelStats(
-                messageRepository.countAllMessages(twitchId),
-                messageRepository.countDistinctAuthors(twitchId),
-                messageRepository.topChatters(twitchId, 10),
-                messageRepository.peakHour(twitchId).orElse(null),
-                sessionRepository.countByUserId(twitchId),
-                messageRepository.avgMessagesPerSession(twitchId),
-                messageRepository.avgChattersPerSession(twitchId),
-                sessionRepository.avgStreamDurationMinutes(twitchId),
-                snapshotRepository.topGamesByTwitchId(twitchId, 10)
+                messageRepository.countAllMessages(channelId),
+                messageRepository.countDistinctAuthors(channelId),
+                messageRepository.topChatters(channelId, 10),
+                messageRepository.peakHour(channelId).orElse(null),
+                sessionRepository.countByUserId(channelId),
+                messageRepository.avgMessagesPerSession(channelId),
+                messageRepository.avgChattersPerSession(channelId),
+                sessionRepository.avgStreamDurationMinutes(channelId),
+                snapshotRepository.topGamesByChannelId(channelId, 10)
         );
     }
 }

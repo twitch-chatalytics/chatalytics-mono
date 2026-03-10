@@ -37,7 +37,7 @@ public class SessionService {
         Map<Long, Session> openSessions = sessionRepository
                 .findAllOpenSessions()
                 .stream()
-                .collect(Collectors.toMap(Session::getTwitchId, s -> s));
+                .collect(Collectors.toMap(Session::getChannelId, s -> s));
 
         List<TwitchUser> twitchUsers = users.stream().map(user -> objectMapper.convertValue(user, TwitchUser.class)).toList();
 
@@ -72,11 +72,11 @@ public class SessionService {
                 users.size(), onlineStreams.size(), createdCount, closedCount, snapshotCount);
     }
 
-    private void writeSnapshot(long sessionId, long twitchId, StreamData stream) {
+    private void writeSnapshot(long sessionId, long channelId, StreamData stream) {
         try {
             streamSnapshotRepository.write(
                     sessionId,
-                    twitchId,
+                    channelId,
                     stream.getGameName(),
                     stream.getTitle(),
                     stream.getViewerCount()
@@ -88,7 +88,7 @@ public class SessionService {
 
     private Session createSession(User user) {
         Session session = new Session();
-        session.setTwitchId(user.getId());
+        session.setChannelId(user.getId());
         session.setStartTime(Instant.now());
 
         Session openSession = sessionRepository.write(session);

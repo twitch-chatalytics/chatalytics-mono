@@ -35,7 +35,7 @@ public class MessageService {
             }
 
             Message message = new Message();
-            message.setTwitchId(payload.getSession().twitchId());
+            message.setChannelId(payload.getSession().channelId());
             message.setSessionId(payload.getSession().id());
             message.setMessageText(payload.getMessage());
             message.setAuthor(payload.getNick());

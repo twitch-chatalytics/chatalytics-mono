@@ -34,8 +34,8 @@ jooq {
         generator {
             database {
                 name = 'org.jooq.meta.postgres.PostgresDatabase'
-                inputSchema = "twitch"
-                excludes = "databasechangelog|databasechangeloglock|twitch_.*"
+                inputSchema = "chat"
+                excludes = "databasechangelog|databasechangeloglock|streamer|streamer_platform_link"
                 forcedTypes {
                     forcedType {
                         userType = "java.time.Instant"

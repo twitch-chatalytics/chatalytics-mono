@@ -17,7 +17,7 @@ public class Message implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Long id;
-    private Long twitchId;
+    private Long channelId;
     private String messageText;
     private Instant timestamp;
     private Long sessionId;
@@ -27,7 +27,7 @@ public class Message implements Serializable {
 
     public Message(Message value) {
         this.id = value.id;
-        this.twitchId = value.twitchId;
+        this.channelId = value.channelId;
         this.messageText = value.messageText;
         this.timestamp = value.timestamp;
         this.sessionId = value.sessionId;
@@ -36,14 +36,14 @@ public class Message implements Serializable {
 
     public Message(
         Long id,
-        Long twitchId,
+        Long channelId,
         String messageText,
         Instant timestamp,
         Long sessionId,
         String author
     ) {
         this.id = id;
-        this.twitchId = twitchId;
+        this.channelId = channelId;
         this.messageText = messageText;
         this.timestamp = timestamp;
         this.sessionId = sessionId;
@@ -67,15 +67,15 @@ public class Message implements Serializable {
     /**
      * Getter for <code>twitch.message.twitch_id</code>.
      */
-    public Long getTwitchId() {
-        return this.twitchId;
+    public Long getChannelId() {
+        return this.channelId;
     }
 
     /**
      * Setter for <code>twitch.message.twitch_id</code>.
      */
-    public void setTwitchId(Long twitchId) {
-        this.twitchId = twitchId;
+    public void setChannelId(Long channelId) {
+        this.channelId = channelId;
     }
 
     /**
@@ -149,11 +149,11 @@ public class Message implements Serializable {
         }
         else if (!this.id.equals(other.id))
             return false;
-        if (this.twitchId == null) {
-            if (other.twitchId != null)
+        if (this.channelId == null) {
+            if (other.channelId != null)
                 return false;
         }
-        else if (!this.twitchId.equals(other.twitchId))
+        else if (!this.channelId.equals(other.channelId))
             return false;
         if (this.messageText == null) {
             if (other.messageText != null)
@@ -187,7 +187,7 @@ public class Message implements Serializable {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
-        result = prime * result + ((this.twitchId == null) ? 0 : this.twitchId.hashCode());
+        result = prime * result + ((this.channelId == null) ? 0 : this.channelId.hashCode());
         result = prime * result + ((this.messageText == null) ? 0 : this.messageText.hashCode());
         result = prime * result + ((this.timestamp == null) ? 0 : this.timestamp.hashCode());
         result = prime * result + ((this.sessionId == null) ? 0 : this.sessionId.hashCode());
@@ -200,7 +200,7 @@ public class Message implements Serializable {
         StringBuilder sb = new StringBuilder("Message (");
 
         sb.append(id);
-        sb.append(", ").append(twitchId);
+        sb.append(", ").append(channelId);
         sb.append(", ").append(messageText);
         sb.append(", ").append(timestamp);
         sb.append(", ").append(sessionId);

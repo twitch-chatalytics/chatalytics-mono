@@ -40,7 +40,7 @@ public class AuthenticityScoreTask {
                 SessionAuthenticity score = authenticityScoreService.computeScore(sessionId);
                 if (score != null) {
                     sessionAuthenticityRepository.save(score);
-                    channelsToUpdate.add(score.twitchId());
+                    channelsToUpdate.add(score.channelId());
                     log.info("Computed authenticity score {} ({}) for session {}",
                             score.authenticityScore(), score.confidenceLevel(), sessionId);
                 }
@@ -50,26 +50,26 @@ public class AuthenticityScoreTask {
         }
 
         // Update channel rollups for newly scored sessions
-        for (long twitchId : channelsToUpdate) {
+        for (long channelId : channelsToUpdate) {
             try {
-                aggregationService.updateChannelRollup(twitchId);
+                aggregationService.updateChannelRollup(channelId);
             } catch (Exception e) {
-                log.error("Failed to update channel rollup for {}: {}", twitchId, e.getMessage());
+                log.error("Failed to update channel rollup for {}: {}", channelId, e.getMessage());
             }
         }
     }
 
     private void backfillMissingChannelRollups() {
-        List<Long> missingRollups = sessionAuthenticityRepository.findTwitchIdsWithoutChannelRollup();
+        List<Long> missingRollups = sessionAuthenticityRepository.findChannelIdsWithoutChannelRollup();
         if (missingRollups.isEmpty()) return;
 
         log.info("Backfilling channel rollups for {} channels", missingRollups.size());
-        for (long twitchId : missingRollups) {
+        for (long channelId : missingRollups) {
             try {
-                aggregationService.updateChannelRollup(twitchId);
-                log.info("Backfilled channel rollup for twitchId {}", twitchId);
+                aggregationService.updateChannelRollup(channelId);
+                log.info("Backfilled channel rollup for channelId {}", channelId);
             } catch (Exception e) {
-                log.error("Failed to backfill channel rollup for {}: {}", twitchId, e.getMessage());
+                log.error("Failed to backfill channel rollup for {}: {}", channelId, e.getMessage());
             }
         }
     }

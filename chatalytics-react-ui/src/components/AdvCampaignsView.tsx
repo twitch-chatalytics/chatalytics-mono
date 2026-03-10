@@ -10,7 +10,7 @@ import {
 import { formatCompact, getScoreColor } from './advertiserUtils';
 
 interface AdvCampaignsViewProps {
-  twitchId: number;
+  channelId: number;
 }
 
 type ViewState =
@@ -18,18 +18,18 @@ type ViewState =
   | { mode: 'create' }
   | { mode: 'report'; campaignId: number };
 
-export default function AdvCampaignsView({ twitchId }: AdvCampaignsViewProps) {
+export default function AdvCampaignsView({ channelId }: AdvCampaignsViewProps) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewState, setViewState] = useState<ViewState>({ mode: 'list' });
 
   const loadCampaigns = useCallback(() => {
     setLoading(true);
-    fetchCampaigns(twitchId).then(data => {
+    fetchCampaigns(channelId).then(data => {
       setCampaigns(data);
       setLoading(false);
     });
-  }, [twitchId]);
+  }, [channelId]);
 
   useEffect(() => {
     loadCampaigns();
@@ -53,7 +53,7 @@ export default function AdvCampaignsView({ twitchId }: AdvCampaignsViewProps) {
         {viewState.mode === 'create' && (
           <CreateCampaignView
             key="create"
-            twitchId={twitchId}
+            channelId={channelId}
             onCancel={() => setViewState({ mode: 'list' })}
             onCreated={() => {
               loadCampaigns();
@@ -187,12 +187,12 @@ function CampaignListView({ campaigns, loading, onCreateNew, onViewReport, onDel
 // ─── Create Campaign Form ───
 
 interface CreateCampaignViewProps {
-  twitchId: number;
+  channelId: number;
   onCancel: () => void;
   onCreated: () => void;
 }
 
-function CreateCampaignView({ twitchId, onCancel, onCreated }: CreateCampaignViewProps) {
+function CreateCampaignView({ channelId, onCancel, onCreated }: CreateCampaignViewProps) {
   const [campaignName, setCampaignName] = useState('');
   const [brandName, setBrandName] = useState('');
   const [brandKeywordsStr, setBrandKeywordsStr] = useState('');
@@ -210,7 +210,7 @@ function CreateCampaignView({ twitchId, onCancel, onCreated }: CreateCampaignVie
       .map(k => k.trim())
       .filter(k => k.length > 0);
 
-    createCampaign(twitchId, {
+    createCampaign(channelId, {
       campaignName: campaignName.trim(),
       brandName: brandName.trim() || undefined,
       brandKeywords: keywords,

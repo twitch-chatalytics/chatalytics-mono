@@ -69,11 +69,11 @@ public class MessageRepositoryImpl implements MessageRepository {
     }
 
     @Override
-    public List<Message> findByAuthor(String author, Long twitchId, Instant from, Instant to, Instant beforeTimestamp, Long beforeId, int limit) {
+    public List<Message> findByAuthor(String author, Long channelId, Instant from, Instant to, Instant beforeTimestamp, Long beforeId, int limit) {
 
         List<Condition> conditions = new ArrayList<>();
         conditions.add(DSL.lower(MESSAGE.AUTHOR).eq(author.toLowerCase()));
-        conditions.add(MESSAGE.TWITCH_ID.eq(twitchId));
+        conditions.add(MESSAGE.CHANNEL_ID.eq(channelId));
 
         if (from != null) {
             conditions.add(MESSAGE.TIMESTAMP.ge(from));
@@ -95,12 +95,12 @@ public class MessageRepositoryImpl implements MessageRepository {
     }
 
     @Override
-    public List<String> searchAuthors(String query, Long twitchId) {
+    public List<String> searchAuthors(String query, Long channelId) {
 
         return dsl.selectDistinct(MESSAGE.AUTHOR)
                 .from(MESSAGE)
                 .where(DSL.lower(MESSAGE.AUTHOR).contains(query.toLowerCase()))
-                .and(MESSAGE.TWITCH_ID.eq(twitchId))
+                .and(MESSAGE.CHANNEL_ID.eq(channelId))
                 .orderBy(MESSAGE.AUTHOR)
                 .limit(10)
                 .fetchInto(String.class);
@@ -115,13 +115,13 @@ public class MessageRepositoryImpl implements MessageRepository {
     }
 
     @Override
-    public List<Message> findContext(Long twitchId, Instant timestamp, int seconds) {
+    public List<Message> findContext(Long channelId, Instant timestamp, int seconds) {
 
         Instant from = timestamp.minusSeconds(seconds);
         Instant to = timestamp.plusSeconds(seconds);
 
         return dsl.selectFrom(MESSAGE)
-                .where(MESSAGE.TWITCH_ID.eq(twitchId))
+                .where(MESSAGE.CHANNEL_ID.eq(channelId))
                 .and(MESSAGE.TIMESTAMP.between(from, to))
                 .orderBy(MESSAGE.TIMESTAMP.asc())
                 .limit(200)
@@ -129,29 +129,29 @@ public class MessageRepositoryImpl implements MessageRepository {
     }
 
     @Override
-    public Long countAllMessages(Long twitchId) {
+    public Long countAllMessages(Long channelId) {
 
         return dsl.selectCount()
                 .from(MESSAGE)
-                .where(MESSAGE.TWITCH_ID.eq(twitchId))
+                .where(MESSAGE.CHANNEL_ID.eq(channelId))
                 .fetchOneInto(long.class);
     }
 
     @Override
-    public Long countDistinctAuthors(Long twitchId) {
+    public Long countDistinctAuthors(Long channelId) {
 
         return dsl.select(DSL.countDistinct(MESSAGE.AUTHOR))
                 .from(MESSAGE)
-                .where(MESSAGE.TWITCH_ID.eq(twitchId))
+                .where(MESSAGE.CHANNEL_ID.eq(channelId))
                 .fetchOneInto(long.class);
     }
 
     @Override
-    public List<TopChatter> topChatters(Long twitchId, int limit) {
+    public List<TopChatter> topChatters(Long channelId, int limit) {
 
         return dsl.select(MESSAGE.AUTHOR, DSL.count().as("messageCount"))
                 .from(MESSAGE)
-                .where(MESSAGE.TWITCH_ID.eq(twitchId))
+                .where(MESSAGE.CHANNEL_ID.eq(channelId))
                 .groupBy(MESSAGE.AUTHOR)
                 .orderBy(DSL.count().desc())
                 .limit(limit)
@@ -159,13 +159,13 @@ public class MessageRepositoryImpl implements MessageRepository {
     }
 
     @Override
-    public Optional<Integer> peakHour(Long twitchId) {
+    public Optional<Integer> peakHour(Long channelId) {
 
         var hourField = DSL.extract(MESSAGE.TIMESTAMP, org.jooq.DatePart.HOUR);
 
         return dsl.select(hourField)
                 .from(MESSAGE)
-                .where(MESSAGE.TWITCH_ID.eq(twitchId))
+                .where(MESSAGE.CHANNEL_ID.eq(channelId))
                 .groupBy(hourField)
                 .orderBy(DSL.count().desc())
                 .limit(1)
@@ -173,7 +173,7 @@ public class MessageRepositoryImpl implements MessageRepository {
     }
 
     @Override
-    public Optional<ChatterProfile> chatterProfile(String author, Long twitchId) {
+    public Optional<ChatterProfile> chatterProfile(String author, Long channelId) {
 
         var hourField = DSL.extract(MESSAGE.TIMESTAMP, org.jooq.DatePart.HOUR);
 
@@ -181,7 +181,7 @@ public class MessageRepositoryImpl implements MessageRepository {
                 DSL.select(hourField)
                         .from(MESSAGE)
                         .where(DSL.lower(MESSAGE.AUTHOR).eq(author.toLowerCase()))
-                        .and(MESSAGE.TWITCH_ID.eq(twitchId))
+                        .and(MESSAGE.CHANNEL_ID.eq(channelId))
                         .groupBy(hourField)
                         .orderBy(DSL.count().desc())
                         .limit(1)
@@ -196,7 +196,7 @@ public class MessageRepositoryImpl implements MessageRepository {
                 )
                 .from(MESSAGE)
                 .where(DSL.lower(MESSAGE.AUTHOR).eq(author.toLowerCase()))
-                .and(MESSAGE.TWITCH_ID.eq(twitchId))
+                .and(MESSAGE.CHANNEL_ID.eq(channelId))
                 .fetchOne();
 
         if (result == null || result.get("totalMessages", Long.class) == 0L) {
@@ -207,7 +207,7 @@ public class MessageRepositoryImpl implements MessageRepository {
         long sessions = result.get("distinctSessions", Long.class);
         double avg = sessions > 0 ? (double) total / sessions : 0.0;
 
-        var repeats = findRepeatedMessages(author, twitchId);
+        var repeats = findRepeatedMessages(author, channelId);
 
         return Optional.of(new ChatterProfile(
                 author,
@@ -222,14 +222,14 @@ public class MessageRepositoryImpl implements MessageRepository {
     }
 
     @Override
-    public List<RepeatedMessage> findRepeatedMessages(String author, Long twitchId) {
+    public List<RepeatedMessage> findRepeatedMessages(String author, Long channelId) {
 
         var normalized = DSL.lower(DSL.trim(MESSAGE.MESSAGE_TEXT));
 
         return dsl.select(DSL.min(DSL.trim(MESSAGE.MESSAGE_TEXT)).as("text"), DSL.count().as("count"))
                 .from(MESSAGE)
                 .where(DSL.lower(MESSAGE.AUTHOR).eq(author.toLowerCase()))
-                .and(MESSAGE.TWITCH_ID.eq(twitchId))
+                .and(MESSAGE.CHANNEL_ID.eq(channelId))
                 .groupBy(normalized)
                 .having(DSL.count().ge(3))
                 .orderBy(DSL.count().desc())
@@ -238,11 +238,11 @@ public class MessageRepositoryImpl implements MessageRepository {
     }
 
     @Override
-    public List<Message> findSampleByAuthor(String author, Long twitchId, int limit) {
+    public List<Message> findSampleByAuthor(String author, Long channelId, int limit) {
 
         return dsl.selectFrom(MESSAGE)
                 .where(DSL.lower(MESSAGE.AUTHOR).eq(author.toLowerCase()))
-                .and(MESSAGE.TWITCH_ID.eq(twitchId))
+                .and(MESSAGE.CHANNEL_ID.eq(channelId))
                 .orderBy(DSL.rand())
                 .limit(limit)
                 .fetchInto(Message.class);
@@ -299,12 +299,12 @@ public class MessageRepositoryImpl implements MessageRepository {
 
         // Multi-row INSERT for maximum throughput (single SQL statement vs N round-trips)
         var insert = dsl.insertInto(MESSAGE,
-                MESSAGE.TWITCH_ID, MESSAGE.MESSAGE_TEXT, MESSAGE.TIMESTAMP,
+                MESSAGE.CHANNEL_ID, MESSAGE.MESSAGE_TEXT, MESSAGE.TIMESTAMP,
                 MESSAGE.SESSION_ID, MESSAGE.AUTHOR);
 
         for (Message dto : messages) {
             insert = insert.values(
-                    dto.getTwitchId(), dto.getMessageText(), dto.getTimestamp(),
+                    dto.getChannelId(), dto.getMessageText(), dto.getTimestamp(),
                     dto.getSessionId(), dto.getAuthor());
         }
 
@@ -378,12 +378,12 @@ public class MessageRepositoryImpl implements MessageRepository {
     }
 
     @Override
-    public double avgMessagesPerSession(Long twitchId) {
+    public double avgMessagesPerSession(Long channelId) {
         Double result = dsl.select(DSL.avg(DSL.field("cnt", Long.class)))
                 .from(
                         dsl.select(DSL.count().as("cnt"))
                                 .from(MESSAGE)
-                                .where(MESSAGE.TWITCH_ID.eq(twitchId))
+                                .where(MESSAGE.CHANNEL_ID.eq(channelId))
                                 .groupBy(MESSAGE.SESSION_ID)
                 )
                 .fetchOneInto(Double.class);
@@ -391,12 +391,12 @@ public class MessageRepositoryImpl implements MessageRepository {
     }
 
     @Override
-    public double avgChattersPerSession(Long twitchId) {
+    public double avgChattersPerSession(Long channelId) {
         Double result = dsl.select(DSL.avg(DSL.field("cnt", Long.class)))
                 .from(
                         dsl.select(DSL.countDistinct(MESSAGE.AUTHOR).as("cnt"))
                                 .from(MESSAGE)
-                                .where(MESSAGE.TWITCH_ID.eq(twitchId))
+                                .where(MESSAGE.CHANNEL_ID.eq(channelId))
                                 .groupBy(MESSAGE.SESSION_ID)
                 )
                 .fetchOneInto(Double.class);

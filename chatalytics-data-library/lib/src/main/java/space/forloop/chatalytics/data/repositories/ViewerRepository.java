@@ -6,7 +6,7 @@ import java.util.Optional;
 
 public interface ViewerRepository {
 
-    Optional<Viewer> findByTwitchId(long twitchId);
+    Optional<Viewer> findByChannelId(long channelId);
 
     Viewer save(Viewer viewer);
 

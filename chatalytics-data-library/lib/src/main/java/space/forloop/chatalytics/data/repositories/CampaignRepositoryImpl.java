@@ -21,17 +21,17 @@ public class CampaignRepositoryImpl implements CampaignRepository {
 
     private final DSLContext dsl;
 
-    private static final org.jooq.Table<?> TABLE = table(name("twitch", "campaign"));
-    private static final org.jooq.Table<?> SESSION_TABLE = table(name("twitch", "campaign_session"));
+    private static final org.jooq.Table<?> TABLE = table(name("chat", "campaign"));
+    private static final org.jooq.Table<?> SESSION_TABLE = table(name("chat", "campaign_session"));
 
     public CampaignRepositoryImpl(DSLContext dsl) {
         this.dsl = dsl;
     }
 
     @Override
-    public List<Campaign> findByTwitchId(long twitchId) {
+    public List<Campaign> findByChannelId(long channelId) {
         return dsl.selectFrom(TABLE)
-                .where(field("twitch_id").eq(twitchId))
+                .where(field("channel_id").eq(channelId))
                 .orderBy(field("created_at").desc())
                 .fetch()
                 .map(this::toCampaign);
@@ -62,7 +62,7 @@ public class CampaignRepositoryImpl implements CampaignRepository {
         }
 
         Record result = dsl.insertInto(TABLE)
-                .set(field("twitch_id"), campaign.twitchId())
+                .set(field("channel_id"), campaign.channelId())
                 .set(field("campaign_name"), campaign.campaignName())
                 .set(field("brand_name"), campaign.brandName())
                 .set(field("brand_keywords"), toArray(campaign.brandKeywords()))
@@ -115,7 +115,7 @@ public class CampaignRepositoryImpl implements CampaignRepository {
         String[] keywords = r.get("brand_keywords", String[].class);
         return new Campaign(
                 r.get("id", Long.class),
-                r.get("twitch_id", Long.class),
+                r.get("channel_id", Long.class),
                 r.get("campaign_name", String.class),
                 r.get("brand_name", String.class),
                 keywords != null ? Arrays.asList(keywords) : List.of(),

@@ -20,8 +20,8 @@ public class AuthenticityAggregationService {
     private final SessionAuthenticityRepository sessionAuthenticityRepository;
     private final ChannelAuthenticityRepository channelAuthenticityRepository;
 
-    public void updateChannelRollup(long twitchId) {
-        List<SessionAuthenticity> sessions = sessionAuthenticityRepository.findByTwitchId(twitchId, 100, 0);
+    public void updateChannelRollup(long channelId) {
+        List<SessionAuthenticity> sessions = sessionAuthenticityRepository.findByChannelId(channelId, 100, 0);
         if (sessions.isEmpty()) return;
 
         double avg = sessions.stream()
@@ -58,7 +58,7 @@ public class AuthenticityAggregationService {
         }
 
         channelAuthenticityRepository.save(new ChannelAuthenticity(
-                twitchId, avg, min, max, trend,
+                channelId, avg, min, max, trend,
                 sessions.size(), riskLevel, riskFactors, Instant.now()
         ));
     }

@@ -1,6 +1,6 @@
 export interface Message {
   id: number;
-  twitchId: number;
+  channelId: number;
   messageText: string;
   timestamp: string;
   sessionId: number;
@@ -47,7 +47,7 @@ export interface RepeatGroup {
 
 export interface SessionSummaryView {
   sessionId: number;
-  twitchId: number;
+  channelId: number;
   startTime: string;
   endTime: string | null;
   totalMessages: number;
@@ -61,7 +61,7 @@ export interface SessionSummaryView {
 export interface StreamSnapshot {
   id: number;
   sessionId: number;
-  twitchId: number;
+  channelId: number;
   timestamp: string;
   gameName: string | null;
   title: string | null;
@@ -177,7 +177,7 @@ export interface CompareItem {
 }
 
 export interface AuthUser {
-  twitchId: number;
+  channelId: number;
   login: string;
   displayName: string;
   profileImageUrl: string;
@@ -208,7 +208,7 @@ export interface VoteResponse {
 }
 
 export interface LiveMetrics {
-  twitchId: number;
+  channelId: number;
   sessionId: number;
   timestamp: string;
   messagesPerMinute: number;
@@ -239,7 +239,7 @@ export interface SuspiciousFlag {
 
 export interface SessionAuthenticityReport {
   sessionId: number;
-  twitchId: number;
+  channelId: number;
   authenticityScore: number;
   confidenceLevel: string;
   chatViewerRatio: number | null;
@@ -260,7 +260,7 @@ export interface SessionAuthenticityReport {
 }
 
 export interface ChannelAuthenticityReport {
-  twitchId: number;
+  channelId: number;
   avgAuthenticityScore: number | null;
   minAuthenticityScore: number | null;
   maxAuthenticityScore: number | null;
@@ -286,7 +286,7 @@ export interface AdvertiserAccount {
 // --- SocialBlade ---
 
 export interface SocialBladeChannel {
-  twitchId: number;
+  channelId: number;
   username: string | null;
   displayName: string | null;
   followers: number | null;
@@ -310,7 +310,7 @@ export interface SocialBladeChannel {
 }
 
 export interface SocialBladeDailyPoint {
-  twitchId: number;
+  channelId: number;
   date: string;
   followers: number | null;
   views: number | null;
@@ -321,7 +321,7 @@ export interface SocialBladeDailyPoint {
 // --- Channel Benchmark ---
 
 export interface ChannelBenchmark {
-  twitchId: number;
+  channelId: number;
   percentileRank: number;
   viewerTier: string;
   tierAvgScore: number;
@@ -340,7 +340,7 @@ export interface TopicCount {
 }
 
 export interface ChannelBrandSafety {
-  twitchId: number;
+  channelId: number;
   brandSafetyScore: number;
   toxicityRate: number | null;
   positiveRate: number | null;
@@ -358,7 +358,7 @@ export interface ChannelBrandSafety {
 
 export interface AlertRule {
   id: number;
-  twitchId: number;
+  channelId: number;
   alertType: string;
   thresholdValue: number | null;
   enabled: boolean;
@@ -368,7 +368,7 @@ export interface AlertRule {
 export interface AlertEvent {
   id: number;
   alertRuleId: number | null;
-  twitchId: number;
+  channelId: number;
   alertType: string;
   message: string;
   severity: string;
@@ -380,7 +380,7 @@ export interface AlertEvent {
 
 export interface Campaign {
   id: number;
-  twitchId: number;
+  channelId: number;
   campaignName: string;
   brandName: string | null;
   brandKeywords: string[];

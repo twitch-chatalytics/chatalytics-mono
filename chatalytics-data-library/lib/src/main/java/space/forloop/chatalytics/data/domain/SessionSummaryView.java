@@ -5,7 +5,7 @@ import java.time.Instant;
 
 public record SessionSummaryView(
         long sessionId,
-        long twitchId,
+        long channelId,
         Instant startTime,
         Instant endTime,
         long totalMessages,

@@ -65,9 +65,9 @@ public class MessageWord extends TableImpl<MessageWordRecord> {
     public final TableField<MessageWordRecord, Long> MESSAGE_ID = createField(DSL.name("message_id"), SQLDataType.BIGINT.nullable(false), this, "");
 
     /**
-     * The column <code>twitch.message_word.twitch_id</code>.
+     * The column <code>chat.message_word.channel_id</code>.
      */
-    public final TableField<MessageWordRecord, Long> TWITCH_ID = createField(DSL.name("twitch_id"), SQLDataType.BIGINT.nullable(false), this, "");
+    public final TableField<MessageWordRecord, Long> CHANNEL_ID = createField(DSL.name("channel_id"), SQLDataType.BIGINT.nullable(false), this, "");
 
     /**
      * The column <code>twitch.message_word.session_id</code>.

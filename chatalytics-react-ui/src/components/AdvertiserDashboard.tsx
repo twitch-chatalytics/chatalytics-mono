@@ -175,10 +175,10 @@ export default function AdvertiserDashboard({ channelLogin }: AdvertiserDashboar
               <AdvBrandSafetyView brandSafety={brandSafety} />
             )}
             {activeView === 'alerts' && (
-              <AdvAlertsView twitchId={channel?.id ?? 0} />
+              <AdvAlertsView channelId={channel?.id ?? 0} />
             )}
             {activeView === 'campaigns' && (
-              <AdvCampaignsView twitchId={channel?.id ?? 0} />
+              <AdvCampaignsView channelId={channel?.id ?? 0} />
             )}
             {activeView === 'methodology' && (
               <AdvMethodologyView />

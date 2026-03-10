@@ -20,17 +20,17 @@ public class SocialBladeRepositoryImpl implements SocialBladeRepository {
 
     private final DSLContext dsl;
 
-    private static final org.jooq.Table<?> CHANNEL_TABLE = table(name("twitch", "socialblade_channel"));
-    private static final org.jooq.Table<?> DAILY_TABLE = table(name("twitch", "socialblade_daily"));
+    private static final org.jooq.Table<?> CHANNEL_TABLE = table(name("chat", "socialblade_channel"));
+    private static final org.jooq.Table<?> DAILY_TABLE = table(name("chat", "socialblade_daily"));
 
     public SocialBladeRepositoryImpl(DSLContext dsl) {
         this.dsl = dsl;
     }
 
     @Override
-    public Optional<SocialBladeChannel> findByTwitchId(long twitchId) {
+    public Optional<SocialBladeChannel> findByChannelId(long channelId) {
         return dsl.selectFrom(CHANNEL_TABLE)
-                .where(field("twitch_id").eq(twitchId))
+                .where(field("channel_id").eq(channelId))
                 .fetchOptional()
                 .map(this::toSocialBladeChannel);
     }
@@ -38,7 +38,7 @@ public class SocialBladeRepositoryImpl implements SocialBladeRepository {
     @Override
     public void save(SocialBladeChannel ch) {
         dsl.insertInto(CHANNEL_TABLE)
-                .set(field("twitch_id"), ch.twitchId())
+                .set(field("channel_id"), ch.channelId())
                 .set(field("username"), ch.username())
                 .set(field("display_name"), ch.displayName())
                 .set(field("followers"), ch.followers())
@@ -59,7 +59,7 @@ public class SocialBladeRepositoryImpl implements SocialBladeRepository {
                 .set(field("tiktok_url"), ch.tiktokUrl())
                 .set(field("fetched_at"), LocalDateTime.now(ZoneOffset.UTC))
                 .set(field("updated_at"), LocalDateTime.now(ZoneOffset.UTC))
-                .onConflict(field("twitch_id"))
+                .onConflict(field("channel_id"))
                 .doUpdate()
                 .set(field("username"), ch.username())
                 .set(field("display_name"), ch.displayName())
@@ -84,32 +84,32 @@ public class SocialBladeRepositoryImpl implements SocialBladeRepository {
     }
 
     @Override
-    public void saveDailyPoints(long twitchId, List<SocialBladeDailyPoint> points) {
+    public void saveDailyPoints(long channelId, List<SocialBladeDailyPoint> points) {
         if (points.isEmpty()) return;
 
         var batch = dsl.batch(
                 dsl.insertInto(DAILY_TABLE)
-                        .set(field("twitch_id"), (Object) null)
+                        .set(field("channel_id"), (Object) null)
                         .set(field("date"), (Object) null)
                         .set(field("followers"), (Object) null)
                         .set(field("views"), (Object) null)
                         .set(field("follower_change"), (Object) null)
                         .set(field("view_change"), (Object) null)
-                        .onConflict(field("twitch_id"), field("date"))
+                        .onConflict(field("channel_id"), field("date"))
                         .doNothing()
         );
 
         for (SocialBladeDailyPoint p : points) {
-            batch.bind(p.twitchId(), p.date(), p.followers(), p.views(), p.followerChange(), p.viewChange());
+            batch.bind(p.channelId(), p.date(), p.followers(), p.views(), p.followerChange(), p.viewChange());
         }
 
         batch.execute();
     }
 
     @Override
-    public List<SocialBladeDailyPoint> findDailyByTwitchId(long twitchId, int limit) {
+    public List<SocialBladeDailyPoint> findDailyByChannelId(long channelId, int limit) {
         return dsl.selectFrom(DAILY_TABLE)
-                .where(field("twitch_id").eq(twitchId))
+                .where(field("channel_id").eq(channelId))
                 .orderBy(field("date").desc())
                 .limit(limit)
                 .fetch()
@@ -121,23 +121,23 @@ public class SocialBladeRepositoryImpl implements SocialBladeRepository {
         // Find channels that have session_authenticity data but either:
         // 1. No socialblade_channel row yet, or
         // 2. socialblade_channel.updated_at is older than staleHours
-        var sessionTable = table(name("twitch", "session_authenticity"));
+        var sessionTable = table(name("chat", "session_authenticity"));
         var threshold = LocalDateTime.now(ZoneOffset.UTC).minusHours(staleHours);
 
-        return dsl.selectDistinct(field(name("twitch", "session_authenticity", "twitch_id"), Long.class))
+        return dsl.selectDistinct(field(name("chat", "session_authenticity", "channel_id"), Long.class))
                 .from(sessionTable)
                 .where(notExists(
                         dsl.selectOne().from(CHANNEL_TABLE)
-                                .where(field(name("twitch", "socialblade_channel", "twitch_id"))
-                                        .eq(field(name("twitch", "session_authenticity", "twitch_id"))))
-                                .and(field(name("twitch", "socialblade_channel", "updated_at")).greaterThan(threshold))
+                                .where(field(name("chat", "socialblade_channel", "channel_id"))
+                                        .eq(field(name("chat", "session_authenticity", "channel_id"))))
+                                .and(field(name("chat", "socialblade_channel", "updated_at")).greaterThan(threshold))
                 ))
                 .fetchInto(Long.class);
     }
 
     private SocialBladeChannel toSocialBladeChannel(Record r) {
         return new SocialBladeChannel(
-                r.get("twitch_id", Long.class),
+                r.get("channel_id", Long.class),
                 r.get("username", String.class),
                 r.get("display_name", String.class),
                 r.get("followers", Long.class),
@@ -163,7 +163,7 @@ public class SocialBladeRepositoryImpl implements SocialBladeRepository {
 
     private SocialBladeDailyPoint toDailyPoint(Record r) {
         return new SocialBladeDailyPoint(
-                r.get("twitch_id", Long.class),
+                r.get("channel_id", Long.class),
                 r.get("date", LocalDate.class),
                 r.get("followers", Long.class),
                 r.get("views", Long.class),

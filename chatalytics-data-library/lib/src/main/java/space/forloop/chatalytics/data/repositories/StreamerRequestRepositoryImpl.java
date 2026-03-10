@@ -14,8 +14,8 @@ public class StreamerRequestRepositoryImpl implements StreamerRequestRepository 
 
     private final DSLContext dsl;
 
-    private static final org.jooq.Table<?> STREAMER_REQUEST = DSL.table("twitch.streamer_request");
-    private static final org.jooq.Table<?> USER = DSL.table("twitch.user");
+    private static final org.jooq.Table<?> STREAMER_REQUEST = DSL.table("chat.streamer_request");
+    private static final org.jooq.Table<?> USER = DSL.table("chat.user");
 
     private static final org.jooq.Field<String> STREAMER_LOGIN = DSL.field("sr.streamer_login", String.class);
     private static final org.jooq.Field<Long> STREAMER_ID = DSL.field("sr.streamer_id", Long.class);

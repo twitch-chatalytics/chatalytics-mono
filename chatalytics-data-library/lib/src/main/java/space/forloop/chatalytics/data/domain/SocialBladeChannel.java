@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.time.Instant;
 
 public record SocialBladeChannel(
-        long twitchId,
+        long channelId,
         String username,
         String displayName,
         Long followers,

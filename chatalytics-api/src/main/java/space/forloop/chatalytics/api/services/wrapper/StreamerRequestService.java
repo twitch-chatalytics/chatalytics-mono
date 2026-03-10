@@ -53,18 +53,18 @@ public class StreamerRequestService {
             @CacheEvict(value = PENDING_REQUESTS, allEntries = true),
             @CacheEvict(value = CHANNEL_DIRECTORY, allEntries = true)
     })
-    public StreamerVoteResponse vote(String streamerLogin, long viewerTwitchId) {
+    public StreamerVoteResponse vote(String streamerLogin, long viewerChannelId) {
         String login = streamerLogin.toLowerCase();
 
         if (userRepository.findByLogin(login).isPresent()) {
             return new StreamerVoteResponse(false, 0, true);
         }
 
-        boolean isAdmin = viewerRepository.findByTwitchId(viewerTwitchId)
+        boolean isAdmin = viewerRepository.findByChannelId(viewerChannelId)
                 .map(v -> ADMIN_LOGIN.equalsIgnoreCase(v.login()))
                 .orElse(false);
 
-        if (!isAdmin && streamerRequestRepository.existsByStreamerLoginAndRequestedBy(login, viewerTwitchId)) {
+        if (!isAdmin && streamerRequestRepository.existsByStreamerLoginAndRequestedBy(login, viewerChannelId)) {
             long count = streamerRequestRepository.countByStreamerLogin(login);
             return new StreamerVoteResponse(false, count, false);
         }
@@ -86,7 +86,7 @@ public class StreamerRequestService {
                 twitchUser.id(),
                 twitchUser.displayName(),
                 twitchUser.profileImageUrl(),
-                viewerTwitchId);
+                viewerChannelId);
 
         long voteCount = streamerRequestRepository.countByStreamerLogin(login);
         boolean added = false;

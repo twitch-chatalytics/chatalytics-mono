@@ -108,7 +108,7 @@ export default function App() {
           if (!resp.ok) return '';
           const recap = await resp.json();
           if (recap.snapshots?.length > 0) {
-            const ch = await fetchChannel(recap.snapshots[0].twitchId);
+            const ch = await fetchChannel(recap.snapshots[0].channelId);
             return ch?.displayName || '';
           }
         } catch {}

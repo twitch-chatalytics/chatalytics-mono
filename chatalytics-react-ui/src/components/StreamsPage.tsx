@@ -37,16 +37,16 @@ function parseUrl(): { session: number | null; compareIds: number[] } {
 }
 
 export default function StreamsPage({ channelLogin, onChatterClick, compareItems, onAddCompare, onRemoveCompare, channelCompareItems, onAddChannelCompare, onRemoveChannelCompare }: Props) {
-  const [twitchId, setTwitchId] = useState<number | null>(null);
+  const [channelId, setChannelId] = useState<number | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [selectedSession, setSelectedSession] = useState<number | null>(() => parseUrl().session);
   const [compareSessionIds, setCompareSessionIds] = useState<number[]>(() => parseUrl().compareIds);
 
   useEffect(() => {
-    setTwitchId(null);
+    setChannelId(null);
     setNotFound(false);
     fetchChannelByLogin(channelLogin).then(ch => {
-      if (ch) setTwitchId(ch.id);
+      if (ch) setChannelId(ch.id);
       else setNotFound(true);
     });
   }, [channelLogin]);
@@ -79,7 +79,7 @@ export default function StreamsPage({ channelLogin, onChatterClick, compareItems
     return <div className="stream-list-empty">Channel "{channelLogin}" not found.</div>;
   }
 
-  if (twitchId === null) {
+  if (channelId === null) {
     return <div className="stream-list-loading">Loading channel...</div>;
   }
 
@@ -95,12 +95,12 @@ export default function StreamsPage({ channelLogin, onChatterClick, compareItems
   }
 
   if (selectedSession) {
-    return <StreamRecapView sessionId={selectedSession} twitchId={twitchId} onBack={handleBack} onChatterClick={onChatterClick} />;
+    return <StreamRecapView sessionId={selectedSession} channelId={channelId} onBack={handleBack} onChatterClick={onChatterClick} />;
   }
 
   return (
     <StreamList
-      twitchId={twitchId}
+      channelId={channelId}
       channelLogin={channelLogin}
       onSelectSession={handleSelect}
       compareItems={compareItems}

@@ -17,7 +17,7 @@ public class MessageWord implements Serializable {
 
     private Long id;
     private Long messageId;
-    private Long twitchId;
+    private Long channelId;
     private Long sessionId;
     private String word;
 
@@ -26,7 +26,7 @@ public class MessageWord implements Serializable {
     public MessageWord(MessageWord value) {
         this.id = value.id;
         this.messageId = value.messageId;
-        this.twitchId = value.twitchId;
+        this.channelId = value.channelId;
         this.sessionId = value.sessionId;
         this.word = value.word;
     }
@@ -34,13 +34,13 @@ public class MessageWord implements Serializable {
     public MessageWord(
         Long id,
         Long messageId,
-        Long twitchId,
+        Long channelId,
         Long sessionId,
         String word
     ) {
         this.id = id;
         this.messageId = messageId;
-        this.twitchId = twitchId;
+        this.channelId = channelId;
         this.sessionId = sessionId;
         this.word = word;
     }
@@ -76,15 +76,15 @@ public class MessageWord implements Serializable {
     /**
      * Getter for <code>twitch.message_word.twitch_id</code>.
      */
-    public Long getTwitchId() {
-        return this.twitchId;
+    public Long getChannelId() {
+        return this.channelId;
     }
 
     /**
      * Setter for <code>twitch.message_word.twitch_id</code>.
      */
-    public void setTwitchId(Long twitchId) {
-        this.twitchId = twitchId;
+    public void setChannelId(Long channelId) {
+        this.channelId = channelId;
     }
 
     /**
@@ -136,11 +136,11 @@ public class MessageWord implements Serializable {
         }
         else if (!this.messageId.equals(other.messageId))
             return false;
-        if (this.twitchId == null) {
-            if (other.twitchId != null)
+        if (this.channelId == null) {
+            if (other.channelId != null)
                 return false;
         }
-        else if (!this.twitchId.equals(other.twitchId))
+        else if (!this.channelId.equals(other.channelId))
             return false;
         if (this.sessionId == null) {
             if (other.sessionId != null)
@@ -163,7 +163,7 @@ public class MessageWord implements Serializable {
         int result = 1;
         result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
         result = prime * result + ((this.messageId == null) ? 0 : this.messageId.hashCode());
-        result = prime * result + ((this.twitchId == null) ? 0 : this.twitchId.hashCode());
+        result = prime * result + ((this.channelId == null) ? 0 : this.channelId.hashCode());
         result = prime * result + ((this.sessionId == null) ? 0 : this.sessionId.hashCode());
         result = prime * result + ((this.word == null) ? 0 : this.word.hashCode());
         return result;
@@ -175,7 +175,7 @@ public class MessageWord implements Serializable {
 
         sb.append(id);
         sb.append(", ").append(messageId);
-        sb.append(", ").append(twitchId);
+        sb.append(", ").append(channelId);
         sb.append(", ").append(sessionId);
         sb.append(", ").append(word);
 

@@ -5,7 +5,8 @@ import java.time.Instant;
 import java.util.List;
 
 public record LiveMetrics(
-        long twitchId,
+        long channelId,
+        String platform,
         long sessionId,
         Instant timestamp,
         double messagesPerMinute,

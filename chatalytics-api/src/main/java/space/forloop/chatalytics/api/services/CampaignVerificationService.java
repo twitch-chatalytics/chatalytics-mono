@@ -31,14 +31,14 @@ public class CampaignVerificationService {
 
         // Find sessions that overlap with campaign date range
         List<Long> sponsoredSessionIds = findSessionsInDateRange(
-                campaign.twitchId(), campaign.startDate(), campaign.endDate());
+                campaign.channelId(), campaign.startDate(), campaign.endDate());
 
         int sponsoredSessions = sponsoredSessionIds.size();
 
         // Compute sponsored avg authenticity score
         double sponsoredAvgScore = 0;
         if (!sponsoredSessionIds.isEmpty()) {
-            var authTable = table(name("twitch", "session_authenticity"));
+            var authTable = table(name("chat", "session_authenticity"));
             Double avg = dsl.select(avg(field("authenticity_score", Double.class)))
                     .from(authTable)
                     .where(field("session_id").in(sponsoredSessionIds))
@@ -49,8 +49,8 @@ public class CampaignVerificationService {
         // Compute baseline avg score (all other sessions for this channel)
         double baselineAvgScore = 0;
         {
-            var authTable = table(name("twitch", "session_authenticity"));
-            var condition = field("twitch_id").eq(campaign.twitchId());
+            var authTable = table(name("chat", "session_authenticity"));
+            var condition = field("channel_id").eq(campaign.channelId());
             if (!sponsoredSessionIds.isEmpty()) {
                 condition = condition.and(field("session_id").notIn(sponsoredSessionIds));
             }
@@ -67,7 +67,7 @@ public class CampaignVerificationService {
         int totalMessages = 0;
         int brandMentions = 0;
         if (!sponsoredSessionIds.isEmpty()) {
-            var msgTable = table(name("twitch", "message"));
+            var msgTable = table(name("chat", "message"));
             Long msgCount = dsl.selectCount()
                     .from(msgTable)
                     .where(field("session_id").in(sponsoredSessionIds))
@@ -82,19 +82,19 @@ public class CampaignVerificationService {
         // Calculate real impressions: sum of (viewer_count * score/100) per session
         double estimatedRealImpressions = 0;
         if (!sponsoredSessionIds.isEmpty()) {
-            var recapTable = table(name("twitch", "stream_recap"));
-            var authTable = table(name("twitch", "session_authenticity"));
+            var recapTable = table(name("chat", "stream_recap"));
+            var authTable = table(name("chat", "session_authenticity"));
 
             var rows = dsl.select(
-                            field(name("twitch", "stream_recap", "peak_viewer_count"), Integer.class),
-                            field(name("twitch", "session_authenticity", "authenticity_score"), Integer.class)
+                            field(name("chat", "stream_recap", "peak_viewer_count"), Integer.class),
+                            field(name("chat", "session_authenticity", "authenticity_score"), Integer.class)
                     )
                     .from(recapTable)
                     .join(authTable)
-                    .on(field(name("twitch", "stream_recap", "session_id"))
-                            .eq(field(name("twitch", "session_authenticity", "session_id"))))
-                    .where(field(name("twitch", "stream_recap", "session_id")).in(sponsoredSessionIds))
-                    .and(field(name("twitch", "stream_recap", "peak_viewer_count")).isNotNull())
+                    .on(field(name("chat", "stream_recap", "session_id"))
+                            .eq(field(name("chat", "session_authenticity", "session_id"))))
+                    .where(field(name("chat", "stream_recap", "session_id")).in(sponsoredSessionIds))
+                    .and(field(name("chat", "stream_recap", "peak_viewer_count")).isNotNull())
                     .fetch();
 
             for (var r : rows) {
@@ -113,7 +113,7 @@ public class CampaignVerificationService {
             // Reported CPM based on raw viewer counts
             double totalReportedImpressions = 0;
             if (!sponsoredSessionIds.isEmpty()) {
-                var recapTable = table(name("twitch", "stream_recap"));
+                var recapTable = table(name("chat", "stream_recap"));
                 Long sumViewers = dsl.select(sum(field("peak_viewer_count", Long.class)))
                         .from(recapTable)
                         .where(field("session_id").in(sponsoredSessionIds))
@@ -145,14 +145,14 @@ public class CampaignVerificationService {
         );
     }
 
-    private List<Long> findSessionsInDateRange(long twitchId, LocalDate start, LocalDate end) {
-        var sessionTable = table(name("twitch", "session"));
+    private List<Long> findSessionsInDateRange(long channelId, LocalDate start, LocalDate end) {
+        var sessionTable = table(name("chat", "session"));
         LocalDateTime startDateTime = start.atStartOfDay();
         LocalDateTime endDateTime = end.atTime(LocalTime.MAX);
 
         return dsl.select(field("id", Long.class))
                 .from(sessionTable)
-                .where(field("twitch_id").eq(twitchId))
+                .where(field("channel_id").eq(channelId))
                 .and(field("start_time").greaterOrEqual(startDateTime))
                 .and(field("start_time").lessOrEqual(endDateTime))
                 .fetchInto(Long.class);
@@ -161,7 +161,7 @@ public class CampaignVerificationService {
     private int countBrandMentions(List<Long> sessionIds, List<String> keywords) {
         if (keywords == null || keywords.isEmpty() || sessionIds.isEmpty()) return 0;
 
-        var msgTable = table(name("twitch", "message"));
+        var msgTable = table(name("chat", "message"));
 
         // Build case-insensitive LIKE conditions for each keyword
         var condition = field("session_id").in(sessionIds);

@@ -37,14 +37,14 @@ public class MessageRecord extends UpdatableRecordImpl<MessageRecord> {
     /**
      * Setter for <code>twitch.message.twitch_id</code>.
      */
-    public void setTwitchId(Long value) {
+    public void setChannelId(Long value) {
         set(1, value);
     }
 
     /**
      * Getter for <code>twitch.message.twitch_id</code>.
      */
-    public Long getTwitchId() {
+    public Long getChannelId() {
         return (Long) get(1);
     }
 
@@ -127,11 +127,11 @@ public class MessageRecord extends UpdatableRecordImpl<MessageRecord> {
     /**
      * Create a detached, initialised MessageRecord
      */
-    public MessageRecord(Long id, Long twitchId, String messageText, Instant timestamp, Long sessionId, String author) {
+    public MessageRecord(Long id, Long channelId, String messageText, Instant timestamp, Long sessionId, String author) {
         super(Message.MESSAGE);
 
         setId(id);
-        setTwitchId(twitchId);
+        setChannelId(channelId);
         setMessageText(messageText);
         setTimestamp(timestamp);
         setSessionId(sessionId);
@@ -147,7 +147,7 @@ public class MessageRecord extends UpdatableRecordImpl<MessageRecord> {
 
         if (value != null) {
             setId(value.getId());
-            setTwitchId(value.getTwitchId());
+            setChannelId(value.getChannelId());
             setMessageText(value.getMessageText());
             setTimestamp(value.getTimestamp());
             setSessionId(value.getSessionId());

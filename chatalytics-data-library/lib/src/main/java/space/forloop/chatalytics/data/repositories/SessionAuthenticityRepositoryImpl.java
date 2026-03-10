@@ -25,9 +25,9 @@ public class SessionAuthenticityRepositoryImpl implements SessionAuthenticityRep
     private final DSLContext dsl;
     private final ObjectMapper mapper;
 
-    private static final org.jooq.Table<?> TABLE = table(name("twitch", "session_authenticity"));
-    private static final org.jooq.Table<?> SESSION_TABLE = table(name("twitch", "session"));
-    private static final org.jooq.Table<?> RECAP_TABLE = table(name("twitch", "stream_recap"));
+    private static final org.jooq.Table<?> TABLE = table(name("chat", "session_authenticity"));
+    private static final org.jooq.Table<?> SESSION_TABLE = table(name("chat", "session"));
+    private static final org.jooq.Table<?> RECAP_TABLE = table(name("chat", "stream_recap"));
 
     public SessionAuthenticityRepositoryImpl(DSLContext dsl) {
         this.dsl = dsl;
@@ -47,7 +47,7 @@ public class SessionAuthenticityRepositoryImpl implements SessionAuthenticityRep
     public void save(SessionAuthenticity a) {
         dsl.insertInto(TABLE)
                 .set(field("session_id"), a.sessionId())
-                .set(field("twitch_id"), a.twitchId())
+                .set(field("channel_id"), a.channelId())
                 .set(field("authenticity_score"), a.authenticityScore())
                 .set(field("confidence_level"), a.confidenceLevel())
                 .set(field("chat_viewer_ratio"), a.chatViewerRatio())
@@ -71,30 +71,30 @@ public class SessionAuthenticityRepositoryImpl implements SessionAuthenticityRep
 
     @Override
     public List<Long> findSessionIdsWithoutAuthenticity() {
-        return dsl.select(field(name("twitch", "stream_recap", "session_id"), Long.class))
+        return dsl.select(field(name("chat", "stream_recap", "session_id"), Long.class))
                 .from(RECAP_TABLE)
                 .where(
                         notExists(
                                 dsl.selectOne()
                                         .from(TABLE)
-                                        .where(field(name("twitch", "session_authenticity", "session_id"))
-                                                .eq(field(name("twitch", "stream_recap", "session_id"))))
+                                        .where(field(name("chat", "session_authenticity", "session_id"))
+                                                .eq(field(name("chat", "stream_recap", "session_id"))))
                         )
                 )
-                .orderBy(field(name("twitch", "stream_recap", "session_id")).desc())
+                .orderBy(field(name("chat", "stream_recap", "session_id")).desc())
                 .limit(20)
                 .fetchInto(Long.class);
     }
 
     @Override
-    public List<SessionAuthenticity> findByTwitchId(long twitchId, int limit, int offset) {
-        return dsl.select(TABLE.asterisk(), field(name("twitch", "session", "start_time")))
+    public List<SessionAuthenticity> findByChannelId(long channelId, int limit, int offset) {
+        return dsl.select(TABLE.asterisk(), field(name("chat", "session", "start_time")))
                 .from(TABLE)
                 .leftJoin(SESSION_TABLE)
-                .on(field(name("twitch", "session_authenticity", "session_id"))
-                        .eq(field(name("twitch", "session", "id"))))
-                .where(field(name("twitch", "session_authenticity", "twitch_id")).eq(twitchId))
-                .orderBy(field(name("twitch", "session", "start_time")).desc())
+                .on(field(name("chat", "session_authenticity", "session_id"))
+                        .eq(field(name("chat", "session", "id"))))
+                .where(field(name("chat", "session_authenticity", "channel_id")).eq(channelId))
+                .orderBy(field(name("chat", "session", "start_time")).desc())
                 .limit(limit)
                 .offset(offset)
                 .fetch()
@@ -102,19 +102,19 @@ public class SessionAuthenticityRepositoryImpl implements SessionAuthenticityRep
     }
 
     @Override
-    public List<AuthenticityTrendPoint> findTrendByTwitchId(long twitchId, int limit) {
-        var recapTable = table(name("twitch", "stream_recap"));
+    public List<AuthenticityTrendPoint> findTrendByChannelId(long channelId, int limit) {
+        var recapTable = table(name("chat", "stream_recap"));
         return dsl.select(
-                        field(name("twitch", "session_authenticity", "computed_at")),
-                        field(name("twitch", "session_authenticity", "authenticity_score")),
-                        field(name("twitch", "stream_recap", "peak_viewer_count"))
+                        field(name("chat", "session_authenticity", "computed_at")),
+                        field(name("chat", "session_authenticity", "authenticity_score")),
+                        field(name("chat", "stream_recap", "peak_viewer_count"))
                 )
                 .from(TABLE)
                 .leftJoin(recapTable)
-                .on(field(name("twitch", "session_authenticity", "session_id"))
-                        .eq(field(name("twitch", "stream_recap", "session_id"))))
-                .where(field(name("twitch", "session_authenticity", "twitch_id")).eq(twitchId))
-                .orderBy(field(name("twitch", "session_authenticity", "computed_at")).asc())
+                .on(field(name("chat", "session_authenticity", "session_id"))
+                        .eq(field(name("chat", "stream_recap", "session_id"))))
+                .where(field(name("chat", "session_authenticity", "channel_id")).eq(channelId))
+                .orderBy(field(name("chat", "session_authenticity", "computed_at")).asc())
                 .limit(limit)
                 .fetch()
                 .map(r -> new AuthenticityTrendPoint(
@@ -125,16 +125,16 @@ public class SessionAuthenticityRepositoryImpl implements SessionAuthenticityRep
     }
 
     @Override
-    public List<Long> findTwitchIdsWithoutChannelRollup() {
-        var channelTable = table(name("twitch", "channel_authenticity"));
-        return dsl.selectDistinct(field(name("twitch", "session_authenticity", "twitch_id"), Long.class))
+    public List<Long> findChannelIdsWithoutChannelRollup() {
+        var channelTable = table(name("chat", "channel_authenticity"));
+        return dsl.selectDistinct(field(name("chat", "session_authenticity", "channel_id"), Long.class))
                 .from(TABLE)
                 .where(
                         notExists(
                                 dsl.selectOne()
                                         .from(channelTable)
-                                        .where(field(name("twitch", "channel_authenticity", "twitch_id"))
-                                                .eq(field(name("twitch", "session_authenticity", "twitch_id"))))
+                                        .where(field(name("chat", "channel_authenticity", "channel_id"))
+                                                .eq(field(name("chat", "session_authenticity", "channel_id"))))
                         )
                 )
                 .fetchInto(Long.class);
@@ -143,7 +143,7 @@ public class SessionAuthenticityRepositoryImpl implements SessionAuthenticityRep
     private SessionAuthenticity toSessionAuthenticity(Record r) {
         return new SessionAuthenticity(
                 r.get("session_id", Long.class),
-                r.get("twitch_id", Long.class),
+                r.get("channel_id", Long.class),
                 r.get("authenticity_score", Integer.class),
                 r.get("confidence_level", String.class),
                 r.get("chat_viewer_ratio", Double.class),
@@ -167,7 +167,7 @@ public class SessionAuthenticityRepositoryImpl implements SessionAuthenticityRep
     private SessionAuthenticity toSessionAuthenticityWithStartTime(Record r) {
         return new SessionAuthenticity(
                 r.get("session_id", Long.class),
-                r.get("twitch_id", Long.class),
+                r.get("channel_id", Long.class),
                 r.get("authenticity_score", Integer.class),
                 r.get("confidence_level", String.class),
                 r.get("chat_viewer_ratio", Double.class),

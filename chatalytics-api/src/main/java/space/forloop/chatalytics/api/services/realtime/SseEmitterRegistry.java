@@ -15,24 +15,24 @@ public class SseEmitterRegistry {
 
     private final ConcurrentHashMap<Long, Set<SseEmitter>> emitters = new ConcurrentHashMap<>();
 
-    public void register(long twitchId, SseEmitter emitter) {
-        emitters.computeIfAbsent(twitchId, k -> ConcurrentHashMap.newKeySet()).add(emitter);
-        log.info("SSE client connected for twitchId={} (total={})", twitchId, countForChannel(twitchId));
+    public void register(long channelId, SseEmitter emitter) {
+        emitters.computeIfAbsent(channelId, k -> ConcurrentHashMap.newKeySet()).add(emitter);
+        log.info("SSE client connected for channelId={} (total={})", channelId, countForChannel(channelId));
     }
 
-    public void unregister(long twitchId, SseEmitter emitter) {
-        Set<SseEmitter> set = emitters.get(twitchId);
+    public void unregister(long channelId, SseEmitter emitter) {
+        Set<SseEmitter> set = emitters.get(channelId);
         if (set != null) {
             set.remove(emitter);
             if (set.isEmpty()) {
-                emitters.remove(twitchId);
+                emitters.remove(channelId);
             }
         }
-        log.info("SSE client disconnected for twitchId={} (remaining={})", twitchId, countForChannel(twitchId));
+        log.info("SSE client disconnected for channelId={} (remaining={})", channelId, countForChannel(channelId));
     }
 
-    public void broadcast(long twitchId, String json) {
-        Set<SseEmitter> set = emitters.get(twitchId);
+    public void broadcast(long channelId, String json) {
+        Set<SseEmitter> set = emitters.get(channelId);
         if (set == null || set.isEmpty()) return;
 
         for (SseEmitter emitter : set) {
@@ -42,13 +42,13 @@ public class SseEmitterRegistry {
                         .data(json));
             } catch (IOException | IllegalStateException e) {
                 set.remove(emitter);
-                log.debug("Removed dead SSE emitter for twitchId={}", twitchId);
+                log.debug("Removed dead SSE emitter for channelId={}", channelId);
             }
         }
     }
 
-    public boolean hasSubscribers(long twitchId) {
-        Set<SseEmitter> set = emitters.get(twitchId);
+    public boolean hasSubscribers(long channelId) {
+        Set<SseEmitter> set = emitters.get(channelId);
         return set != null && !set.isEmpty();
     }
 
@@ -56,8 +56,8 @@ public class SseEmitterRegistry {
         return emitters.keySet();
     }
 
-    private int countForChannel(long twitchId) {
-        Set<SseEmitter> set = emitters.get(twitchId);
+    private int countForChannel(long channelId) {
+        Set<SseEmitter> set = emitters.get(channelId);
         return set != null ? set.size() : 0;
     }
 

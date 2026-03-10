@@ -21,11 +21,11 @@ public class BenchmarkService {
 
     private final DSLContext dsl;
 
-    public ChannelBenchmark computeBenchmark(long twitchId) {
+    public ChannelBenchmark computeBenchmark(long channelId) {
         // Step 1: Get all channels with their authenticity scores
-        var authTable = table(name("twitch", "channel_authenticity"));
+        var authTable = table(name("chat", "channel_authenticity"));
         Result<? extends Record> allChannels = dsl.select(
-                        field("twitch_id", Long.class),
+                        field("channel_id", Long.class),
                         field("avg_authenticity_score", Double.class)
                 )
                 .from(authTable)
@@ -33,20 +33,20 @@ public class BenchmarkService {
                 .fetch();
 
         if (allChannels.isEmpty()) {
-            return buildEmptyBenchmark(twitchId);
+            return buildEmptyBenchmark(channelId);
         }
 
         // Find the target channel's score
         Double targetScore = null;
         for (var row : allChannels) {
-            if (row.get(field("twitch_id", Long.class)).equals(twitchId)) {
+            if (row.get(field("channel_id", Long.class)).equals(channelId)) {
                 targetScore = row.get(field("avg_authenticity_score", Double.class));
                 break;
             }
         }
 
         if (targetScore == null) {
-            return buildEmptyBenchmark(twitchId);
+            return buildEmptyBenchmark(channelId);
         }
         final double finalTargetScore = targetScore;
 
@@ -68,22 +68,22 @@ public class BenchmarkService {
         Map<Long, Double> channelAvgPeakViewers = fetchChannelAvgPeakViewers();
 
         // Step 5: Determine target channel's tier
-        Double targetAvgPeak = channelAvgPeakViewers.get(twitchId);
+        Double targetAvgPeak = channelAvgPeakViewers.get(channelId);
         String viewerTier = determineTier(targetAvgPeak);
 
         // Step 6: Compute tier average
-        Set<Long> allAuthTwitchIds = allChannels.stream()
-                .map(r -> r.get(field("twitch_id", Long.class)))
+        Set<Long> allAuthChannelIds = allChannels.stream()
+                .map(r -> r.get(field("channel_id", Long.class)))
                 .collect(Collectors.toSet());
 
         Map<Long, String> channelTiers = new HashMap<>();
-        for (long id : allAuthTwitchIds) {
+        for (long id : allAuthChannelIds) {
             channelTiers.put(id, determineTier(channelAvgPeakViewers.get(id)));
         }
 
         List<Double> tierScores = new ArrayList<>();
         for (var row : allChannels) {
-            long id = row.get(field("twitch_id", Long.class));
+            long id = row.get(field("channel_id", Long.class));
             if (viewerTier.equals(channelTiers.get(id))) {
                 tierScores.add(row.get(field("avg_authenticity_score", Double.class)));
             }
@@ -93,7 +93,7 @@ public class BenchmarkService {
         int channelsInTier = tierScores.size();
 
         // Step 7: Determine primary category
-        String primaryCategory = fetchPrimaryCategory(twitchId);
+        String primaryCategory = fetchPrimaryCategory(channelId);
 
         // Step 8: Compute category average (if category is available)
         Double categoryAvgScore = null;
@@ -101,11 +101,11 @@ public class BenchmarkService {
 
         if (primaryCategory != null) {
             // Get primary categories for all channels
-            Map<Long, String> channelCategories = fetchAllPrimaryCategories(allAuthTwitchIds);
+            Map<Long, String> channelCategories = fetchAllPrimaryCategories(allAuthChannelIds);
 
             List<Double> categoryScores = new ArrayList<>();
             for (var row : allChannels) {
-                long id = row.get(field("twitch_id", Long.class));
+                long id = row.get(field("channel_id", Long.class));
                 String cat = channelCategories.get(id);
                 if (primaryCategory.equalsIgnoreCase(cat)) {
                     categoryScores.add(row.get(field("avg_authenticity_score", Double.class)));
@@ -119,7 +119,7 @@ public class BenchmarkService {
         }
 
         return new ChannelBenchmark(
-                twitchId,
+                channelId,
                 percentileRank,
                 viewerTier,
                 Math.round(tierAvg * 10.0) / 10.0,
@@ -132,24 +132,24 @@ public class BenchmarkService {
     }
 
     private Map<Long, Double> fetchChannelAvgPeakViewers() {
-        var recapTable = table(name("twitch", "stream_recap"));
-        var sessionTable = table(name("twitch", "session"));
+        var recapTable = table(name("chat", "stream_recap"));
+        var sessionTable = table(name("chat", "session"));
 
         Result<? extends Record> rows = dsl.select(
-                        field(name("twitch", "session", "twitch_id"), Long.class).as("twitch_id"),
+                        field(name("chat", "session", "channel_id"), Long.class).as("channel_id"),
                         avg(field("peak_viewer_count", Double.class)).as("avg_peak")
                 )
                 .from(recapTable)
                 .join(sessionTable)
-                .on(field(name("twitch", "stream_recap", "session_id"))
-                        .eq(field(name("twitch", "session", "id"))))
+                .on(field(name("chat", "stream_recap", "session_id"))
+                        .eq(field(name("chat", "session", "id"))))
                 .where(field("peak_viewer_count").isNotNull())
-                .groupBy(field(name("twitch", "session", "twitch_id")))
+                .groupBy(field(name("chat", "session", "channel_id")))
                 .fetch();
 
         Map<Long, Double> result = new HashMap<>();
         for (var row : rows) {
-            Long id = row.get("twitch_id", Long.class);
+            Long id = row.get("channel_id", Long.class);
             Object avgVal = row.get("avg_peak");
             double avg = 0;
             if (avgVal instanceof BigDecimal bd) {
@@ -173,48 +173,48 @@ public class BenchmarkService {
         return "small";
     }
 
-    private String fetchPrimaryCategory(long twitchId) {
-        var recapTable = table(name("twitch", "stream_recap"));
-        var sessionTable = table(name("twitch", "session"));
+    private String fetchPrimaryCategory(long channelId) {
+        var recapTable = table(name("chat", "stream_recap"));
+        var sessionTable = table(name("chat", "session"));
 
         // Fetch game_segments JSONB from recent recaps for this channel
         Result<? extends Record> rows = dsl.select(field("game_segments"))
                 .from(recapTable)
                 .join(sessionTable)
-                .on(field(name("twitch", "stream_recap", "session_id"))
-                        .eq(field(name("twitch", "session", "id"))))
-                .where(field(name("twitch", "session", "twitch_id")).eq(twitchId))
+                .on(field(name("chat", "stream_recap", "session_id"))
+                        .eq(field(name("chat", "session", "id"))))
+                .where(field(name("chat", "session", "channel_id")).eq(channelId))
                 .and(field("game_segments").isNotNull())
-                .orderBy(field(name("twitch", "stream_recap", "session_id")).desc())
+                .orderBy(field(name("chat", "stream_recap", "session_id")).desc())
                 .limit(30)
                 .fetch();
 
         return extractMostCommonGame(rows);
     }
 
-    private Map<Long, String> fetchAllPrimaryCategories(Set<Long> twitchIds) {
-        if (twitchIds.isEmpty()) return Collections.emptyMap();
+    private Map<Long, String> fetchAllPrimaryCategories(Set<Long> channelIds) {
+        if (channelIds.isEmpty()) return Collections.emptyMap();
 
-        var recapTable = table(name("twitch", "stream_recap"));
-        var sessionTable = table(name("twitch", "session"));
+        var recapTable = table(name("chat", "stream_recap"));
+        var sessionTable = table(name("chat", "session"));
 
         Result<? extends Record> rows = dsl.select(
-                        field(name("twitch", "session", "twitch_id"), Long.class).as("twitch_id"),
+                        field(name("chat", "session", "channel_id"), Long.class).as("channel_id"),
                         field("game_segments")
                 )
                 .from(recapTable)
                 .join(sessionTable)
-                .on(field(name("twitch", "stream_recap", "session_id"))
-                        .eq(field(name("twitch", "session", "id"))))
-                .where(field(name("twitch", "session", "twitch_id")).in(twitchIds))
+                .on(field(name("chat", "stream_recap", "session_id"))
+                        .eq(field(name("chat", "session", "id"))))
+                .where(field(name("chat", "session", "channel_id")).in(channelIds))
                 .and(field("game_segments").isNotNull())
-                .orderBy(field(name("twitch", "stream_recap", "session_id")).desc())
+                .orderBy(field(name("chat", "stream_recap", "session_id")).desc())
                 .fetch();
 
-        // Group by twitch_id, then find most common game per channel
+        // Group by channel_id, then find most common game per channel
         Map<Long, List<Record>> grouped = new HashMap<>();
         for (var row : rows) {
-            Long id = row.get("twitch_id", Long.class);
+            Long id = row.get("channel_id", Long.class);
             if (id != null) {
                 grouped.computeIfAbsent(id, k -> new ArrayList<>()).add(row);
             }
@@ -273,9 +273,9 @@ public class BenchmarkService {
         }
     }
 
-    private ChannelBenchmark buildEmptyBenchmark(long twitchId) {
+    private ChannelBenchmark buildEmptyBenchmark(long channelId) {
         return new ChannelBenchmark(
-                twitchId, 50, "small", 0, 0, 0, null, null, 0
+                channelId, 50, "small", 0, 0, 0, null, null, 0
         );
     }
 }

@@ -42,8 +42,8 @@ public class AuthenticityScoreService {
         }
 
         StreamRecap recap = recapOpt.get();
-        long twitchId = resolveTwitchId(sessionId);
-        if (twitchId == 0) return null;
+        long channelId = resolveChannelId(sessionId);
+        if (channelId == 0) return null;
 
         List<SuspiciousFlag> flags = new ArrayList<>();
 
@@ -98,7 +98,7 @@ public class AuthenticityScoreService {
         }
 
         // --- Signal 5: Cross-Session Consistency (15%) ---
-        double viewerChatCorrelation = computeCrossSessionCorrelation(twitchId);
+        double viewerChatCorrelation = computeCrossSessionCorrelation(channelId);
         double crossSessionSignal = clampSignal((viewerChatCorrelation + 1.0) / 2.0);
 
         if (viewerChatCorrelation < -0.3) {
@@ -120,11 +120,11 @@ public class AuthenticityScoreService {
         long durationMinutes = recap.endTime() != null
                 ? Duration.between(recap.startTime(), recap.endTime()).toMinutes()
                 : 0;
-        int priorSessions = countPriorSessions(twitchId);
+        int priorSessions = countPriorSessions(channelId);
         String confidenceLevel = computeConfidence(recap.totalMessages(), recap.totalChatters(), durationMinutes, priorSessions);
 
         return new SessionAuthenticity(
-                sessionId, twitchId, authenticityScore, confidenceLevel,
+                sessionId, channelId, authenticityScore, confidenceLevel,
                 chatViewerRatio, expectedChatRatio, chatRatioDeviation,
                 vocabularyDiversity, emoteOnlyRatio, repetitiveMessageRatio,
                 singleMessageChatterRatio, timingUniformityScore,
@@ -147,7 +147,7 @@ public class AuthenticityScoreService {
     private double computeVocabularyDiversity(long sessionId, long totalMessages) {
         if (totalMessages == 0) return 0;
         // Count distinct words used in this session
-        var table = table(name("twitch", "message_word"));
+        var table = table(name("chat", "message_word"));
         Long distinctWords = dsl.selectCount()
                 .from(dsl.selectDistinct(field("word"))
                         .from(table)
@@ -161,7 +161,7 @@ public class AuthenticityScoreService {
 
     private double computeRepetitiveMessageRatio(long sessionId, long totalMessages) {
         if (totalMessages < 10) return 0;
-        var msgTable = table(name("twitch", "message"));
+        var msgTable = table(name("chat", "message"));
         // Count messages that appear 3+ times verbatim
         Long repeatedCount = dsl.select(sum(field("cnt", Long.class)))
                 .from(
@@ -178,7 +178,7 @@ public class AuthenticityScoreService {
 
     private double computeSingleMessageChatterRatio(long sessionId, long totalChatters) {
         if (totalChatters == 0) return 0;
-        var msgTable = table(name("twitch", "message"));
+        var msgTable = table(name("chat", "message"));
         Long singleMsgChatters = dsl.selectCount()
                 .from(
                         dsl.select(field("author"))
@@ -242,21 +242,21 @@ public class AuthenticityScoreService {
         return Math.min(1.0, score);
     }
 
-    private double computeCrossSessionCorrelation(long twitchId) {
+    private double computeCrossSessionCorrelation(long channelId) {
         // Pearson correlation between viewer count and chat participation across sessions
-        var recapTable = table(name("twitch", "stream_recap"));
+        var recapTable = table(name("chat", "stream_recap"));
         Result<? extends Record2<?, ?>> rows = dsl.select(
                         field("peak_viewer_count", Double.class),
                         field("chat_participation_rate", Double.class)
                 )
                 .from(recapTable)
-                .join(table(name("twitch", "session")))
-                .on(field(name("twitch", "stream_recap", "session_id"))
-                        .eq(field(name("twitch", "session", "id"))))
-                .where(field(name("twitch", "session", "twitch_id")).eq(twitchId))
+                .join(table(name("chat", "session")))
+                .on(field(name("chat", "stream_recap", "session_id"))
+                        .eq(field(name("chat", "session", "id"))))
+                .where(field(name("chat", "session", "channel_id")).eq(channelId))
                 .and(field("peak_viewer_count").isNotNull())
                 .and(field("chat_participation_rate").isNotNull())
-                .orderBy(field(name("twitch", "stream_recap", "session_id")).desc())
+                .orderBy(field(name("chat", "stream_recap", "session_id")).desc())
                 .limit(30)
                 .fetch();
 
@@ -287,15 +287,15 @@ public class AuthenticityScoreService {
         return (n * sumXY - sumX * sumY) / denom;
     }
 
-    private int countPriorSessions(long twitchId) {
-        var recapTable = table(name("twitch", "stream_recap"));
-        var sessionTable = table(name("twitch", "session"));
+    private int countPriorSessions(long channelId) {
+        var recapTable = table(name("chat", "stream_recap"));
+        var sessionTable = table(name("chat", "session"));
         Long count = dsl.selectCount()
                 .from(recapTable)
                 .join(sessionTable)
-                .on(field(name("twitch", "stream_recap", "session_id"))
-                        .eq(field(name("twitch", "session", "id"))))
-                .where(field(name("twitch", "session", "twitch_id")).eq(twitchId))
+                .on(field(name("chat", "stream_recap", "session_id"))
+                        .eq(field(name("chat", "session", "id"))))
+                .where(field(name("chat", "session", "channel_id")).eq(channelId))
                 .fetchOneInto(Long.class);
         return count != null ? count.intValue() : 0;
     }
@@ -310,9 +310,9 @@ public class AuthenticityScoreService {
         return "low";
     }
 
-    private long resolveTwitchId(long sessionId) {
-        var sessionTable = table(name("twitch", "session"));
-        Long id = dsl.select(field("twitch_id", Long.class))
+    private long resolveChannelId(long sessionId) {
+        var sessionTable = table(name("chat", "session"));
+        Long id = dsl.select(field("channel_id", Long.class))
                 .from(sessionTable)
                 .where(field("id").eq(sessionId))
                 .fetchOneInto(Long.class);

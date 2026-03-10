@@ -47,18 +47,18 @@ const sectionVariants = {
 
 interface Props {
   sessionId: number;
-  twitchId: number;
+  channelId: number;
   onBack: () => void;
   onChatterClick?: (author: string) => void;
 }
 
-export default function StreamRecapView({ sessionId, twitchId, onBack, onChatterClick }: Props) {
+export default function StreamRecapView({ sessionId, channelId, onBack, onChatterClick }: Props) {
   const [recap, setRecap] = useState<StreamRecap | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   const isLive = recap != null && !recap.endTime;
-  const { metrics: live } = useLiveMetrics(isLive ? twitchId : null);
+  const { metrics: live } = useLiveMetrics(isLive ? channelId : null);
 
   // Elapsed time ticker for duration badge
   const [now, setNow] = useState(() => new Date().toISOString());

@@ -35,14 +35,14 @@ public class SessionSummaryRecord extends UpdatableRecordImpl<SessionSummaryReco
     /**
      * Setter for <code>twitch.session_summary.twitch_id</code>.
      */
-    public void setTwitchId(Long value) {
+    public void setChannelId(Long value) {
         set(1, value);
     }
 
     /**
      * Getter for <code>twitch.session_summary.twitch_id</code>.
      */
-    public Long getTwitchId() {
+    public Long getChannelId() {
         return (Long) get(1);
     }
 
@@ -199,11 +199,11 @@ public class SessionSummaryRecord extends UpdatableRecordImpl<SessionSummaryReco
     /**
      * Create a detached, initialised SessionSummaryRecord
      */
-    public SessionSummaryRecord(Long id, Long twitchId, Long sessionId, Long messagesPerMinute, Long totalChatters, Long totalMessages, Long totalSessions, Long mentions, Boolean isPartial, String topChatterByMessageCount, Long topChatterByMessageCountValue) {
+    public SessionSummaryRecord(Long id, Long channelId, Long sessionId, Long messagesPerMinute, Long totalChatters, Long totalMessages, Long totalSessions, Long mentions, Boolean isPartial, String topChatterByMessageCount, Long topChatterByMessageCountValue) {
         super(SessionSummary.SESSION_SUMMARY);
 
         setId(id);
-        setTwitchId(twitchId);
+        setChannelId(channelId);
         setSessionId(sessionId);
         setMessagesPerMinute(messagesPerMinute);
         setTotalChatters(totalChatters);
@@ -224,7 +224,7 @@ public class SessionSummaryRecord extends UpdatableRecordImpl<SessionSummaryReco
 
         if (value != null) {
             setId(value.getId());
-            setTwitchId(value.getTwitchId());
+            setChannelId(value.getChannelId());
             setSessionId(value.getSessionId());
             setMessagesPerMinute(value.getMessagesPerMinute());
             setTotalChatters(value.getTotalChatters());

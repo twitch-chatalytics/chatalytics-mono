@@ -29,7 +29,7 @@ public class AuthController {
                 .toList();
 
         Map<String, Object> response = new HashMap<>();
-        response.put("twitchId", user.getAttribute("twitchId"));
+        response.put("channelId", user.getAttribute("channelId"));
         response.put("login", user.getAttribute("login"));
         response.put("displayName", user.getAttribute("display_name"));
         response.put("profileImageUrl", user.getAttribute("profile_image_url"));

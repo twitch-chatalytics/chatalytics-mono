@@ -46,12 +46,12 @@ public class SocialBladeRefreshTask {
 
         log.info("Refreshing SocialBlade data for {} featured channels", featuredStaleIds.size());
 
-        for (long twitchId : featuredStaleIds) {
+        for (long channelId : featuredStaleIds) {
             try {
-                userRepository.findById(twitchId).ifPresent(user -> {
+                userRepository.findById(channelId).ifPresent(user -> {
                     String login = user.getLogin();
                     if (login != null && !login.isBlank()) {
-                        socialBladeService.fetchAndStore(twitchId, login);
+                        socialBladeService.fetchAndStore(channelId, login);
                     }
                 });
                 // Stagger requests to avoid rate limiting (~7s between calls)
@@ -60,7 +60,7 @@ public class SocialBladeRefreshTask {
                 Thread.currentThread().interrupt();
                 return;
             } catch (Exception e) {
-                log.error("Failed to refresh SocialBlade for twitchId {}: {}", twitchId, e.getMessage());
+                log.error("Failed to refresh SocialBlade for channelId {}: {}", channelId, e.getMessage());
             }
         }
     }

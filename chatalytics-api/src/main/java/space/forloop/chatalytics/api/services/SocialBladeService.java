@@ -49,16 +49,16 @@ public class SocialBladeService {
         return clientId != null && !clientId.isBlank() && token != null && !token.isBlank();
     }
 
-    public Optional<SocialBladeChannel> fetchAndStore(long twitchId, String username) {
-        return fetchAndStore(twitchId, username, null, null);
+    public Optional<SocialBladeChannel> fetchAndStore(long channelId, String username) {
+        return fetchAndStore(channelId, username, null, null);
     }
 
-    public Optional<SocialBladeChannel> fetchAndStore(long twitchId, String username,
+    public Optional<SocialBladeChannel> fetchAndStore(long channelId, String username,
                                                        String overrideClientId, String overrideToken) {
         boolean useOverride = overrideClientId != null && !overrideClientId.isBlank();
         if (!useOverride && !isConfigured()) {
             log.warn("SocialBlade API credentials not configured, skipping fetch for {}", username);
-            return repository.findByTwitchId(twitchId);
+            return repository.findByChannelId(channelId);
         }
 
         String cid = useOverride ? overrideClientId : this.clientId;
@@ -69,10 +69,10 @@ public class SocialBladeService {
             if (stats == null || stats.has("error")) {
                 log.warn("SocialBlade returned error for {}: {}", username,
                         stats != null ? stats.get("error").asText() : "null response");
-                return repository.findByTwitchId(twitchId);
+                return repository.findByChannelId(channelId);
             }
 
-            SocialBladeChannel channel = parseTwitchStats(twitchId, stats);
+            SocialBladeChannel channel = parseChannelStats(channelId, stats);
 
             // Try to get social links from YouTube lookup (SB often cross-references)
             channel = enrichWithSocialLinks(channel, username, cid, tok);
@@ -80,22 +80,22 @@ public class SocialBladeService {
             repository.save(channel);
 
             // Fetch and store daily history
-            List<SocialBladeDailyPoint> dailyPoints = parseDailyHistory(twitchId, stats);
+            List<SocialBladeDailyPoint> dailyPoints = parseDailyHistory(channelId, stats);
             if (!dailyPoints.isEmpty()) {
-                repository.saveDailyPoints(twitchId, dailyPoints);
+                repository.saveDailyPoints(channelId, dailyPoints);
             }
 
-            log.info("Stored SocialBlade data for {} (twitchId={}, grade={}, followers={})",
-                    username, twitchId, channel.grade(), channel.followers());
+            log.info("Stored SocialBlade data for {} (channelId={}, grade={}, followers={})",
+                    username, channelId, channel.grade(), channel.followers());
 
             return Optional.of(channel);
         } catch (Exception e) {
-            log.error("Failed to fetch SocialBlade data for {} (twitchId={}): {}", username, twitchId, e.getMessage());
-            return repository.findByTwitchId(twitchId);
+            log.error("Failed to fetch SocialBlade data for {} (channelId={}): {}", username, channelId, e.getMessage());
+            return repository.findByChannelId(channelId);
         }
     }
 
-    private SocialBladeChannel parseTwitchStats(long twitchId, JsonNode stats) {
+    private SocialBladeChannel parseChannelStats(long channelId, JsonNode stats) {
         JsonNode data = stats.has("data") ? stats.get("data") : stats;
         JsonNode id = data.has("id") ? data.get("id") : data;
         JsonNode total = data.path("statistics").path("total");
@@ -104,7 +104,7 @@ public class SocialBladeService {
         JsonNode ranks = data.path("ranks");
 
         return new SocialBladeChannel(
-                twitchId,
+                channelId,
                 textOrNull(id, "username"),
                 textOrNull(id, "display_name"),
                 longOrNull(total, "followers"),
@@ -133,7 +133,7 @@ public class SocialBladeService {
             if (links == null) return channel;
 
             return new SocialBladeChannel(
-                    channel.twitchId(),
+                    channel.channelId(),
                     channel.username(),
                     channel.displayName(),
                     channel.followers(),
@@ -161,7 +161,7 @@ public class SocialBladeService {
         }
     }
 
-    private List<SocialBladeDailyPoint> parseDailyHistory(long twitchId, JsonNode stats) {
+    private List<SocialBladeDailyPoint> parseDailyHistory(long channelId, JsonNode stats) {
         List<SocialBladeDailyPoint> points = new ArrayList<>();
         JsonNode daily = stats.has("data") && stats.get("data").has("daily")
                 ? stats.get("data").get("daily")
@@ -173,7 +173,7 @@ public class SocialBladeService {
             try {
                 LocalDate date = LocalDate.parse(day.get("date").asText().substring(0, 10), DATE_FMT);
                 points.add(new SocialBladeDailyPoint(
-                        twitchId,
+                        channelId,
                         date,
                         longOrNull(day, "followers"),
                         longOrNull(day, "views"),

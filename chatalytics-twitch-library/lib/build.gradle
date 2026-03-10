@@ -10,6 +10,7 @@ version = '1.0.12'
 dependencies {
     api 'org.springframework.boot:spring-boot-starter-web'
     api 'org.springframework.boot:spring-boot-starter-cache'
+    api project(':chatalytics-data-library')
 
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 }

@@ -16,8 +16,8 @@ public class SessionListService {
 
     private final SessionRepository sessionRepository;
 
-    @Cacheable(value = SESSIONS, key = "#twitchId + ':' + #limit")
-    public List<SessionSummaryView> findFirstPage(long twitchId, int limit) {
-        return sessionRepository.findSessionsWithStats(twitchId, limit);
+    @Cacheable(value = SESSIONS, key = "#channelId + ':' + #limit")
+    public List<SessionSummaryView> findFirstPage(long channelId, int limit) {
+        return sessionRepository.findSessionsWithStats(channelId, limit);
     }
 }

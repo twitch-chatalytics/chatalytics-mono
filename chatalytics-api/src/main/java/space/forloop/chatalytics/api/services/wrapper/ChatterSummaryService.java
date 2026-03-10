@@ -35,14 +35,14 @@ public class ChatterSummaryService {
         this.apiKey = apiKey;
     }
 
-    @Cacheable(value = CHATTER_SUMMARY, key = "#twitchId + ':' + #author.toLowerCase()")
-    public String summarize(String author, Long twitchId) {
+    @Cacheable(value = CHATTER_SUMMARY, key = "#channelId + ':' + #author.toLowerCase()")
+    public String summarize(String author, Long channelId) {
 
         if (apiKey == null || apiKey.isBlank()) {
             return null;
         }
 
-        List<Message> sample = messageRepository.findSampleByAuthor(author, twitchId, 200);
+        List<Message> sample = messageRepository.findSampleByAuthor(author, channelId, 200);
 
         if (sample.isEmpty()) {
             return null;

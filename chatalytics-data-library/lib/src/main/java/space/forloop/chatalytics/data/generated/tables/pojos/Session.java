@@ -17,7 +17,7 @@ public class Session implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Long id;
-    private Long twitchId;
+    private Long channelId;
     private Instant startTime;
     private Instant endTime;
 
@@ -25,19 +25,19 @@ public class Session implements Serializable {
 
     public Session(Session value) {
         this.id = value.id;
-        this.twitchId = value.twitchId;
+        this.channelId = value.channelId;
         this.startTime = value.startTime;
         this.endTime = value.endTime;
     }
 
     public Session(
         Long id,
-        Long twitchId,
+        Long channelId,
         Instant startTime,
         Instant endTime
     ) {
         this.id = id;
-        this.twitchId = twitchId;
+        this.channelId = channelId;
         this.startTime = startTime;
         this.endTime = endTime;
     }
@@ -59,15 +59,15 @@ public class Session implements Serializable {
     /**
      * Getter for <code>twitch.session.twitch_id</code>.
      */
-    public Long getTwitchId() {
-        return this.twitchId;
+    public Long getChannelId() {
+        return this.channelId;
     }
 
     /**
      * Setter for <code>twitch.session.twitch_id</code>.
      */
-    public void setTwitchId(Long twitchId) {
-        this.twitchId = twitchId;
+    public void setChannelId(Long channelId) {
+        this.channelId = channelId;
     }
 
     /**
@@ -113,11 +113,11 @@ public class Session implements Serializable {
         }
         else if (!this.id.equals(other.id))
             return false;
-        if (this.twitchId == null) {
-            if (other.twitchId != null)
+        if (this.channelId == null) {
+            if (other.channelId != null)
                 return false;
         }
-        else if (!this.twitchId.equals(other.twitchId))
+        else if (!this.channelId.equals(other.channelId))
             return false;
         if (this.startTime == null) {
             if (other.startTime != null)
@@ -139,7 +139,7 @@ public class Session implements Serializable {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
-        result = prime * result + ((this.twitchId == null) ? 0 : this.twitchId.hashCode());
+        result = prime * result + ((this.channelId == null) ? 0 : this.channelId.hashCode());
         result = prime * result + ((this.startTime == null) ? 0 : this.startTime.hashCode());
         result = prime * result + ((this.endTime == null) ? 0 : this.endTime.hashCode());
         return result;
@@ -150,7 +150,7 @@ public class Session implements Serializable {
         StringBuilder sb = new StringBuilder("Session (");
 
         sb.append(id);
-        sb.append(", ").append(twitchId);
+        sb.append(", ").append(channelId);
         sb.append(", ").append(startTime);
         sb.append(", ").append(endTime);
 

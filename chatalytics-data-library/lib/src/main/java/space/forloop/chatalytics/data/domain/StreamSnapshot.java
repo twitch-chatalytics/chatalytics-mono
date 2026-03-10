@@ -6,7 +6,7 @@ import java.time.Instant;
 public record StreamSnapshot(
         long id,
         long sessionId,
-        long twitchId,
+        long channelId,
         Instant timestamp,
         String gameName,
         String title,

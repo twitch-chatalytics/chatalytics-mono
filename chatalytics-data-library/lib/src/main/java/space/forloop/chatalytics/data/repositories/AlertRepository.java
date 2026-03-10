@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface AlertRepository {
 
-    List<AlertRule> findRulesByTwitchId(long twitchId);
+    List<AlertRule> findRulesByChannelId(long channelId);
 
     List<AlertRule> findAllEnabledRules();
 
@@ -15,7 +15,7 @@ public interface AlertRepository {
 
     void deleteRule(long id);
 
-    List<AlertEvent> findEventsByTwitchId(long twitchId, int limit);
+    List<AlertEvent> findEventsByChannelId(long channelId, int limit);
 
     List<AlertEvent> findRecentEvents(int limit);
 

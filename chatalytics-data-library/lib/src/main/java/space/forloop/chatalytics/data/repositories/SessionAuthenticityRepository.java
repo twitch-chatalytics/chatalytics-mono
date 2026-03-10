@@ -14,9 +14,9 @@ public interface SessionAuthenticityRepository {
 
     List<Long> findSessionIdsWithoutAuthenticity();
 
-    List<SessionAuthenticity> findByTwitchId(long twitchId, int limit, int offset);
+    List<SessionAuthenticity> findByChannelId(long channelId, int limit, int offset);
 
-    List<AuthenticityTrendPoint> findTrendByTwitchId(long twitchId, int limit);
+    List<AuthenticityTrendPoint> findTrendByChannelId(long channelId, int limit);
 
-    List<Long> findTwitchIdsWithoutChannelRollup();
+    List<Long> findChannelIdsWithoutChannelRollup();
 }

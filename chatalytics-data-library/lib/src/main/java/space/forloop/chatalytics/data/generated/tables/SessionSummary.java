@@ -64,9 +64,9 @@ public class SessionSummary extends TableImpl<SessionSummaryRecord> {
     public final TableField<SessionSummaryRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
 
     /**
-     * The column <code>twitch.session_summary.twitch_id</code>.
+     * The column <code>chat.session_summary.channel_id</code>.
      */
-    public final TableField<SessionSummaryRecord, Long> TWITCH_ID = createField(DSL.name("twitch_id"), SQLDataType.BIGINT.nullable(false), this, "");
+    public final TableField<SessionSummaryRecord, Long> CHANNEL_ID = createField(DSL.name("channel_id"), SQLDataType.BIGINT.nullable(false), this, "");
 
     /**
      * The column <code>twitch.session_summary.session_id</code>.
@@ -194,7 +194,7 @@ public class SessionSummary extends TableImpl<SessionSummaryRecord> {
 
     @Override
     public List<ForeignKey<SessionSummaryRecord, ?>> getReferences() {
-        return Arrays.asList(Keys.SESSION_SUMMARY__SESSION_SUMMARY_SESSION_ID_FKEY, Keys.SESSION_SUMMARY__SESSION_SUMMARY_TWITCH_ID_FKEY);
+        return Arrays.asList(Keys.SESSION_SUMMARY__SESSION_SUMMARY_SESSION_ID_FKEY, Keys.SESSION_SUMMARY__SESSION_SUMMARY_CHANNEL_ID_FKEY);
     }
 
     private transient SessionPath _session;
@@ -216,7 +216,7 @@ public class SessionSummary extends TableImpl<SessionSummaryRecord> {
      */
     public UserPath user() {
         if (_user == null)
-            _user = new UserPath(this, Keys.SESSION_SUMMARY__SESSION_SUMMARY_TWITCH_ID_FKEY, null);
+            _user = new UserPath(this, Keys.SESSION_SUMMARY__SESSION_SUMMARY_CHANNEL_ID_FKEY, null);
 
         return _user;
     }

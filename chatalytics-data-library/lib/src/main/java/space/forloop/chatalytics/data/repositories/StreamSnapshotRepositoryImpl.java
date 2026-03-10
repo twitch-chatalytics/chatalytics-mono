@@ -18,10 +18,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class StreamSnapshotRepositoryImpl implements StreamSnapshotRepository {
 
-    private static final Table<?> TABLE = DSL.table("twitch.stream_snapshot");
+    private static final Table<?> TABLE = DSL.table("chat.stream_snapshot");
     private static final Field<Long> ID = DSL.field("id", Long.class);
     private static final Field<Long> SESSION_ID = DSL.field("session_id", Long.class);
-    private static final Field<Long> TWITCH_ID = DSL.field("twitch_id", Long.class);
+    private static final Field<Long> CHANNEL_ID = DSL.field("channel_id", Long.class);
     private static final Field<OffsetDateTime> TIMESTAMP = DSL.field("timestamp", SQLDataType.TIMESTAMPWITHTIMEZONE);
     private static final Field<String> GAME_NAME = DSL.field("game_name", String.class);
     private static final Field<String> TITLE = DSL.field("title", String.class);
@@ -31,10 +31,10 @@ public class StreamSnapshotRepositoryImpl implements StreamSnapshotRepository {
 
     @Override
     @Transactional
-    public void write(long sessionId, long twitchId, String gameName, String title, int viewerCount) {
+    public void write(long sessionId, long channelId, String gameName, String title, int viewerCount) {
         dsl.insertInto(TABLE)
                 .set(SESSION_ID, sessionId)
-                .set(TWITCH_ID, twitchId)
+                .set(CHANNEL_ID, channelId)
                 .set(GAME_NAME, gameName)
                 .set(TITLE, title)
                 .set(VIEWER_COUNT, viewerCount)
@@ -43,14 +43,14 @@ public class StreamSnapshotRepositoryImpl implements StreamSnapshotRepository {
 
     @Override
     public List<StreamSnapshot> findBySessionId(long sessionId) {
-        return dsl.select(ID, SESSION_ID, TWITCH_ID, TIMESTAMP, GAME_NAME, TITLE, VIEWER_COUNT)
+        return dsl.select(ID, SESSION_ID, CHANNEL_ID, TIMESTAMP, GAME_NAME, TITLE, VIEWER_COUNT)
                 .from(TABLE)
                 .where(SESSION_ID.eq(sessionId))
                 .orderBy(TIMESTAMP.asc())
                 .fetch(r -> new StreamSnapshot(
                         r.get(ID),
                         r.get(SESSION_ID),
-                        r.get(TWITCH_ID),
+                        r.get(CHANNEL_ID),
                         r.get(TIMESTAMP).toInstant(),
                         r.get(GAME_NAME),
                         r.get(TITLE),
@@ -59,10 +59,10 @@ public class StreamSnapshotRepositoryImpl implements StreamSnapshotRepository {
     }
 
     @Override
-    public List<StreamSnapshot> findByTwitchId(long twitchId, Instant from, Instant to) {
-        var query = dsl.select(ID, SESSION_ID, TWITCH_ID, TIMESTAMP, GAME_NAME, TITLE, VIEWER_COUNT)
+    public List<StreamSnapshot> findByChannelId(long channelId, Instant from, Instant to) {
+        var query = dsl.select(ID, SESSION_ID, CHANNEL_ID, TIMESTAMP, GAME_NAME, TITLE, VIEWER_COUNT)
                 .from(TABLE)
-                .where(TWITCH_ID.eq(twitchId));
+                .where(CHANNEL_ID.eq(channelId));
 
         if (from != null) {
             query = query.and(TIMESTAMP.ge(OffsetDateTime.ofInstant(from, ZoneOffset.UTC)));
@@ -75,7 +75,7 @@ public class StreamSnapshotRepositoryImpl implements StreamSnapshotRepository {
                 .fetch(r -> new StreamSnapshot(
                         r.get(ID),
                         r.get(SESSION_ID),
-                        r.get(TWITCH_ID),
+                        r.get(CHANNEL_ID),
                         r.get(TIMESTAMP).toInstant(),
                         r.get(GAME_NAME),
                         r.get(TITLE),
@@ -84,10 +84,10 @@ public class StreamSnapshotRepositoryImpl implements StreamSnapshotRepository {
     }
 
     @Override
-    public List<TopGame> topGamesByTwitchId(long twitchId, int limit) {
+    public List<TopGame> topGamesByChannelId(long channelId, int limit) {
         return dsl.select(GAME_NAME.as("gameName"), DSL.countDistinct(SESSION_ID).as("sessionCount"))
                 .from(TABLE)
-                .where(TWITCH_ID.eq(twitchId))
+                .where(CHANNEL_ID.eq(channelId))
                 .and(GAME_NAME.isNotNull())
                 .groupBy(GAME_NAME)
                 .orderBy(DSL.countDistinct(SESSION_ID).desc())

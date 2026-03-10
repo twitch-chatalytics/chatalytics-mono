@@ -5,7 +5,7 @@ import java.time.Instant;
 import java.util.List;
 
 public record ChannelAuthenticity(
-        long twitchId,
+        long channelId,
         Double avgAuthenticityScore,
         Integer minAuthenticityScore,
         Integer maxAuthenticityScore,

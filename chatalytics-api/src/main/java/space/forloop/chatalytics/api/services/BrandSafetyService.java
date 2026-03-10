@@ -58,25 +58,25 @@ public class BrandSafetyService {
             "its", "im", "me", "no", "yes", "lol", "lmao", "ok", "yeah"
     );
 
-    public void computeAndSave(long twitchId) {
+    public void computeAndSave(long channelId) {
         // Fetch recent messages for this channel
-        var messageTable = table(name("twitch", "message"));
-        var sessionTable = table(name("twitch", "session"));
+        var messageTable = table(name("chat", "message"));
+        var sessionTable = table(name("chat", "session"));
 
         Result<? extends Record> messages = dsl.select(
                         field("message_text", String.class)
                 )
                 .from(messageTable)
                 .join(sessionTable)
-                .on(field(name("twitch", "message", "session_id"))
-                        .eq(field(name("twitch", "session", "id"))))
-                .where(field(name("twitch", "session", "twitch_id")).eq(twitchId))
-                .orderBy(field(name("twitch", "message", "id")).desc())
+                .on(field(name("chat", "message", "session_id"))
+                        .eq(field(name("chat", "session", "id"))))
+                .where(field(name("chat", "session", "channel_id")).eq(channelId))
+                .orderBy(field(name("chat", "message", "id")).desc())
                 .limit(10000)
                 .fetch();
 
         if (messages.isEmpty()) {
-            log.debug("No messages found for twitchId {} — skipping brand safety", twitchId);
+            log.debug("No messages found for channelId {} — skipping brand safety", channelId);
             return;
         }
 
@@ -177,10 +177,10 @@ public class BrandSafetyService {
                 .collect(Collectors.toMap(Map.Entry::getKey, e -> Math.round(e.getValue() / langTotal * 1000.0) / 1000.0));
 
         // Count sessions analyzed
-        int sessionsAnalyzed = countSessions(twitchId);
+        int sessionsAnalyzed = countSessions(channelId);
 
         ChannelBrandSafety safety = new ChannelBrandSafety(
-                twitchId,
+                channelId,
                 brandSafetyScore,
                 round3(toxicityRate),
                 round3(positiveRate),
@@ -195,15 +195,15 @@ public class BrandSafetyService {
         );
 
         brandSafetyRepository.save(safety);
-        log.info("Computed brand safety score {} for twitchId {} ({} messages analyzed)",
-                brandSafetyScore, twitchId, total);
+        log.info("Computed brand safety score {} for channelId {} ({} messages analyzed)",
+                brandSafetyScore, channelId, total);
     }
 
-    private int countSessions(long twitchId) {
-        var sessionTable = table(name("twitch", "session"));
+    private int countSessions(long channelId) {
+        var sessionTable = table(name("chat", "session"));
         return dsl.selectCount()
                 .from(sessionTable)
-                .where(field("twitch_id").eq(twitchId))
+                .where(field("channel_id").eq(channelId))
                 .fetchOne(0, Integer.class);
     }
 

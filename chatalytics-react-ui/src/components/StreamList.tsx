@@ -38,7 +38,7 @@ function formatNumber(n: number): string {
 }
 
 interface Props {
-  twitchId: number;
+  channelId: number;
   channelLogin: string;
   onSelectSession: (sessionId: number) => void;
   compareItems: CompareItem[];
@@ -49,7 +49,7 @@ interface Props {
   onRemoveChannelCompare: (channelId: number) => void;
 }
 
-export default function StreamList({ twitchId, channelLogin, onSelectSession, compareItems, onAddCompare, onRemoveCompare, channelCompareItems, onAddChannelCompare, onRemoveChannelCompare }: Props) {
+export default function StreamList({ channelId, channelLogin, onSelectSession, compareItems, onAddCompare, onRemoveCompare, channelCompareItems, onAddChannelCompare, onRemoveChannelCompare }: Props) {
   const [channel, setChannel] = useState<ChannelProfile | null>(null);
   const [sessions, setSessions] = useState<SessionSummaryView[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,7 +58,7 @@ export default function StreamList({ twitchId, channelLogin, onSelectSession, co
   const [dateRange, setDateRange] = useState<DateRange>({});
 
   const hasLiveSession = sessions.some(s => !s.endTime);
-  const { metrics: liveMetrics } = useLiveMetrics(hasLiveSession ? twitchId : null);
+  const { metrics: liveMetrics } = useLiveMetrics(hasLiveSession ? channelId : null);
 
   const [now, setNow] = useState(() => new Date().toISOString());
   useEffect(() => {
@@ -72,13 +72,13 @@ export default function StreamList({ twitchId, channelLogin, onSelectSession, co
       ? { startTime: cursorSession.startTime, id: cursorSession.sessionId }
       : undefined;
 
-    const data = await fetchSessions(range, cursor, undefined, twitchId);
+    const data = await fetchSessions(range, cursor, undefined, channelId);
     return data;
-  }, [twitchId]);
+  }, [channelId]);
 
   useEffect(() => {
-    fetchChannel(twitchId).then(setChannel);
-  }, [twitchId]);
+    fetchChannel(channelId).then(setChannel);
+  }, [channelId]);
 
   useEffect(() => {
     let active = true;

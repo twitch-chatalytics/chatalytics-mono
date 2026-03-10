@@ -37,14 +37,14 @@ public class SessionRecord extends UpdatableRecordImpl<SessionRecord> {
     /**
      * Setter for <code>twitch.session.twitch_id</code>.
      */
-    public void setTwitchId(Long value) {
+    public void setChannelId(Long value) {
         set(1, value);
     }
 
     /**
      * Getter for <code>twitch.session.twitch_id</code>.
      */
-    public Long getTwitchId() {
+    public Long getChannelId() {
         return (Long) get(1);
     }
 
@@ -99,11 +99,11 @@ public class SessionRecord extends UpdatableRecordImpl<SessionRecord> {
     /**
      * Create a detached, initialised SessionRecord
      */
-    public SessionRecord(Long id, Long twitchId, Instant startTime, Instant endTime) {
+    public SessionRecord(Long id, Long channelId, Instant startTime, Instant endTime) {
         super(Session.SESSION);
 
         setId(id);
-        setTwitchId(twitchId);
+        setChannelId(channelId);
         setStartTime(startTime);
         setEndTime(endTime);
         resetChangedOnNotNull();
@@ -117,7 +117,7 @@ public class SessionRecord extends UpdatableRecordImpl<SessionRecord> {
 
         if (value != null) {
             setId(value.getId());
-            setTwitchId(value.getTwitchId());
+            setChannelId(value.getChannelId());
             setStartTime(value.getStartTime());
             setEndTime(value.getEndTime());
             resetChangedOnNotNull();

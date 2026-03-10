@@ -70,9 +70,9 @@ public class Session extends TableImpl<SessionRecord> {
     public final TableField<SessionRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
 
     /**
-     * The column <code>twitch.session.twitch_id</code>.
+     * The column <code>chat.session.channel_id</code>.
      */
-    public final TableField<SessionRecord, Long> TWITCH_ID = createField(DSL.name("twitch_id"), SQLDataType.BIGINT.nullable(false), this, "");
+    public final TableField<SessionRecord, Long> CHANNEL_ID = createField(DSL.name("channel_id"), SQLDataType.BIGINT.nullable(false), this, "");
 
     /**
      * The column <code>twitch.session.start_time</code>.
@@ -168,7 +168,7 @@ public class Session extends TableImpl<SessionRecord> {
 
     @Override
     public List<ForeignKey<SessionRecord, ?>> getReferences() {
-        return Arrays.asList(Keys.SESSION__SESSION_TWITCH_ID_FKEY);
+        return Arrays.asList(Keys.SESSION__SESSION_CHANNEL_ID_FKEY);
     }
 
     private transient UserPath _user;
@@ -178,7 +178,7 @@ public class Session extends TableImpl<SessionRecord> {
      */
     public UserPath user() {
         if (_user == null)
-            _user = new UserPath(this, Keys.SESSION__SESSION_TWITCH_ID_FKEY, null);
+            _user = new UserPath(this, Keys.SESSION__SESSION_CHANNEL_ID_FKEY, null);
 
         return _user;
     }

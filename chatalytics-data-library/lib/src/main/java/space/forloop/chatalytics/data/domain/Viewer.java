@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.time.Instant;
 
 public record Viewer(
-        long twitchId,
+        long channelId,
         String login,
         String displayName,
         String profileImageUrl,

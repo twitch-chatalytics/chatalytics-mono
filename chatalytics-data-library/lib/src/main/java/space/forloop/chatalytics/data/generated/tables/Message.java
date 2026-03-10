@@ -68,9 +68,9 @@ public class Message extends TableImpl<MessageRecord> {
     public final TableField<MessageRecord, Long> ID = createField(DSL.name("id"), SQLDataType.BIGINT.nullable(false).identity(true), this, "");
 
     /**
-     * The column <code>twitch.message.twitch_id</code>.
+     * The column <code>chat.message.channel_id</code>.
      */
-    public final TableField<MessageRecord, Long> TWITCH_ID = createField(DSL.name("twitch_id"), SQLDataType.BIGINT.nullable(false), this, "");
+    public final TableField<MessageRecord, Long> CHANNEL_ID = createField(DSL.name("channel_id"), SQLDataType.BIGINT.nullable(false), this, "");
 
     /**
      * The column <code>twitch.message.message_text</code>.
@@ -161,7 +161,7 @@ public class Message extends TableImpl<MessageRecord> {
 
     @Override
     public List<Index> getIndexes() {
-        return Arrays.asList(Indexes.IDX_MESSAGE_AUTHOR, Indexes.IDX_MESSAGE_TWITCH_ID);
+        return Arrays.asList(Indexes.IDX_MESSAGE_AUTHOR, Indexes.IDX_MESSAGE_CHANNEL_ID);
     }
 
     @Override
@@ -176,7 +176,7 @@ public class Message extends TableImpl<MessageRecord> {
 
     @Override
     public List<ForeignKey<MessageRecord, ?>> getReferences() {
-        return Arrays.asList(Keys.MESSAGE__MESSAGE_SESSION_ID_FKEY, Keys.MESSAGE__MESSAGE_TWITCH_ID_FKEY);
+        return Arrays.asList(Keys.MESSAGE__MESSAGE_SESSION_ID_FKEY, Keys.MESSAGE__MESSAGE_CHANNEL_ID_FKEY);
     }
 
     private transient SessionPath _session;
@@ -198,7 +198,7 @@ public class Message extends TableImpl<MessageRecord> {
      */
     public UserPath user() {
         if (_user == null)
-            _user = new UserPath(this, Keys.MESSAGE__MESSAGE_TWITCH_ID_FKEY, null);
+            _user = new UserPath(this, Keys.MESSAGE__MESSAGE_CHANNEL_ID_FKEY, null);
 
         return _user;
     }

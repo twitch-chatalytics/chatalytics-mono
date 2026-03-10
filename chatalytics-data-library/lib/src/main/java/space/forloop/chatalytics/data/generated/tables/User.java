@@ -188,7 +188,7 @@ public class User extends TableImpl<UserRecord> {
      */
     public MessagePath message() {
         if (_message == null)
-            _message = new MessagePath(this, null, Keys.MESSAGE__MESSAGE_TWITCH_ID_FKEY.getInverseKey());
+            _message = new MessagePath(this, null, Keys.MESSAGE__MESSAGE_CHANNEL_ID_FKEY.getInverseKey());
 
         return _message;
     }
@@ -201,7 +201,7 @@ public class User extends TableImpl<UserRecord> {
      */
     public SessionSummaryPath sessionSummary() {
         if (_sessionSummary == null)
-            _sessionSummary = new SessionSummaryPath(this, null, Keys.SESSION_SUMMARY__SESSION_SUMMARY_TWITCH_ID_FKEY.getInverseKey());
+            _sessionSummary = new SessionSummaryPath(this, null, Keys.SESSION_SUMMARY__SESSION_SUMMARY_CHANNEL_ID_FKEY.getInverseKey());
 
         return _sessionSummary;
     }
@@ -214,7 +214,7 @@ public class User extends TableImpl<UserRecord> {
      */
     public SessionPath session() {
         if (_session == null)
-            _session = new SessionPath(this, null, Keys.SESSION__SESSION_TWITCH_ID_FKEY.getInverseKey());
+            _session = new SessionPath(this, null, Keys.SESSION__SESSION_CHANNEL_ID_FKEY.getInverseKey());
 
         return _session;
     }

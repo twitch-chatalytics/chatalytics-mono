@@ -8,13 +8,13 @@ import java.util.Optional;
 
 public interface SocialBladeRepository {
 
-    Optional<SocialBladeChannel> findByTwitchId(long twitchId);
+    Optional<SocialBladeChannel> findByChannelId(long channelId);
 
     void save(SocialBladeChannel channel);
 
-    void saveDailyPoints(long twitchId, List<SocialBladeDailyPoint> points);
+    void saveDailyPoints(long channelId, List<SocialBladeDailyPoint> points);
 
-    List<SocialBladeDailyPoint> findDailyByTwitchId(long twitchId, int limit);
+    List<SocialBladeDailyPoint> findDailyByChannelId(long channelId, int limit);
 
     List<Long> findStaleChannelIds(int staleHours);
 }

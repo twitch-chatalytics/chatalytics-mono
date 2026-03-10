@@ -25,8 +25,8 @@ public class Indexes {
     // -------------------------------------------------------------------------
 
     public static final Index IDX_MESSAGE_AUTHOR = Internal.createIndex(DSL.name("idx_message_author"), Message.MESSAGE, new OrderField[] { Message.MESSAGE.AUTHOR }, false);
-    public static final Index IDX_MESSAGE_TWITCH_ID = Internal.createIndex(DSL.name("idx_message_twitch_id"), Message.MESSAGE, new OrderField[] { Message.MESSAGE.TWITCH_ID }, false);
-    public static final Index IDX_MESSAGE_WORD_TWITCH_SESSION = Internal.createIndex(DSL.name("idx_message_word_twitch_session"), MessageWord.MESSAGE_WORD, new OrderField[] { MessageWord.MESSAGE_WORD.TWITCH_ID, MessageWord.MESSAGE_WORD.SESSION_ID }, false);
+    public static final Index IDX_MESSAGE_CHANNEL_ID = Internal.createIndex(DSL.name("idx_message_twitch_id"), Message.MESSAGE, new OrderField[] { Message.MESSAGE.CHANNEL_ID }, false);
+    public static final Index IDX_MESSAGE_WORD_TWITCH_SESSION = Internal.createIndex(DSL.name("idx_message_word_twitch_session"), MessageWord.MESSAGE_WORD, new OrderField[] { MessageWord.MESSAGE_WORD.CHANNEL_ID, MessageWord.MESSAGE_WORD.SESSION_ID }, false);
     public static final Index IDX_MESSAGE_WORD_WORD = Internal.createIndex(DSL.name("idx_message_word_word"), MessageWord.MESSAGE_WORD, new OrderField[] { MessageWord.MESSAGE_WORD.WORD }, false);
-    public static final Index IDX_SESSION_TWITCH_SESSION_ID = Internal.createIndex(DSL.name("idx_session_twitch_session_id"), Session.SESSION, new OrderField[] { Session.SESSION.TWITCH_ID, Session.SESSION.ID }, false);
+    public static final Index IDX_SESSION_TWITCH_SESSION_ID = Internal.createIndex(DSL.name("idx_session_twitch_session_id"), Session.SESSION, new OrderField[] { Session.SESSION.CHANNEL_ID, Session.SESSION.ID }, false);
 }

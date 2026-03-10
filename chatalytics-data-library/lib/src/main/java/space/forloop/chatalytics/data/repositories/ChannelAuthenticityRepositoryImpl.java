@@ -23,7 +23,7 @@ public class ChannelAuthenticityRepositoryImpl implements ChannelAuthenticityRep
     private final DSLContext dsl;
     private final ObjectMapper mapper;
 
-    private static final org.jooq.Table<?> TABLE = table(name("twitch", "channel_authenticity"));
+    private static final org.jooq.Table<?> TABLE = table(name("chat", "channel_authenticity"));
 
     public ChannelAuthenticityRepositoryImpl(DSLContext dsl) {
         this.dsl = dsl;
@@ -31,9 +31,9 @@ public class ChannelAuthenticityRepositoryImpl implements ChannelAuthenticityRep
     }
 
     @Override
-    public Optional<ChannelAuthenticity> findByTwitchId(long twitchId) {
+    public Optional<ChannelAuthenticity> findByChannelId(long channelId) {
         return dsl.selectFrom(TABLE)
-                .where(field("twitch_id").eq(twitchId))
+                .where(field("channel_id").eq(channelId))
                 .fetchOptional()
                 .map(this::toChannelAuthenticity);
     }
@@ -42,7 +42,7 @@ public class ChannelAuthenticityRepositoryImpl implements ChannelAuthenticityRep
     @Transactional
     public void save(ChannelAuthenticity ca) {
         dsl.insertInto(TABLE)
-                .set(field("twitch_id"), ca.twitchId())
+                .set(field("channel_id"), ca.channelId())
                 .set(field("avg_authenticity_score"), ca.avgAuthenticityScore())
                 .set(field("min_authenticity_score"), ca.minAuthenticityScore())
                 .set(field("max_authenticity_score"), ca.maxAuthenticityScore())
@@ -51,7 +51,7 @@ public class ChannelAuthenticityRepositoryImpl implements ChannelAuthenticityRep
                 .set(field("risk_level"), ca.riskLevel())
                 .set(field("risk_factors"), toJsonb(ca.riskFactors()))
                 .set(field("updated_at"), LocalDateTime.now(ZoneOffset.UTC))
-                .onConflict(field("twitch_id"))
+                .onConflict(field("channel_id"))
                 .doUpdate()
                 .set(field("avg_authenticity_score"), ca.avgAuthenticityScore())
                 .set(field("min_authenticity_score"), ca.minAuthenticityScore())
@@ -66,7 +66,7 @@ public class ChannelAuthenticityRepositoryImpl implements ChannelAuthenticityRep
 
     private ChannelAuthenticity toChannelAuthenticity(Record r) {
         return new ChannelAuthenticity(
-                r.get("twitch_id", Long.class),
+                r.get("channel_id", Long.class),
                 r.get("avg_authenticity_score", Double.class),
                 r.get("min_authenticity_score", Integer.class),
                 r.get("max_authenticity_score", Integer.class),

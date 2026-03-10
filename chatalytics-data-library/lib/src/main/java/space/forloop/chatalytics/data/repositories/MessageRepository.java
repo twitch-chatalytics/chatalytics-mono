@@ -20,27 +20,27 @@ public interface MessageRepository {
 
     Optional<TopChatter> topChatterByMessageCount(Long sessionId, List<String> ignoredAuthors);
 
-    List<Message> findByAuthor(String author, Long twitchId, Instant from, Instant to, Instant beforeTimestamp, Long beforeId, int limit);
+    List<Message> findByAuthor(String author, Long channelId, Instant from, Instant to, Instant beforeTimestamp, Long beforeId, int limit);
 
-    List<String> searchAuthors(String query, Long twitchId);
+    List<String> searchAuthors(String query, Long channelId);
 
     Optional<Message> findById(Long id);
 
-    List<Message> findContext(Long twitchId, Instant timestamp, int seconds);
+    List<Message> findContext(Long channelId, Instant timestamp, int seconds);
 
-    Long countAllMessages(Long twitchId);
+    Long countAllMessages(Long channelId);
 
-    Long countDistinctAuthors(Long twitchId);
+    Long countDistinctAuthors(Long channelId);
 
-    List<TopChatter> topChatters(Long twitchId, int limit);
+    List<TopChatter> topChatters(Long channelId, int limit);
 
-    Optional<Integer> peakHour(Long twitchId);
+    Optional<Integer> peakHour(Long channelId);
 
-    Optional<ChatterProfile> chatterProfile(String author, Long twitchId);
+    Optional<ChatterProfile> chatterProfile(String author, Long channelId);
 
-    List<RepeatedMessage> findRepeatedMessages(String author, Long twitchId);
+    List<RepeatedMessage> findRepeatedMessages(String author, Long channelId);
 
-    List<Message> findSampleByAuthor(String author, Long twitchId, int limit);
+    List<Message> findSampleByAuthor(String author, Long channelId, int limit);
 
     List<TopChatter> topChattersBySessionId(Long sessionId, int limit);
 
@@ -56,7 +56,7 @@ public interface MessageRepository {
 
     long countMessagesBySessionIdAndTimeRange(Long sessionId, Instant from, Instant to);
 
-    double avgMessagesPerSession(Long twitchId);
+    double avgMessagesPerSession(Long channelId);
 
-    double avgChattersPerSession(Long twitchId);
+    double avgChattersPerSession(Long channelId);
 }

@@ -18,7 +18,7 @@ public class AdvertiserAccountRepositoryImpl implements AdvertiserAccountReposit
         this.dsl = dsl;
     }
 
-    private static final org.jooq.Table<?> TABLE = table(name("twitch", "advertiser_account"));
+    private static final org.jooq.Table<?> TABLE = table(name("chat", "advertiser_account"));
 
     @Override
     public Optional<AdvertiserAccount> findActiveByViewerId(long viewerId) {

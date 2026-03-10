@@ -27,7 +27,7 @@ public class StreamRecapRepositoryImpl implements StreamRecapRepository {
     private final DSLContext dsl;
     private final ObjectMapper mapper;
 
-    private static final org.jooq.Table<?> TABLE = table(name("twitch", "stream_recap"));
+    private static final org.jooq.Table<?> TABLE = table(name("chat", "stream_recap"));
 
     public StreamRecapRepositoryImpl(DSLContext dsl) {
         this.dsl = dsl;
@@ -86,17 +86,17 @@ public class StreamRecapRepositoryImpl implements StreamRecapRepository {
 
     @Override
     public List<Long> findSessionIdsWithoutRecap() {
-        var sessionTable = table(name("twitch", "session"));
-        return dsl.select(field(name("twitch", "session", "id"), Long.class))
+        var sessionTable = table(name("chat", "session"));
+        return dsl.select(field(name("chat", "session", "id"), Long.class))
                 .from(sessionTable)
-                .where(field(name("twitch", "session", "end_time")).isNotNull())
+                .where(field(name("chat", "session", "end_time")).isNotNull())
                 .andNotExists(
                         dsl.selectOne()
                                 .from(TABLE)
-                                .where(field(name("twitch", "stream_recap", "session_id"))
-                                        .eq(field(name("twitch", "session", "id"))))
+                                .where(field(name("chat", "stream_recap", "session_id"))
+                                        .eq(field(name("chat", "session", "id"))))
                 )
-                .orderBy(field(name("twitch", "session", "end_time")).desc())
+                .orderBy(field(name("chat", "session", "end_time")).desc())
                 .limit(10)
                 .fetchInto(Long.class);
     }

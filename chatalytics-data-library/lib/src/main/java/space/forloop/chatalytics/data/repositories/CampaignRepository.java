@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public interface CampaignRepository {
 
-    List<Campaign> findByTwitchId(long twitchId);
+    List<Campaign> findByChannelId(long channelId);
 
     Optional<Campaign> findById(long id);
 

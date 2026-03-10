@@ -16,7 +16,7 @@ public class SessionSummary implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Long id;
-    private Long twitchId;
+    private Long channelId;
     private Long sessionId;
     private Long messagesPerMinute;
     private Long totalChatters;
@@ -31,7 +31,7 @@ public class SessionSummary implements Serializable {
 
     public SessionSummary(SessionSummary value) {
         this.id = value.id;
-        this.twitchId = value.twitchId;
+        this.channelId = value.channelId;
         this.sessionId = value.sessionId;
         this.messagesPerMinute = value.messagesPerMinute;
         this.totalChatters = value.totalChatters;
@@ -45,7 +45,7 @@ public class SessionSummary implements Serializable {
 
     public SessionSummary(
         Long id,
-        Long twitchId,
+        Long channelId,
         Long sessionId,
         Long messagesPerMinute,
         Long totalChatters,
@@ -57,7 +57,7 @@ public class SessionSummary implements Serializable {
         Long topChatterByMessageCountValue
     ) {
         this.id = id;
-        this.twitchId = twitchId;
+        this.channelId = channelId;
         this.sessionId = sessionId;
         this.messagesPerMinute = messagesPerMinute;
         this.totalChatters = totalChatters;
@@ -86,15 +86,15 @@ public class SessionSummary implements Serializable {
     /**
      * Getter for <code>twitch.session_summary.twitch_id</code>.
      */
-    public Long getTwitchId() {
-        return this.twitchId;
+    public Long getChannelId() {
+        return this.channelId;
     }
 
     /**
      * Setter for <code>twitch.session_summary.twitch_id</code>.
      */
-    public void setTwitchId(Long twitchId) {
-        this.twitchId = twitchId;
+    public void setChannelId(Long channelId) {
+        this.channelId = channelId;
     }
 
     /**
@@ -242,11 +242,11 @@ public class SessionSummary implements Serializable {
         }
         else if (!this.id.equals(other.id))
             return false;
-        if (this.twitchId == null) {
-            if (other.twitchId != null)
+        if (this.channelId == null) {
+            if (other.channelId != null)
                 return false;
         }
-        else if (!this.twitchId.equals(other.twitchId))
+        else if (!this.channelId.equals(other.channelId))
             return false;
         if (this.sessionId == null) {
             if (other.sessionId != null)
@@ -310,7 +310,7 @@ public class SessionSummary implements Serializable {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((this.id == null) ? 0 : this.id.hashCode());
-        result = prime * result + ((this.twitchId == null) ? 0 : this.twitchId.hashCode());
+        result = prime * result + ((this.channelId == null) ? 0 : this.channelId.hashCode());
         result = prime * result + ((this.sessionId == null) ? 0 : this.sessionId.hashCode());
         result = prime * result + ((this.messagesPerMinute == null) ? 0 : this.messagesPerMinute.hashCode());
         result = prime * result + ((this.totalChatters == null) ? 0 : this.totalChatters.hashCode());
@@ -328,7 +328,7 @@ public class SessionSummary implements Serializable {
         StringBuilder sb = new StringBuilder("SessionSummary (");
 
         sb.append(id);
-        sb.append(", ").append(twitchId);
+        sb.append(", ").append(channelId);
         sb.append(", ").append(sessionId);
         sb.append(", ").append(messagesPerMinute);
         sb.append(", ").append(totalChatters);

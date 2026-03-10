@@ -19,17 +19,17 @@ public class AlertRepositoryImpl implements AlertRepository {
 
     private final DSLContext dsl;
 
-    private static final org.jooq.Table<?> RULE_TABLE = table(name("twitch", "alert_rule"));
-    private static final org.jooq.Table<?> EVENT_TABLE = table(name("twitch", "alert_event"));
+    private static final org.jooq.Table<?> RULE_TABLE = table(name("chat", "alert_rule"));
+    private static final org.jooq.Table<?> EVENT_TABLE = table(name("chat", "alert_event"));
 
     public AlertRepositoryImpl(DSLContext dsl) {
         this.dsl = dsl;
     }
 
     @Override
-    public List<AlertRule> findRulesByTwitchId(long twitchId) {
+    public List<AlertRule> findRulesByChannelId(long channelId) {
         return dsl.selectFrom(RULE_TABLE)
-                .where(field("twitch_id").eq(twitchId))
+                .where(field("channel_id").eq(channelId))
                 .orderBy(field("created_at").desc())
                 .fetch()
                 .map(this::toAlertRule);
@@ -47,7 +47,7 @@ public class AlertRepositoryImpl implements AlertRepository {
     @Transactional
     public AlertRule saveRule(AlertRule rule) {
         Record record = dsl.insertInto(RULE_TABLE)
-                .set(field("twitch_id"), rule.twitchId())
+                .set(field("channel_id"), rule.channelId())
                 .set(field("alert_type"), rule.alertType())
                 .set(field("threshold_value"), rule.thresholdValue())
                 .set(field("enabled"), rule.enabled())
@@ -67,9 +67,9 @@ public class AlertRepositoryImpl implements AlertRepository {
     }
 
     @Override
-    public List<AlertEvent> findEventsByTwitchId(long twitchId, int limit) {
+    public List<AlertEvent> findEventsByChannelId(long channelId, int limit) {
         return dsl.selectFrom(EVENT_TABLE)
-                .where(field("twitch_id").eq(twitchId))
+                .where(field("channel_id").eq(channelId))
                 .orderBy(field("created_at").desc())
                 .limit(limit)
                 .fetch()
@@ -90,7 +90,7 @@ public class AlertRepositoryImpl implements AlertRepository {
     public void saveEvent(AlertEvent event) {
         dsl.insertInto(EVENT_TABLE)
                 .set(field("alert_rule_id"), event.alertRuleId())
-                .set(field("twitch_id"), event.twitchId())
+                .set(field("channel_id"), event.channelId())
                 .set(field("alert_type"), event.alertType())
                 .set(field("message"), event.message())
                 .set(field("severity"), event.severity())
@@ -111,7 +111,7 @@ public class AlertRepositoryImpl implements AlertRepository {
     private AlertRule toAlertRule(Record r) {
         return new AlertRule(
                 r.get("id", Long.class),
-                r.get("twitch_id", Long.class),
+                r.get("channel_id", Long.class),
                 r.get("alert_type", String.class),
                 r.get("threshold_value", Double.class),
                 r.get("enabled", Boolean.class),
@@ -123,7 +123,7 @@ public class AlertRepositoryImpl implements AlertRepository {
         return new AlertEvent(
                 r.get("id", Long.class),
                 r.get("alert_rule_id", Long.class),
-                r.get("twitch_id", Long.class),
+                r.get("channel_id", Long.class),
                 r.get("alert_type", String.class),
                 r.get("message", String.class),
                 r.get("severity", String.class),
