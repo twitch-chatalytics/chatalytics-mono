@@ -104,6 +104,20 @@ public class MessageRecord extends UpdatableRecordImpl<MessageRecord> {
         return (String) get(5);
     }
 
+    /**
+     * Setter for <code>chat.message.platform</code>.
+     */
+    public void setPlatform(String value) {
+        set(6, value);
+    }
+
+    /**
+     * Getter for <code>chat.message.platform</code>.
+     */
+    public String getPlatform() {
+        return (String) get(6);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -142,6 +156,22 @@ public class MessageRecord extends UpdatableRecordImpl<MessageRecord> {
     /**
      * Create a detached, initialised MessageRecord
      */
+    public MessageRecord(Long id, Long channelId, String messageText, Instant timestamp, Long sessionId, String author, String platform) {
+        super(Message.MESSAGE);
+
+        setId(id);
+        setChannelId(channelId);
+        setMessageText(messageText);
+        setTimestamp(timestamp);
+        setSessionId(sessionId);
+        setAuthor(author);
+        setPlatform(platform);
+        resetChangedOnNotNull();
+    }
+
+    /**
+     * Create a detached, initialised MessageRecord
+     */
     public MessageRecord(space.forloop.chatalytics.data.generated.tables.pojos.Message value) {
         super(Message.MESSAGE);
 
@@ -152,6 +182,7 @@ public class MessageRecord extends UpdatableRecordImpl<MessageRecord> {
             setTimestamp(value.getTimestamp());
             setSessionId(value.getSessionId());
             setAuthor(value.getAuthor());
+            setPlatform(value.getPlatform());
             resetChangedOnNotNull();
         }
     }

@@ -92,6 +92,11 @@ public class Message extends TableImpl<MessageRecord> {
      */
     public final TableField<MessageRecord, String> AUTHOR = createField(DSL.name("author"), SQLDataType.CLOB.nullable(false), this, "");
 
+    /**
+     * The column <code>chat.message.platform</code>.
+     */
+    public final TableField<MessageRecord, String> PLATFORM = createField(DSL.name("platform"), SQLDataType.VARCHAR(20).nullable(false).defaultValue(DSL.inline("twitch")), this, "");
+
     private Message(Name alias, Table<MessageRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }

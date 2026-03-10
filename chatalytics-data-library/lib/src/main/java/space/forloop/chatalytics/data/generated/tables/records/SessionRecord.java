@@ -76,6 +76,20 @@ public class SessionRecord extends UpdatableRecordImpl<SessionRecord> {
         return (Instant) get(3);
     }
 
+    /**
+     * Setter for <code>chat.session.platform</code>.
+     */
+    public void setPlatform(String value) {
+        set(4, value);
+    }
+
+    /**
+     * Getter for <code>chat.session.platform</code>.
+     */
+    public String getPlatform() {
+        return (String) get(4);
+    }
+
     // -------------------------------------------------------------------------
     // Primary key information
     // -------------------------------------------------------------------------
@@ -112,6 +126,20 @@ public class SessionRecord extends UpdatableRecordImpl<SessionRecord> {
     /**
      * Create a detached, initialised SessionRecord
      */
+    public SessionRecord(Long id, Long channelId, Instant startTime, Instant endTime, String platform) {
+        super(Session.SESSION);
+
+        setId(id);
+        setChannelId(channelId);
+        setStartTime(startTime);
+        setEndTime(endTime);
+        setPlatform(platform);
+        resetChangedOnNotNull();
+    }
+
+    /**
+     * Create a detached, initialised SessionRecord
+     */
     public SessionRecord(space.forloop.chatalytics.data.generated.tables.pojos.Session value) {
         super(Session.SESSION);
 
@@ -120,6 +148,7 @@ public class SessionRecord extends UpdatableRecordImpl<SessionRecord> {
             setChannelId(value.getChannelId());
             setStartTime(value.getStartTime());
             setEndTime(value.getEndTime());
+            setPlatform(value.getPlatform());
             resetChangedOnNotNull();
         }
     }

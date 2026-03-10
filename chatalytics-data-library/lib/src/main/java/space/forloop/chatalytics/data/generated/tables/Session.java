@@ -84,6 +84,11 @@ public class Session extends TableImpl<SessionRecord> {
      */
     public final TableField<SessionRecord, Instant> END_TIME = createField(DSL.name("end_time"), SQLDataType.TIMESTAMPWITHTIMEZONE, this, "", new InstantConverter());
 
+    /**
+     * The column <code>chat.session.platform</code>.
+     */
+    public final TableField<SessionRecord, String> PLATFORM = createField(DSL.name("platform"), SQLDataType.VARCHAR(20).nullable(false).defaultValue(DSL.inline("twitch")), this, "");
+
     private Session(Name alias, Table<SessionRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }

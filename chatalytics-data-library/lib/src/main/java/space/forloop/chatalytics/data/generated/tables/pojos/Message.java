@@ -22,6 +22,7 @@ public class Message implements Serializable {
     private Instant timestamp;
     private Long sessionId;
     private String author;
+    private String platform;
 
     public Message() {}
 
@@ -32,6 +33,7 @@ public class Message implements Serializable {
         this.timestamp = value.timestamp;
         this.sessionId = value.sessionId;
         this.author = value.author;
+        this.platform = value.platform;
     }
 
     public Message(
@@ -48,6 +50,24 @@ public class Message implements Serializable {
         this.timestamp = timestamp;
         this.sessionId = sessionId;
         this.author = author;
+    }
+
+    public Message(
+        Long id,
+        Long channelId,
+        String messageText,
+        Instant timestamp,
+        Long sessionId,
+        String author,
+        String platform
+    ) {
+        this.id = id;
+        this.channelId = channelId;
+        this.messageText = messageText;
+        this.timestamp = timestamp;
+        this.sessionId = sessionId;
+        this.author = author;
+        this.platform = platform;
     }
 
     /**
@@ -132,6 +152,20 @@ public class Message implements Serializable {
      */
     public void setAuthor(String author) {
         this.author = author;
+    }
+
+    /**
+     * Getter for <code>chat.message.platform</code>.
+     */
+    public String getPlatform() {
+        return this.platform;
+    }
+
+    /**
+     * Setter for <code>chat.message.platform</code>.
+     */
+    public void setPlatform(String platform) {
+        this.platform = platform;
     }
 
     @Override

@@ -20,6 +20,7 @@ public class Session implements Serializable {
     private Long channelId;
     private Instant startTime;
     private Instant endTime;
+    private String platform;
 
     public Session() {}
 
@@ -28,6 +29,7 @@ public class Session implements Serializable {
         this.channelId = value.channelId;
         this.startTime = value.startTime;
         this.endTime = value.endTime;
+        this.platform = value.platform;
     }
 
     public Session(
@@ -40,6 +42,20 @@ public class Session implements Serializable {
         this.channelId = channelId;
         this.startTime = startTime;
         this.endTime = endTime;
+    }
+
+    public Session(
+        Long id,
+        Long channelId,
+        Instant startTime,
+        Instant endTime,
+        String platform
+    ) {
+        this.id = id;
+        this.channelId = channelId;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.platform = platform;
     }
 
     /**
@@ -96,6 +112,20 @@ public class Session implements Serializable {
      */
     public void setEndTime(Instant endTime) {
         this.endTime = endTime;
+    }
+
+    /**
+     * Getter for <code>chat.session.platform</code>.
+     */
+    public String getPlatform() {
+        return this.platform;
+    }
+
+    /**
+     * Setter for <code>chat.session.platform</code>.
+     */
+    public void setPlatform(String platform) {
+        this.platform = platform;
     }
 
     @Override

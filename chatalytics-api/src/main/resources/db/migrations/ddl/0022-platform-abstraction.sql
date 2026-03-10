@@ -9,7 +9,6 @@ ALTER TABLE chat.session RENAME COLUMN twitch_id TO channel_id;
 ALTER TABLE chat.message_word RENAME COLUMN twitch_id TO channel_id;
 ALTER TABLE chat.session_summary RENAME COLUMN twitch_id TO channel_id;
 ALTER TABLE chat.stream_snapshot RENAME COLUMN twitch_id TO channel_id;
-ALTER TABLE chat.stream_recap RENAME COLUMN twitch_id TO channel_id;
 ALTER TABLE chat.session_authenticity RENAME COLUMN twitch_id TO channel_id;
 ALTER TABLE chat.channel_authenticity RENAME COLUMN twitch_id TO channel_id;
 ALTER TABLE chat.channel_brand_safety RENAME COLUMN twitch_id TO channel_id;
@@ -23,6 +22,8 @@ ALTER TABLE chat.socialblade_daily RENAME COLUMN twitch_id TO channel_id;
 -- 3. Rename twitch_id on partitioned message table
 --    PostgreSQL propagates RENAME COLUMN to all partitions since PG 12.
 ALTER TABLE chat.message RENAME COLUMN twitch_id TO channel_id;
+
+--changeset platform-abstraction:2 splitStatements:false
 
 -- 4. Update the async tokenization function to use new column name
 CREATE OR REPLACE FUNCTION public.fn_tokenize_message_word()
@@ -39,6 +40,8 @@ BEGIN
     END LOOP;
     RETURN NEW;
 END; $$;
+
+--changeset platform-abstraction:3
 
 -- 5. Add platform discriminator (default 'twitch' for all existing data)
 ALTER TABLE chat."user" ADD COLUMN platform VARCHAR(20) NOT NULL DEFAULT 'twitch';

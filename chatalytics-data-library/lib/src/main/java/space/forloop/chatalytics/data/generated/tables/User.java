@@ -108,6 +108,16 @@ public class User extends TableImpl<UserRecord> {
      */
     public final TableField<UserRecord, Instant> CREATED_AT = createField(DSL.name("created_at"), SQLDataType.TIMESTAMPWITHTIMEZONE.defaultValue(DSL.field(DSL.raw("(CURRENT_TIMESTAMP(0) AT TIME ZONE 'UTC'::text)"), SQLDataType.TIMESTAMPWITHTIMEZONE)), this, "", new InstantConverter());
 
+    /**
+     * The column <code>chat.user.platform</code>.
+     */
+    public final TableField<UserRecord, String> PLATFORM = createField(DSL.name("platform"), SQLDataType.VARCHAR(20).nullable(false).defaultValue(DSL.inline("twitch")), this, "");
+
+    /**
+     * The column <code>chat.user.platform_id</code>.
+     */
+    public final TableField<UserRecord, String> PLATFORM_ID = createField(DSL.name("platform_id"), SQLDataType.VARCHAR(255), this, "");
+
     private User(Name alias, Table<UserRecord> aliased) {
         this(alias, aliased, (Field<?>[]) null, null);
     }
