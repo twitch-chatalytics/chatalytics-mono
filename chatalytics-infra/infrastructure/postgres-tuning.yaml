@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-tuning
+  namespace: chatalytics
+  labels:
+    app.kubernetes.io/name: postgres-tuning
+    app.kubernetes.io/part-of: chatalytics
+data:
+  # PostgreSQL tuning for high-throughput message ingestion (250 streamers, 4k+ msg/sec)
+  # Apply these settings to your PostgreSQL instance (ALTER SYSTEM or postgresql.conf)
+  #
+  # ALTER SYSTEM SET shared_buffers = '4GB';
+  # ALTER SYSTEM SET wal_buffers = '256MB';
+  # ALTER SYSTEM SET synchronous_commit = 'off';  -- Kafka provides durability
+  # ALTER SYSTEM SET checkpoint_completion_target = '0.9';
+  # ALTER SYSTEM SET effective_cache_size = '12GB';
+  # ALTER SYSTEM SET max_connections = '200';
+  # ALTER SYSTEM SET max_wal_size = '4GB';
+  # SELECT pg_reload_conf();
+  #
+  shared_buffers: "4GB"
+  wal_buffers: "256MB"
+  synchronous_commit: "off"
+  checkpoint_completion_target: "0.9"
+  effective_cache_size: "12GB"
+  max_connections: "200"
+  max_wal_size: "4GB"
